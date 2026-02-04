@@ -20,7 +20,7 @@ async function main() {
         name: 'Phone Cases',
         slug: 'phone-cases',
         description: 'Protective and stylish cases for your device',
-        image: 'https://images.pexels.com/photos/788946/pexels-photo-788946.jpeg?auto=compress&cs=tinysrgb&w=800',
+        image: '/products/phone-cases/case-1.jpg',
       },
     }),
     prisma.category.create({
@@ -28,7 +28,7 @@ async function main() {
         name: 'Screen Protectors',
         slug: 'screen-protectors',
         description: 'Keep your screen scratch-free',
-        image: 'https://images.pexels.com/photos/4195325/pexels-photo-4195325.jpeg?auto=compress&cs=tinysrgb&w=800',
+        image: '/products/screen-protectors/sp-1.jpg',
       },
     }),
     prisma.category.create({
@@ -36,7 +36,7 @@ async function main() {
         name: 'Wireless Earphones',
         slug: 'wireless-earphones',
         description: 'Premium sound quality',
-        image: 'https://images.pexels.com/photos/3780681/pexels-photo-3780681.jpeg?auto=compress&cs=tinysrgb&w=800',
+        image: '/products/wireless-earphones/earphones-1.jpg',
       },
     }),
     prisma.category.create({
@@ -44,7 +44,7 @@ async function main() {
         name: 'Chargers & Cables',
         slug: 'chargers-cables',
         description: 'Fast charging solutions',
-        image: 'https://images.pexels.com/photos/4219863/pexels-photo-4219863.jpeg?auto=compress&cs=tinysrgb&w=800',
+        image: '/products/chargers-cables/charger-1.jpg',
       },
     }),
     prisma.category.create({
@@ -52,7 +52,7 @@ async function main() {
         name: 'Power Banks',
         slug: 'power-banks',
         description: 'Portable power on the go',
-        image: 'https://images.pexels.com/photos/4526407/pexels-photo-4526407.jpeg?auto=compress&cs=tinysrgb&w=800',
+        image: '/products/power-banks/powerbank-1.jpg',
       },
     }),
     prisma.category.create({
@@ -60,7 +60,7 @@ async function main() {
         name: 'Adapters',
         slug: 'adapters',
         description: 'Universal connectivity solutions',
-        image: 'https://images.pexels.com/photos/4219862/pexels-photo-4219862.jpeg?auto=compress&cs=tinysrgb&w=800',
+        image: '/products/adapters/adapter-1.jpg',
       },
     }),
   ]);
@@ -69,17 +69,17 @@ async function main() {
 
   // Create products
   const products = await Promise.all([
-    // Phone Cases (6 products) - Real branded products
+    // Phone Cases (6 products)
     prisma.product.create({
       data: {
-        name: 'Apple Silicone Case with MagSafe',
-        slug: 'apple-silicone-magsafe-case',
-        description: 'Official Apple silicone case with built-in MagSafe technology. Soft-touch finish with microfiber lining.',
+        name: 'Premium Silicone Case with MagSafe',
+        slug: 'premium-silicone-magsafe-case',
+        description: 'Luxurious silicone case with built-in MagSafe technology. Soft-touch finish with microfiber lining for ultimate protection.',
         price: 49,
         oldPrice: 59,
         discount: 17,
-        image: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=600&q=80',
+        image: '/products/phone-cases/case-1.jpg',
+        images: '/products/phone-cases/case-1.jpg',
         categoryId: categories[0].id,
         colors: 'Midnight, Storm Blue, Clay, Elderberry',
         sizes: 'iPhone 15, iPhone 15 Pro, iPhone 15 Pro Max',
@@ -92,20 +92,20 @@ async function main() {
         specifications: {
           material: 'Silicone with microfiber lining',
           protection: 'MagSafe Compatible',
-          features: ['MagSafe Charging', 'Soft-Touch Finish', 'Raised Edges', 'Official Apple Product']
+          features: ['MagSafe Charging', 'Soft-Touch Finish', 'Raised Edges', 'Premium Quality']
         }
       },
     }),
     prisma.product.create({
       data: {
-        name: 'Spigen Ultra Hybrid Clear Case',
-        slug: 'spigen-ultra-hybrid-clear',
+        name: 'Ultra Hybrid Clear Case',
+        slug: 'ultra-hybrid-clear-case',
         description: 'Crystal clear TPU bumper with rigid PC back. Shows off your phone while providing military-grade drop protection.',
         price: 29,
         oldPrice: 39,
         discount: 26,
-        image: 'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=600&q=80',
+        image: '/products/phone-cases/case-2.jpg',
+        images: '/products/phone-cases/case-2.jpg',
         categoryId: categories[0].id,
         colors: 'Clear, Matte Black',
         sizes: 'iPhone 15, iPhone 15 Pro, Samsung S24',
@@ -117,21 +117,21 @@ async function main() {
         featured: true,
         specifications: {
           material: 'TPU + Polycarbonate',
-          protection: 'Air Cushion Technology, MIL-STD 810G-516.6',
+          protection: 'Air Cushion Technology, MIL-STD 810G',
           features: ['Crystal Clear', 'Anti-Yellowing', 'Wireless Charging', 'Raised Bezels']
         }
       },
     }),
     prisma.product.create({
       data: {
-        name: 'OtterBox Defender Series Pro',
-        slug: 'otterbox-defender-series-pro',
+        name: 'Defender Series Pro Rugged Case',
+        slug: 'defender-series-pro-rugged',
         description: 'Ultimate rugged protection with port covers and holster clip. Built for extreme conditions.',
         price: 64,
         oldPrice: 79,
         discount: 19,
-        image: 'https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=600&q=80',
+        image: '/products/phone-cases/case-3.jpg',
+        images: '/products/phone-cases/case-3.jpg',
         categoryId: categories[0].id,
         colors: 'Black, Blue, Purple, Cactus Green',
         sizes: 'iPhone 15, iPhone 15 Pro, Samsung S24, Google Pixel 8',
@@ -150,14 +150,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'dbrand Grip Case',
-        slug: 'dbrand-grip-case',
+        name: 'Textured Grip Case',
+        slug: 'textured-grip-case',
         description: 'Textured grip case with customizable skin panels. Engineered for maximum grip and drop protection.',
         price: 55,
         oldPrice: 65,
         discount: 15,
-        image: 'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=600&q=80',
+        image: '/products/phone-cases/case-4.jpg',
+        images: '/products/phone-cases/case-4.jpg',
         categoryId: categories[0].id,
         colors: 'Black, Robot Camo, Swarm, Damascus',
         sizes: 'iPhone 15, iPhone 15 Pro, Samsung S24, Pixel 8',
@@ -176,14 +176,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Casetify Impact Case',
-        slug: 'casetify-impact-case',
+        name: 'Fashion Impact Case',
+        slug: 'fashion-impact-case',
         description: 'Fashion-forward protection with 6.6ft drop rating. Features antimicrobial coating and artistic designs.',
         price: 59,
         oldPrice: 75,
         discount: 21,
-        image: 'https://images.unsplash.com/photo-1606220838315-056192d5e927?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1606220838315-056192d5e927?w=600&q=80',
+        image: '/products/phone-cases/case-5.jpg',
+        images: '/products/phone-cases/case-5.jpg',
         categoryId: categories[0].id,
         colors: 'Clear, Black, Blue Marble, Pink Gradient',
         sizes: 'iPhone 15, iPhone 15 Pro, Samsung S24',
@@ -202,14 +202,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Spigen Tough Armor MagSafe',
-        slug: 'spigen-tough-armor-magsafe',
+        name: 'Tough Armor MagSafe Case',
+        slug: 'tough-armor-magsafe-case',
         description: 'Dual-layer protection with built-in kickstand and MagSafe compatibility. Engineered for maximum impact absorption.',
         price: 44,
         oldPrice: 55,
         discount: 20,
-        image: 'https://images.unsplash.com/photo-1603313011101-320f26a4f6f6?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1603313011101-320f26a4f6f6?w=600&q=80',
+        image: '/products/phone-cases/case-6.jpg',
+        images: '/products/phone-cases/case-6.jpg',
         categoryId: categories[0].id,
         colors: 'Black, Gunmetal',
         sizes: 'iPhone 15, iPhone 15 Pro, iPhone 15 Pro Max',
@@ -228,17 +228,17 @@ async function main() {
     }),
 
 
-    // Screen Protectors (6 products) - Real branded products
+    // Screen Protectors (6 products)
     prisma.product.create({
       data: {
-        name: 'Belkin ScreenForce UltraGlass',
-        slug: 'belkin-screenforce-ultraglass',
-        description: 'Precision-engineered Belkin screen protector with 9H hardness. Double-ion exchange technology for superior strength.',
+        name: 'ScreenForce UltraGlass Protector',
+        slug: 'screenforce-ultraglass-protector',
+        description: 'Precision-engineered screen protector with 9H hardness. Double-ion exchange technology for superior strength.',
         price: 39,
         oldPrice: 49,
         discount: 20,
-        image: 'https://images.unsplash.com/photo-1616348436168-de43ad0db179?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1616348436168-de43ad0db179?w=600&q=80',
+        image: '/products/screen-protectors/sp-1.jpg',
+        images: '/products/screen-protectors/sp-1.jpg',
         categoryId: categories[1].id,
         colors: '',
         sizes: 'iPhone 15, iPhone 15 Pro, iPhone 15 Pro Max',
@@ -257,14 +257,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Spigen Glas.tR EZ Fit',
-        slug: 'spigen-glastr-ez-fit',
+        name: 'Glas.tR EZ Fit Screen Protector',
+        slug: 'glastr-ez-fit-protector',
         description: 'Auto-align installation kit with 9H hardness glass. Crystal clear with oleophobic coating.',
         price: 24,
         oldPrice: 32,
         discount: 25,
-        image: 'https://images.unsplash.com/photo-1605236453806-6ff36851218e?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1605236453806-6ff36851218e?w=600&q=80',
+        image: '/products/screen-protectors/sp-2.jpg',
+        images: '/products/screen-protectors/sp-2.jpg',
         categoryId: categories[1].id,
         colors: '',
         sizes: 'iPhone 15, iPhone 15 Pro, Samsung S24',
@@ -283,14 +283,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'OtterBox Alpha Glass',
-        slug: 'otterbox-alpha-glass',
+        name: 'Alpha Glass Screen Protector',
+        slug: 'alpha-glass-protector',
         description: 'Strengthened glass with anti-shatter film. Tested to withstand drops and impacts.',
         price: 44,
         oldPrice: 54,
         discount: 19,
-        image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&q=80',
+        image: '/products/screen-protectors/sp-3.jpg',
+        images: '/products/screen-protectors/sp-3.jpg',
         categoryId: categories[1].id,
         colors: '',
         sizes: 'iPhone 15, iPhone 15 Pro, Samsung S24, Pixel 8',
@@ -309,14 +309,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Zagg InvisibleShield Glass Elite',
-        slug: 'zagg-invisibleshield-glass-elite',
+        name: 'InvisibleShield Glass Elite',
+        slug: 'invisibleshield-glass-elite',
         description: 'Premium glass with ClearPrint technology that makes fingerprints virtually invisible.',
         price: 49,
         oldPrice: 59,
         discount: 17,
-        image: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600&q=80',
+        image: '/products/screen-protectors/sp-4.jpg',
+        images: '/products/screen-protectors/sp-4.jpg',
         categoryId: categories[1].id,
         colors: '',
         sizes: 'iPhone 15, iPhone 15 Pro, Samsung S24',
@@ -335,14 +335,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Spigen AlignMaster Privacy',
-        slug: 'spigen-alignmaster-privacy',
+        name: 'AlignMaster Privacy Screen',
+        slug: 'alignmaster-privacy-screen',
         description: 'Privacy screen protector with auto-align installation. Blocks side viewing at 30° angles.',
         price: 34,
         oldPrice: 44,
         discount: 23,
-        image: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&q=80',
+        image: '/products/screen-protectors/sp-5.jpg',
+        images: '/products/screen-protectors/sp-5.jpg',
         categoryId: categories[1].id,
         colors: '',
         sizes: 'iPhone 15, iPhone 15 Pro, Samsung S24',
@@ -361,14 +361,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'amFilm OneTouch Glass',
-        slug: 'amfilm-onetouch-glass',
+        name: 'OneTouch Glass 3-Pack',
+        slug: 'onetouch-glass-3pack',
         description: 'Premium glass with one-touch installation frame. 3-pack with lifetime replacement warranty.',
         price: 19,
         oldPrice: 29,
         discount: 34,
-        image: 'https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=600&q=80',
+        image: '/products/screen-protectors/sp-6.jpg',
+        images: '/products/screen-protectors/sp-6.jpg',
         categoryId: categories[1].id,
         colors: '',
         sizes: 'iPhone 15, iPhone 15 Pro, Samsung S24',
@@ -387,17 +387,17 @@ async function main() {
     }),
 
 
-    // Wireless Earphones (6 products) - Real branded products
+    // Wireless Earphones (6 products)
     prisma.product.create({
       data: {
-        name: 'Apple AirPods Pro (2nd Generation)',
-        slug: 'apple-airpods-pro-2nd-gen',
-        description: 'Official Apple AirPods Pro with Active Noise Cancellation, Adaptive Audio, and MagSafe charging case.',
+        name: 'Pro Wireless Earbuds with ANC',
+        slug: 'pro-wireless-earbuds-anc',
+        description: 'Premium wireless earbuds with Active Noise Cancellation, Adaptive Audio, and MagSafe charging case.',
         price: 249,
         oldPrice: 279,
         discount: 11,
-        image: 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=600&q=80',
+        image: '/products/wireless-earphones/earphones-1.jpg',
+        images: '/products/wireless-earphones/earphones-1.jpg',
         categoryId: categories[2].id,
         colors: 'White',
         sizes: '',
@@ -415,14 +415,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Sony WF-1000XM5',
-        slug: 'sony-wf-1000xm5',
-        description: 'Premium Sony earbuds with industry-leading noise cancellation and exceptional sound quality.',
+        name: 'Premium Studio Earbuds',
+        slug: 'premium-studio-earbuds',
+        description: 'Premium earbuds with industry-leading noise cancellation and exceptional sound quality.',
         price: 299,
         oldPrice: 329,
         discount: 9,
-        image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&q=80',
+        image: '/products/wireless-earphones/earphones-2.jpg',
+        images: '/products/wireless-earphones/earphones-2.jpg',
         categoryId: categories[2].id,
         colors: 'Black, Silver',
         sizes: '',
@@ -440,14 +440,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Samsung Galaxy Buds2 Pro',
-        slug: 'samsung-galaxy-buds2-pro',
-        description: 'Samsung flagship earbuds with intelligent ANC and seamless Galaxy ecosystem integration.',
+        name: 'Galaxy Buds Pro',
+        slug: 'galaxy-buds-pro',
+        description: 'Flagship earbuds with intelligent ANC and seamless ecosystem integration.',
         price: 199,
         oldPrice: 229,
         discount: 13,
-        image: 'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=600&q=80',
+        image: '/products/wireless-earphones/earphones-3.jpg',
+        images: '/products/wireless-earphones/earphones-3.jpg',
         categoryId: categories[2].id,
         colors: 'Graphite, White, Bora Purple',
         sizes: '',
@@ -465,14 +465,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Jabra Elite 85t',
-        slug: 'jabra-elite-85t',
+        name: 'Elite Professional Earbuds',
+        slug: 'elite-professional-earbuds',
         description: 'Professional-grade earbuds with adjustable ANC and superior call quality.',
         price: 179,
         oldPrice: 229,
         discount: 22,
-        image: 'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=600&q=80',
+        image: '/products/wireless-earphones/earphones-4.jpg',
+        images: '/products/wireless-earphones/earphones-4.jpg',
         categoryId: categories[2].id,
         colors: 'Black, Titanium Black, Gold Beige',
         sizes: '',
@@ -490,14 +490,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Anker Soundcore Liberty 4 NC',
-        slug: 'anker-soundcore-liberty-4-nc',
-        description: 'Anker flagship earbuds with adaptive ANC and LDAC audio. Exceptional value for money.',
+        name: 'Liberty NC Wireless Earbuds',
+        slug: 'liberty-nc-wireless-earbuds',
+        description: 'Flagship earbuds with adaptive ANC and LDAC audio. Exceptional value for money.',
         price: 99,
         oldPrice: 129,
         discount: 23,
-        image: 'https://images.unsplash.com/photo-1631867675167-90a456a90863?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1631867675167-90a456a90863?w=600&q=80',
+        image: '/products/wireless-earphones/earphones-5.jpg',
+        images: '/products/wireless-earphones/earphones-5.jpg',
         categoryId: categories[2].id,
         colors: 'Black, White, Sky Blue, Pink',
         sizes: '',
@@ -515,14 +515,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Beats Fit Pro',
-        slug: 'beats-fit-pro',
-        description: 'Secure-fit earbuds with Apple H1 chip, Active Noise Cancelling, and powerful bass.',
+        name: 'Fit Pro Sports Earbuds',
+        slug: 'fit-pro-sports-earbuds',
+        description: 'Secure-fit earbuds with Active Noise Cancelling and powerful bass. Perfect for sports.',
         price: 189,
         oldPrice: 199,
         discount: 5,
-        image: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600&q=80',
+        image: '/products/wireless-earphones/earphones-6.jpg',
+        images: '/products/wireless-earphones/earphones-6.jpg',
         categoryId: categories[2].id,
         colors: 'Black, Stone Purple, Sage Gray, White',
         sizes: '',
@@ -534,23 +534,23 @@ async function main() {
         featured: true,
         specifications: {
           battery: '6 hours ANC (24 hours with case)',
-          features: ['Active Noise Cancelling', 'Transparency Mode', 'Spatial Audio', 'IPX4', 'Apple H1 Chip', 'Wingtip Design']
+          features: ['Active Noise Cancelling', 'Transparency Mode', 'Spatial Audio', 'IPX4', 'Wingtip Design']
         }
       },
     }),
 
 
-    // Chargers & Cables (6 products) - Real branded products
+    // Chargers & Cables (6 products)
     prisma.product.create({
       data: {
-        name: 'Anker 747 GaN Prime Charger',
-        slug: 'anker-747-gan-prime-charger',
-        description: 'Anker 150W 4-port GaN charger with PowerIQ 4.0. Charge up to 4 devices simultaneously.',
+        name: '150W GaN 4-Port Charger',
+        slug: '150w-gan-4port-charger',
+        description: '150W 4-port GaN charger with intelligent power distribution. Charge up to 4 devices simultaneously.',
         price: 109,
         oldPrice: 129,
         discount: 16,
-        image: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=600&q=80',
+        image: '/products/chargers-cables/charger-1.jpg',
+        images: '/products/chargers-cables/charger-1.jpg',
         categoryId: categories[3].id,
         colors: 'Black, White',
         sizes: '',
@@ -568,14 +568,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Apple USB-C to Lightning Cable',
-        slug: 'apple-usb-c-lightning-cable',
-        description: 'Official Apple USB-C to Lightning cable. MFi certified for fast charging and data transfer.',
+        name: 'USB-C to Lightning Cable MFi',
+        slug: 'usb-c-lightning-cable-mfi',
+        description: 'MFi certified USB-C to Lightning cable for fast charging and data transfer.',
         price: 19,
         oldPrice: 29,
         discount: 34,
-        image: 'https://images.unsplash.com/photo-1616763355548-1b606f439f86?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1616763355548-1b606f439f86?w=600&q=80',
+        image: '/products/chargers-cables/charger-2.jpg',
+        images: '/products/chargers-cables/charger-2.jpg',
         categoryId: categories[3].id,
         colors: 'White',
         sizes: '1m, 2m',
@@ -587,20 +587,20 @@ async function main() {
         featured: true,
         specifications: {
           power: 'Up to 20W Fast Charging',
-          features: ['MFi Certified', 'Official Apple Product', 'Fast Charging', 'Data Transfer', 'Durable Design']
+          features: ['MFi Certified', 'Premium Quality', 'Fast Charging', 'Data Transfer', 'Durable Design']
         }
       },
     }),
     prisma.product.create({
       data: {
-        name: 'Belkin BoostCharge Pro 3-in-1',
-        slug: 'belkin-boostcharge-pro-3in1',
-        description: 'Belkin wireless charging pad for iPhone, Apple Watch, and AirPods. Fast 15W MagSafe charging.',
+        name: '3-in-1 Wireless Charging Station',
+        slug: '3in1-wireless-charging-station',
+        description: 'Wireless charging pad for phone, smartwatch, and earbuds. Fast 15W MagSafe charging.',
         price: 149,
         oldPrice: 169,
         discount: 12,
-        image: 'https://images.unsplash.com/photo-1615526675159-e248c3021d3f?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1615526675159-e248c3021d3f?w=600&q=80',
+        image: '/products/chargers-cables/charger-3.jpg',
+        images: '/products/chargers-cables/charger-3.jpg',
         categoryId: categories[3].id,
         colors: 'Black, White',
         sizes: '',
@@ -618,14 +618,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Anker PowerLine III USB-C Cable',
-        slug: 'anker-powerline-iii-usb-c',
+        name: 'PowerLine III USB-C Cable',
+        slug: 'powerline-iii-usb-c-cable',
         description: 'Ultra-durable USB-C to USB-C cable. Tested to withstand 35,000+ bends. 100W fast charging.',
         price: 15,
         oldPrice: 22,
         discount: 32,
-        image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
+        image: '/products/chargers-cables/charger-4.jpg',
+        images: '/products/chargers-cables/charger-4.jpg',
         categoryId: categories[3].id,
         colors: 'Black, White, Gray, Blue',
         sizes: '0.9m, 1.8m, 3m',
@@ -643,14 +643,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Spigen ArcStation Pro GaN Charger',
-        slug: 'spigen-arcstation-pro-gan',
+        name: '45W GaN Wall Charger',
+        slug: '45w-gan-wall-charger',
         description: 'Compact 45W GaN wall charger with foldable plug. Fast charges laptops, tablets, and phones.',
         price: 34,
         oldPrice: 49,
         discount: 31,
-        image: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=600&q=80',
+        image: '/products/chargers-cables/charger-5.jpg',
+        images: '/products/chargers-cables/charger-5.jpg',
         categoryId: categories[3].id,
         colors: 'Black, White',
         sizes: '',
@@ -668,14 +668,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Belkin BOOST↑CHARGE USB-C to USB-C',
-        slug: 'belkin-boost-charge-usb-c',
+        name: 'Premium Braided USB-C Cable',
+        slug: 'premium-braided-usb-c-cable',
         description: 'Premium braided USB-C cable with double-braided nylon. Supports up to 60W charging.',
         price: 24,
         oldPrice: 34,
         discount: 29,
-        image: 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=600&q=80',
+        image: '/products/chargers-cables/charger-6.jpg',
+        images: '/products/chargers-cables/charger-6.jpg',
         categoryId: categories[3].id,
         colors: 'Black, White, Blue, Pink',
         sizes: '1m, 2m, 3m',
@@ -692,17 +692,17 @@ async function main() {
       },
     }),
 
-    // Power Banks (6 products) - Real branded products
+    // Power Banks (6 products)
     prisma.product.create({
       data: {
-        name: 'Anker PowerCore 26800mAh',
-        slug: 'anker-powercore-26800',
-        description: 'Anker ultra-high capacity portable charger with dual input ports and triple USB outputs.',
+        name: 'PowerCore 26800mAh Power Bank',
+        slug: 'powercore-26800-power-bank',
+        description: 'Ultra-high capacity portable charger with dual input ports and triple USB outputs.',
         price: 59,
         oldPrice: 79,
         discount: 25,
-        image: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=600&q=80',
+        image: '/products/power-banks/powerbank-1.jpg',
+        images: '/products/power-banks/powerbank-1.jpg',
         categoryId: categories[4].id,
         colors: 'Black',
         sizes: '',
@@ -721,14 +721,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Anker MagGo 10000mAh MagSafe',
-        slug: 'anker-maggo-10000-magsafe',
+        name: 'MagGo 10000mAh Magnetic Power Bank',
+        slug: 'maggo-10000-magnetic-power-bank',
         description: 'Magnetic wireless power bank with MagSafe compatibility. Compact and powerful.',
         price: 69,
         oldPrice: 89,
         discount: 22,
-        image: 'https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=600&q=80',
+        image: '/products/power-banks/powerbank-2.jpg',
+        images: '/products/power-banks/powerbank-2.jpg',
         categoryId: categories[4].id,
         colors: 'Black, White, Blue, Pink',
         sizes: '',
@@ -747,14 +747,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'RAVPower 20000mAh USB-C PD',
-        slug: 'ravpower-20000-usb-c-pd',
-        description: 'RAVPower portable charger with 60W USB-C Power Delivery for laptops and phones.',
+        name: '20000mAh USB-C PD Power Bank',
+        slug: '20000-usb-c-pd-power-bank',
+        description: 'Portable charger with 60W USB-C Power Delivery for laptops and phones.',
         price: 49,
         oldPrice: 69,
         discount: 29,
-        image: 'https://images.unsplash.com/photo-1618410320928-25228d811631?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1618410320928-25228d811631?w=600&q=80',
+        image: '/products/power-banks/powerbank-3.jpg',
+        images: '/products/power-banks/powerbank-3.jpg',
         categoryId: categories[4].id,
         colors: 'Black',
         sizes: '',
@@ -773,14 +773,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Baseus 65W 20000mAh Laptop Power Bank',
-        slug: 'baseus-65w-20000-laptop',
-        description: 'Baseus high-speed power bank with 65W USB-C PD for MacBook, laptops, tablets, and phones.',
+        name: '65W Laptop Power Bank 20000mAh',
+        slug: '65w-laptop-power-bank-20000',
+        description: 'High-speed power bank with 65W USB-C PD for MacBook, laptops, tablets, and phones.',
         price: 79,
         oldPrice: 99,
         discount: 20,
-        image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=600&q=80',
+        image: '/products/power-banks/powerbank-4.jpg',
+        images: '/products/power-banks/powerbank-4.jpg',
         categoryId: categories[4].id,
         colors: 'Black, White',
         sizes: '',
@@ -799,14 +799,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Anker Nano Power Bank 10000mAh',
-        slug: 'anker-nano-power-bank-10000',
-        description: 'Ultra-compact Anker power bank with built-in USB-C cable. Pocket-sized powerhouse.',
+        name: 'Nano Power Bank 10000mAh',
+        slug: 'nano-power-bank-10000',
+        description: 'Ultra-compact power bank with built-in USB-C cable. Pocket-sized powerhouse.',
         price: 35,
         oldPrice: 49,
         discount: 29,
-        image: 'https://images.unsplash.com/photo-1544866092-1935c5ef2a8f?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1544866092-1935c5ef2a8f?w=600&q=80',
+        image: '/products/power-banks/powerbank-5.jpg',
+        images: '/products/power-banks/powerbank-5.jpg',
         categoryId: categories[4].id,
         colors: 'Black, White, Blue, Pink',
         sizes: '',
@@ -825,14 +825,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Mophie Powerstation Plus XL',
-        slug: 'mophie-powerstation-plus-xl',
-        description: 'Premium Mophie power bank with integrated cables for universal compatibility.',
+        name: 'Powerstation Plus XL 12000mAh',
+        slug: 'powerstation-plus-xl-12000',
+        description: 'Premium power bank with integrated cables for universal compatibility.',
         price: 89,
         oldPrice: 119,
         discount: 25,
-        image: 'https://images.unsplash.com/photo-1587145820098-e66bb446b5f6?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1587145820098-e66bb446b5f6?w=600&q=80',
+        image: '/products/power-banks/powerbank-6.jpg',
+        images: '/products/power-banks/powerbank-6.jpg',
         categoryId: categories[4].id,
         colors: 'Black',
         sizes: '',
@@ -850,17 +850,17 @@ async function main() {
       },
     }),
 
-    // Adapters (6 products) - Real branded products
+    // Adapters (6 products)
     prisma.product.create({
       data: {
-        name: 'Apple USB-C to 3.5mm Headphone Jack',
-        slug: 'apple-usb-c-headphone-adapter',
-        description: 'Official Apple adapter for connecting 3.5mm headphones to USB-C devices. High-quality DAC.',
+        name: 'USB-C to 3.5mm Headphone Adapter',
+        slug: 'usb-c-headphone-adapter',
+        description: 'Premium adapter for connecting 3.5mm headphones to USB-C devices. High-quality DAC.',
         price: 9,
         oldPrice: 12,
         discount: 25,
-        image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
+        image: '/products/adapters/adapter-1.jpg',
+        images: '/products/adapters/adapter-1.jpg',
         categoryId: categories[5].id,
         colors: 'White',
         sizes: '',
@@ -872,20 +872,20 @@ async function main() {
         featured: true,
         specifications: {
           compatibility: 'USB-C to 3.5mm',
-          features: ['Official Apple Product', 'High-Quality DAC', 'Compact Design', 'Plug & Play']
+          features: ['High-Quality DAC', 'Compact Design', 'Plug & Play', 'Universal Compatibility']
         }
       },
     }),
     prisma.product.create({
       data: {
-        name: 'Apple USB-C Digital AV Multiport',
-        slug: 'apple-usb-c-multiport-adapter',
-        description: 'Official Apple multiport adapter with HDMI, USB-A, and USB-C charging. 4K support.',
+        name: 'USB-C Digital AV Multiport Adapter',
+        slug: 'usb-c-multiport-adapter',
+        description: 'Multiport adapter with HDMI, USB-A, and USB-C charging. 4K support.',
         price: 69,
         oldPrice: 79,
         discount: 13,
-        image: 'https://images.unsplash.com/photo-1625723044792-44de16ccb4e9?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1625723044792-44de16ccb4e9?w=600&q=80',
+        image: '/products/adapters/adapter-2.jpg',
+        images: '/products/adapters/adapter-2.jpg',
         categoryId: categories[5].id,
         colors: 'White',
         sizes: '',
@@ -897,20 +897,20 @@ async function main() {
         featured: true,
         specifications: {
           compatibility: 'USB-C Hub',
-          features: ['4K HDMI', 'USB 3.1', 'USB-C Charging', 'Official Apple Product', 'Premium Build']
+          features: ['4K HDMI', 'USB 3.1', 'USB-C Charging', 'Premium Build', 'Wide Compatibility']
         }
       },
     }),
     prisma.product.create({
       data: {
-        name: 'Anker 7-in-1 USB-C Hub',
-        slug: 'anker-7in1-usb-c-hub',
-        description: 'Anker premium USB-C hub with 4K HDMI, USB 3.0, SD/microSD readers, and 100W charging.',
+        name: '7-in-1 USB-C Hub',
+        slug: '7in1-usb-c-hub',
+        description: 'Premium USB-C hub with 4K HDMI, USB 3.0, SD/microSD readers, and 100W charging.',
         price: 45,
         oldPrice: 59,
         discount: 24,
-        image: 'https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=600&q=80',
+        image: '/products/adapters/adapter-3.jpg',
+        images: '/products/adapters/adapter-3.jpg',
         categoryId: categories[5].id,
         colors: 'Space Gray, Black',
         sizes: '',
@@ -928,14 +928,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Belkin USB-C to HDMI Adapter',
-        slug: 'belkin-usb-c-hdmi-adapter',
-        description: 'Belkin USB-C to HDMI adapter supporting 4K@60Hz. Compact and reliable.',
+        name: 'USB-C to HDMI Adapter 4K',
+        slug: 'usb-c-hdmi-adapter-4k',
+        description: 'USB-C to HDMI adapter supporting 4K@60Hz. Compact and reliable.',
         price: 29,
         oldPrice: 39,
         discount: 26,
-        image: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&q=80',
+        image: '/products/adapters/adapter-4.jpg',
+        images: '/products/adapters/adapter-4.jpg',
         categoryId: categories[5].id,
         colors: 'Black, White',
         sizes: '',
@@ -953,14 +953,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Anker USB-C to USB-A Adapter (2-Pack)',
-        slug: 'anker-usb-c-to-usb-a-adapter',
-        description: 'Anker high-speed USB-C to USB-A adapters. Perfect for connecting legacy devices.',
+        name: 'USB-C to USB-A Adapter 2-Pack',
+        slug: 'usb-c-to-usb-a-adapter-2pack',
+        description: 'High-speed USB-C to USB-A adapters. Perfect for connecting legacy devices.',
         price: 9,
         oldPrice: 14,
         discount: 36,
-        image: 'https://images.unsplash.com/photo-1625814240467-8c8c9092e793?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1625814240467-8c8c9092e793?w=600&q=80',
+        image: '/products/adapters/adapter-5.jpg',
+        images: '/products/adapters/adapter-5.jpg',
         categoryId: categories[5].id,
         colors: 'Black',
         sizes: '',
@@ -978,14 +978,14 @@ async function main() {
     }),
     prisma.product.create({
       data: {
-        name: 'Satechi USB-C Pro Hub',
-        slug: 'satechi-usb-c-pro-hub',
-        description: 'Premium Satechi aluminum hub with 4K HDMI, Ethernet, card readers, and pass-through charging.',
+        name: 'USB-C Pro Hub Multi-Port',
+        slug: 'usb-c-pro-hub-multiport',
+        description: 'Premium aluminum hub with 4K HDMI, Ethernet, card readers, and pass-through charging.',
         price: 99,
         oldPrice: 129,
         discount: 23,
-        image: 'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=600&q=80',
-        images: 'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=600&q=80',
+        image: '/products/adapters/adapter-6.jpg',
+        images: '/products/adapters/adapter-6.jpg',
         categoryId: categories[5].id,
         colors: 'Space Gray, Silver',
         sizes: '',

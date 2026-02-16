@@ -16,6 +16,57 @@ interface ChatWidgetProps {
   onClose?: () => void;
 }
 
+// Helper function to format message text with better layout
+function formatMessageText(text: string) {
+  // Split by line breaks and format
+  const lines = text.split('\n').filter(line => line.trim());
+  
+  return (
+    <div className="space-y-2">
+      {lines.map((line, index) => {
+        const trimmedLine = line.trim();
+        
+        // Check if it's a bullet point
+        if (trimmedLine.startsWith('-') || trimmedLine.startsWith('•') || trimmedLine.startsWith('*')) {
+          return (
+            <div key={index} className="flex items-start space-x-2 ml-2">
+              <span className="text-accent mt-1 text-xs">•</span>
+              <span className="flex-1">{trimmedLine.substring(1).trim()}</span>
+            </div>
+          );
+        }
+        
+        // Check if it's a numbered list
+        if (/^\d+\./.test(trimmedLine)) {
+          return (
+            <div key={index} className="flex items-start space-x-2 ml-2">
+              <span className="text-accent font-semibold text-xs">{trimmedLine.match(/^\d+\./)?.[0]}</span>
+              <span className="flex-1">{trimmedLine.replace(/^\d+\./, '').trim()}</span>
+            </div>
+          );
+        }
+        
+        // Check if it contains price (BGN or лв)
+        if (trimmedLine.includes('BGN') || trimmedLine.includes('лв')) {
+          return (
+            <p key={index} className="leading-relaxed">
+              {trimmedLine.split(/(\d+[-–]\d+\s*(?:BGN|лв)|\d+\s*(?:BGN|лв))/g).map((part, i) => {
+                if (/\d+[-–]\d+\s*(?:BGN|лв)|\d+\s*(?:BGN|лв)/.test(part)) {
+                  return <strong key={i} className="text-accent font-semibold">{part}</strong>;
+                }
+                return part;
+              })}
+            </p>
+          );
+        }
+        
+        // Regular paragraph
+        return <p key={index} className="leading-relaxed">{trimmedLine}</p>;
+      })}
+    </div>
+  );
+}
+
 // Chat context to share state across components
 import { createContext, useContext } from 'react';
 
@@ -379,8 +430,10 @@ export function ChatWindow() {
                         <FiUser className="text-white/70 text-sm" />
                       </div>
                     )}
-                    <p className="text-sm leading-relaxed">{message.text}</p>
-                    <p className={`text-xs mt-1 ${message.sender === 'user' ? 'text-white/60' : 'text-gray-500'}`}>
+                    <div className="text-sm">
+                      {message.sender === 'agent' ? formatMessageText(message.text) : <p className="leading-relaxed">{message.text}</p>}
+                    </div>
+                    <p className={`text-xs mt-2 ${message.sender === 'user' ? 'text-white/60' : 'text-gray-500'}`}>
                       {message.timestamp.toLocaleTimeString('bg-BG', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>

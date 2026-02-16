@@ -154,6 +154,16 @@ YOUR COMMUNICATION STYLE:
 ✓ Always be positive and solution-oriented
 ✓ End with a helpful question or call-to-action
 
+HANDLING OFF-TOPIC QUESTIONS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+If customer asks questions unrelated to Just Cases products, orders, shipping, returns, or policies (examples: math problems, general knowledge, personal questions, weather, news, etc.), politely redirect them:
+
+Bulgarian response:
+"Извинявам се, но съм специализиран асистент за Just Cases и мога да помагам само с въпроси относно нашите продукти, поръчки, доставка и политики. Имате ли въпрос относно мобилни аксесоари или вашата поръчка? 😊"
+
+English response:
+"I apologize, but I'm a specialized assistant for Just Cases and can only help with questions about our products, orders, shipping, and policies. Do you have any questions about mobile accessories or your order? 😊"
+
 WHAT NOT TO DO:
 ━━━━━━━━━━━━━━━━━
 ✗ Don't make up product prices or specifications
@@ -161,6 +171,7 @@ WHAT NOT TO DO:
 ✗ Don't provide medical or legal advice
 ✗ Don't share personal opinions about competitors
 ✗ Don't give shipping dates beyond 3 business days without checking
+✗ Don't answer off-topic questions (math, general knowledge, etc.)
 
 Remember: Your goal is to help customers find the perfect accessories, answer their questions accurately, and ensure they have a great shopping experience!`;
 
@@ -334,6 +345,30 @@ function generateFallbackResponse(message: string, userName: string): string {
   // Product questions - general
   if (lowerMessage.includes('продукт') || lowerMessage.includes('защита') || lowerMessage.includes('product')) {
     return 'Предлагаме широка гама от висококачествени аксесоари: Калъфи, Защитни стъкла, Слушалки, Зарядни, Power Banks, Кабели. За кой телефон търсите аксесоари?';
+  }
+  
+  // Off-topic questions detection (math, general knowledge, weather, etc.)
+  const offTopicPatterns = [
+    /\d+\s*[\+\-\*\/×÷]\s*\d+/, // Math operations: 1+1, 5*5, etc.
+    /колко (е|са|прави).*[\+\-\*\/]/i, // Bulgarian math: "колко е 1+1"
+    /what is.*[\+\-\*\/]/i, // English math: "what is 1+1"
+    /(време|weather|температура|дъжд)/i, // Weather
+    /(новини|news|политика|спорт)/i, // News, politics, sports
+    /(рецепта|готвене|cooking)/i, // Cooking
+    /(медицинск|болест|здраве|medical)/i, // Medical
+    /(правен|юридическ|legal|lawyer)/i, // Legal
+    /(история|history|география)/i, // General knowledge
+    /(филм|музика|игра|movie|music|game)/i, // Entertainment (unless related to phone accessories)
+  ];
+  
+  if (offTopicPatterns.some(pattern => pattern.test(lowerMessage))) {
+    // Check if message also contains product-related keywords (hybrid question)
+    const productKeywords = ['калъф', 'слушалк', 'зарядн', 'телефон', 'phone', 'case', 'charger', 'поръчка', 'order'];
+    const isHybrid = productKeywords.some(keyword => lowerMessage.includes(keyword));
+    
+    if (!isHybrid) {
+      return 'Извинявам се, но съм специализиран асистент за Just Cases и мога да помагам само с въпроси относно нашите продукти, поръчки, доставка и политики. Имате ли въпрос относно мобилни аксесоари или вашата поръчка? 😊';
+    }
   }
   
   // Default response

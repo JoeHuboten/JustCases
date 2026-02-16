@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     // Return error if user not found
     if (!user) {
       if (process.env.NODE_ENV !== 'production') {
-        console.log(`Password reset requested for non-existent email: ${email}`);
+        // Password reset requested for non-existent email
       }
       return NextResponse.json(
         { error: 'No account found with this email address.' },

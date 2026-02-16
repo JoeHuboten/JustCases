@@ -7,23 +7,6 @@ const nextConfig: NextConfig = {
   },
   // Enable static generation where possible
   output: 'standalone',
-  webpack: (config, { dev, isServer }) => {
-    // Faster source maps in development
-    if (dev && !isServer) {
-      config.devtool = 'eval-cheap-module-source-map';
-    }
-    
-    // Tree shake unused code
-    if (!dev) {
-      config.optimization = {
-        ...config.optimization,
-        usedExports: true,
-        sideEffects: true,
-      };
-    }
-    
-    return config;
-  },
   images: {
     remotePatterns: [
       {

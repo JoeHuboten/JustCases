@@ -12,8 +12,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if OpenAI API key is configured
-    const apiKey = process.env.OPENAI_API_KEY;
+    // Check if Gemini API key is configured
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       // Fallback to rule-based responses if no API key
       return NextResponse.json({
@@ -59,45 +59,44 @@ HOW TO RESPOND:
 
 Remember: You're here to genuinely help customers, not just recite information. Listen to what they need and respond naturally.`;
 
-    // Build conversation history for OpenAI
-    const messages = [
-      {
-        role: 'system',
-        content: systemPrompt
-      },
-      ...chatHistory.map((msg: any) => ({
-        role: msg.sender === 'user' ? 'user' : 'assistant',
-        content: msg.text
-      })),
-      {
-        role: 'user',
-        content: message
-      }
-    ];
+    // Build conversation history for Gemini
+    const conversationHistory = chatHistory.map((msg: any) => ({
+      role: msg.sender === 'user' ? 'user' : 'model',
+      parts: [{ text: msg.text }]
+    }));
 
-    // Call OpenAI ChatGPT API
+    // Add current user message
+    conversationHistory.push({
+      role: 'user',
+      parts: [{ text: message }]
+    });
+
+    // Call Google Gemini API
     const response = await fetch(
-      'https://api.openai.com/v1/chat/completions',
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: messages,
-          temperature: 0.9, // Higher temperature for more natural, varied responses
-          max_tokens: 500, // Longer responses for thoughtful answers
-          presence_penalty: 0.6, // Encourage diverse responses
-          frequency_penalty: 0.3 // Reduce repetition
+          systemInstruction: {
+            parts: [{ text: systemPrompt }]
+          },
+          contents: conversationHistory,
+          generationConfig: {
+            temperature: 1.0, // High temperature for natural, varied responses
+            maxOutputTokens: 500,
+            topP: 0.95,
+            topK: 40
+          }
         }),
       }
     );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', errorText);
+      console.error('Gemini API error:', errorText);
       return NextResponse.json({
         reply: generateFallbackResponse(message, userName),
         isAI: false
@@ -105,7 +104,7 @@ Remember: You're here to genuinely help customers, not just recite information. 
     }
 
     const data = await response.json();
-    const aiReply = data.choices?.[0]?.message?.content || generateFallbackResponse(message, userName);
+    const aiReply = data.candidates?.[0]?.content?.parts?.[0]?.text || generateFallbackResponse(message, userName);
 
     return NextResponse.json({
       reply: aiReply,

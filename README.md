@@ -28,34 +28,7 @@ A modern, dark-themed e-commerce website for mobile device accessories built wit
 
 > **📱 Прехвърляне на друг компютър?** Виж [TRANSFER_TO_OTHER_DEVICE.md](./TRANSFER_TO_OTHER_DEVICE.md) за лесно ръководство на български!
 
-### Option 1: Docker Setup (Easiest for Any Device)
-
-**🐳 Docker Setup (Recommended for easy installation on any device):**
-
-**For Windows:**
-```bash
-# Run the Docker setup script
-setup-docker.bat
-```
-
-**For Mac/Linux:**
-```bash
-# Make script executable and run
-chmod +x setup-docker.sh
-./setup-docker.sh
-```
-
-**Manual Docker setup:**
-```bash
-# Build and start with Docker Compose
-docker-compose up --build -d
-
-# Access the application at http://localhost:3000
-```
-
-📚 **For detailed Docker setup instructions, see [DOCKER_SETUP.md](./DOCKER_SETUP.md)**
-
-### Option 2: Automatic Setup (Traditional)
+### Option 1: Automatic Setup
 
 **For Windows:**
 ```bash
@@ -98,32 +71,7 @@ npm run dev
 npm run setup
 ```
 
-## 🐳 Docker Setup (Recommended)
-
-Docker makes it incredibly easy to run this project on any device without worrying about dependencies or setup issues.
-
-### Quick Docker Start:
-```bash
-# Clone the repository
-git clone <your-repo-url>
-cd AuraCase
-
-# Start with Docker (includes database)
-docker-compose up --build -d
-
-# Access at http://localhost:3000
-```
-
-### Docker Benefits:
-- ✅ **No Node.js installation required**
-- ✅ **No database setup needed**
-- ✅ **Works on Windows, Mac, Linux**
-- ✅ **Consistent environment everywhere**
-- ✅ **Easy to share and deploy**
-
-📚 **See [DOCKER_SETUP.md](./DOCKER_SETUP.md) for complete Docker documentation**
-
-## 📋 Prerequisites
+##  Prerequisites
 
 - **Node.js** v18 or higher - [Download here](https://nodejs.org/)
 - **npm** (comes with Node.js)

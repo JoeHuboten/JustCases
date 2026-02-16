@@ -12,7 +12,7 @@ A modern, dark-themed e-commerce website for mobile device accessories built wit
 - 💳 Multiple payment method support
 - 📦 Order management system
 - 🗄️ Database ready with Prisma and PostgreSQL
-- 🤖 AI-powered live chat support (OpenAI integration)
+- 🤖 AI-powered live chat support (Google Gemini integration)
 
 ## Tech Stack
 

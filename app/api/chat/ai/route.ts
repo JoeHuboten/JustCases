@@ -12,8 +12,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if OpenAI API key is configured
-    const apiKey = process.env.OPENAI_API_KEY;
+    // Check if Gemini API key is configured
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       // Fallback to rule-based responses if no API key
       return NextResponse.json({
@@ -44,34 +44,66 @@ Your role:
 
 Respond in Bulgarian if the customer writes in Bulgarian, otherwise match their language.`;
 
-    const messages = [
-      { role: 'system', content: systemPrompt },
-      ...chatHistory.map((msg: any) => ({
-        role: msg.sender === 'user' ? 'user' : 'assistant',
-        content: msg.text
-      })),
-      { role: 'user', content: message }
-    ];
+    // Build conversation history for Gemini
+    const conversationHistory = chatHistory
+      .map((msg: any) => {
+        const role = msg.sender === 'user' ? 'user' : 'model';
+        return {
+          role,
+          parts: [{ text: msg.text }]
+        };
+      });
 
-    // Call OpenAI API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini', // Using cost-effective model
-        messages: messages,
-        max_tokens: 300,
-        temperature: 0.7,
-        presence_penalty: 0.6,
-        frequency_penalty: 0.3,
-      }),
+    // Add current user message
+    conversationHistory.push({
+      role: 'user',
+      parts: [{ text: message }]
     });
 
+    // Call Gemini API
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: systemPrompt }]
+          },
+          contents: conversationHistory,
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 300,
+            topP: 0.95,
+            topK: 40,
+          },
+          safetySettings: [
+            {
+              category: 'HARM_CATEGORY_HARASSMENT',
+              threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+            },
+            {
+              category: 'HARM_CATEGORY_HATE_SPEECH',
+              threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+            },
+            {
+              category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+              threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+            },
+            {
+              category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+              threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+            }
+          ]
+        }),
+      }
+    );
+
     if (!response.ok) {
-      console.error('OpenAI API error:', await response.text());
+      const errorText = await response.text();
+      console.error('Gemini API error:', errorText);
       return NextResponse.json({
         reply: generateFallbackResponse(message, userName),
         isAI: false
@@ -79,7 +111,7 @@ Respond in Bulgarian if the customer writes in Bulgarian, otherwise match their 
     }
 
     const data = await response.json();
-    const aiReply = data.choices[0]?.message?.content || generateFallbackResponse(message, userName);
+    const aiReply = data.candidates?.[0]?.content?.parts?.[0]?.text || generateFallbackResponse(message, userName);
 
     return NextResponse.json({
       reply: aiReply,

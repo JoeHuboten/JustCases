@@ -1,10 +1,11 @@
 # AI Chat Assistant Setup Guide
 
-The live chat on Just Cases now features an AI-powered assistant that can help customers 24/7 with questions about products, shipping, returns, and orders.
+The live chat on Just Cases now features an AI-powered assistant using **Google Gemini** that can help customers 24/7 with questions about products, shipping, returns, and orders.
 
 ## Features
 
 ✨ **Smart AI Responses**
+- Powered by Google's Gemini 1.5 Flash model
 - Answers customer questions in real-time
 - Understands context from chat history
 - Responds in Bulgarian or English
@@ -22,21 +23,21 @@ The live chat on Just Cases now features an AI-powered assistant that can help c
 
 ## Setup
 
-### 1. Get OpenAI API Key (Optional)
+### 1. Get Google Gemini API Key (Optional)
 
 The chat works without an API key, but for full AI capabilities:
 
-1. Go to [OpenAI Platform](https://platform.openai.com/api-keys)
-2. Create an account or sign in
-3. Click "Create new secret key"
-4. Copy the key (starts with `sk-...`)
+1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Sign in with your Google account
+3. Click "Create API Key"
+4. Copy the key
 
 ### 2. Add to Environment Variables
 
 Add to your `.env` or `.env.local` file:
 
 ```env
-OPENAI_API_KEY="sk-your-api-key-here"
+GEMINI_API_KEY="your-api-key-here"
 ```
 
 ### 3. Test the Chat
@@ -49,8 +50,9 @@ OPENAI_API_KEY="sk-your-api-key-here"
 ## How It Works
 
 ### With API Key (Full AI)
-- Uses OpenAI's GPT-4o-mini model
-- Context-aware responses
+- Uses Google's Gemini 1.5 Flash model
+- Fast and cost-effective responses
+- Context-aware conversations
 - Understands complex questions
 - Maintains conversation history
 
@@ -111,39 +113,44 @@ Change these parameters in the API call:
 
 ```typescript
 {
-  model: 'gpt-4o-mini',  // or 'gpt-4' for better quality
-  max_tokens: 300,        // length of responses
-  temperature: 0.7,       // creativity (0-1)
-  presence_penalty: 0.6,  // avoid repetition
-  frequency_penalty: 0.3  // word variety
+  temperature: 0.7,       // creativity (0-2)
+  maxOutputTokens: 300,   // length of responses
+  topP: 0.95,             // nucleus sampling
+  topK: 40                // top-k sampling
 }
 ```
 
 ## Cost Considerations
 
-Using **gpt-4o-mini** (recommended):
-- ~$0.00015 per 1,000 input tokens
-- ~$0.0006 per 1,000 output tokens
-- Average cost per chat: $0.001-0.005
+Using **Gemini 1.5 Flash** (recommended):
+- **FREE tier**: 15 requests per minute, 1,500 requests per day
+- Paid tier: Very affordable pricing
+- Average cost per chat: FREE for most small stores
 
 For a small store with 100 chats/day:
-- Monthly cost: ~$3-15
+- Monthly cost: **FREE** (within free tier limits)
+
+**Benefits of Gemini:**
+- ✅ Generous free tier
+- ✅ Fast responses
+- ✅ Multilingual support
+- ✅ No credit card required for free tier
 
 ## Troubleshooting
 
 ### Chat shows generic responses
-- Check if `OPENAI_API_KEY` is set correctly
-- Verify API key is valid on OpenAI platform
+- Check if `GEMINI_API_KEY` is set correctly
+- Verify API key is valid on Google AI Studio
 - Check server logs for API errors
 
 ### API rate limits
-- OpenAI has rate limits based on your plan
+- Free tier: 15 requests/minute, 1,500/day
 - Consider implementing caching for common questions
-- Add rate limiting to prevent abuse
+- Upgrade to paid tier if needed
 
 ### Slow responses
 - Check your network connection
-- OpenAI API usually responds in 1-3 seconds
+- Gemini API usually responds in 1-2 seconds
 - Consider showing typing indicator longer
 
 ## Features Coming Soon
@@ -158,6 +165,7 @@ For a small store with 100 chats/day:
 ## Support
 
 For issues or questions:
-- Check the [OpenAI API Docs](https://platform.openai.com/docs)
+- Check the [Gemini API Docs](https://ai.google.dev/docs)
+- Visit [Google AI Studio](https://aistudio.google.com)
 - Review server logs
 - Test with fallback mode first

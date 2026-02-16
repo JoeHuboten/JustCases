@@ -12,8 +12,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if Gemini API key is configured
-    const apiKey = process.env.GEMINI_API_KEY;
+    // Check if OpenAI API key is configured
+    const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       // Fallback to rule-based responses if no API key
       return NextResponse.json({
@@ -175,66 +175,43 @@ WHAT NOT TO DO:
 
 Remember: Your goal is to help customers find the perfect accessories, answer their questions accurately, and ensure they have a great shopping experience!`;
 
-    // Build conversation history for Gemini
-    const conversationHistory = chatHistory
-      .map((msg: any) => {
-        const role = msg.sender === 'user' ? 'user' : 'model';
-        return {
-          role,
-          parts: [{ text: msg.text }]
-        };
-      });
+    // Build conversation history for OpenAI
+    const messages = [
+      {
+        role: 'system',
+        content: systemPrompt
+      },
+      ...chatHistory.map((msg: any) => ({
+        role: msg.sender === 'user' ? 'user' : 'assistant',
+        content: msg.text
+      })),
+      {
+        role: 'user',
+        content: message
+      }
+    ];
 
-    // Add current user message
-    conversationHistory.push({
-      role: 'user',
-      parts: [{ text: message }]
-    });
-
-    // Call Gemini API
+    // Call OpenAI ChatGPT API
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      'https://api.openai.com/v1/chat/completions',
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: systemPrompt }]
-          },
-          contents: conversationHistory,
-          generationConfig: {
-            temperature: 0.5, // Lower temperature for more accurate, factual responses
-            maxOutputTokens: 400, // Longer responses for detailed answers
-            topP: 0.9, // More focused responses
-            topK: 40,
-          },
-          safetySettings: [
-            {
-              category: 'HARM_CATEGORY_HARASSMENT',
-              threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-            },
-            {
-              category: 'HARM_CATEGORY_HATE_SPEECH',
-              threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-            },
-            {
-              category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-              threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-            },
-            {
-              category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-              threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-            }
-          ]
+          model: 'gpt-3.5-turbo',
+          messages: messages,
+          temperature: 0.7,
+          max_tokens: 400
         }),
       }
     );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', errorText);
+      console.error('OpenAI API error:', errorText);
       return NextResponse.json({
         reply: generateFallbackResponse(message, userName),
         isAI: false
@@ -242,7 +219,7 @@ Remember: Your goal is to help customers find the perfect accessories, answer th
     }
 
     const data = await response.json();
-    const aiReply = data.candidates?.[0]?.content?.parts?.[0]?.text || generateFallbackResponse(message, userName);
+    const aiReply = data.choices?.[0]?.message?.content || generateFallbackResponse(message, userName);
 
     return NextResponse.json({
       reply: aiReply,

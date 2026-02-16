@@ -96,7 +96,7 @@ export function ChatWindow() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Здравейте! 👋 Добре дошли в Just Cases поддръжка. Как можем да ви помогнем днес?',
+      text: 'Здравейте! 👋 Аз съм AI асистентът на Just Cases. Как мога да ви помогна днес? Мога да отговоря на въпроси относно продукти, доставка, връщане и поръчки.',
       sender: 'agent',
       timestamp: new Date(),
     },
@@ -142,24 +142,24 @@ export function ChatWindow() {
       ...prev,
       {
         id: Date.now().toString(),
-        text: `Благодарим, ${userName}! Свързваме ви с наш консултант...`,
+        text: `Благодарим, ${userName}! Свързахме ви с нашия AI асистент, който ви помага 24/7. Ако имате нужда от човешка поддръжка, моля кажете го.`,
         sender: 'system',
         timestamp: new Date(),
       },
     ]);
 
-    // Simulate agent response after a delay
+    // Send initial greeting from AI
     setTimeout(() => {
       setMessages(prev => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
-          text: `Здравейте, ${userName}! Аз съм Мария от екипа за поддръжка. Как мога да ви помогна?`,
+          text: `Здравейте, ${userName}! Радвам се да ви помогна. Имате ли въпрос относно продукт, поръчка или доставка?`,
           sender: 'agent',
           timestamp: new Date(),
         },
       ]);
-    }, 2000);
+    }, 1000);
   };
 
   const sendMessage = async (e: React.FormEvent) => {
@@ -177,35 +177,48 @@ export function ChatWindow() {
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate sending to backend and getting response
+    // Send message to AI assistant
     try {
-      // In production, this would be an API call
-      // await fetch('/api/chat', { method: 'POST', body: JSON.stringify({ message: userMessage.text, email: userEmail }) });
-      
-      // Simulate agent typing and response
-      setTimeout(() => {
-        setIsTyping(false);
-        const responses = [
-          'Разбирам ви напълно. Нека проверя това за вас.',
-          'Благодаря за информацията! Работя по вашия въпрос.',
-          'Това е отличен въпрос! Ще ви помогна веднага.',
-          'Моля, изчакайте момент докато проверя детайлите.',
-          'Благодаря за търпението ви. Ето какво открих...',
-        ];
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-        
-        setMessages(prev => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            text: randomResponse,
-            sender: 'agent',
-            timestamp: new Date(),
-          },
-        ]);
-      }, 1500 + Math.random() * 1500);
-    } catch {
+      const response = await fetch('/api/chat/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userMessage.text,
+          chatHistory: messages.slice(-10), // Send last 10 messages for context
+          userName: userName,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get AI response');
+      }
+
+      const data = await response.json();
       setIsTyping(false);
+      
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          text: data.reply,
+          sender: 'agent',
+          timestamp: new Date(),
+        },
+      ]);
+    } catch (error) {
+      setIsTyping(false);
+      console.error('Chat error:', error);
+      
+      // Fallback response on error
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          text: 'Извинявам се, имам временни проблеми със свързването. Моля, опитайте отново или изпратете имейл.',
+          sender: 'agent',
+          timestamp: new Date(),
+        },
+      ]);
       showToast('Грешка при изпращане на съобщението. Моля, опитайте отново.', 'error');
     }
   };
@@ -260,10 +273,10 @@ export function ChatWindow() {
               <FiHeadphones className="text-white text-xl" />
             </div>
             <div>
-              <h3 className="text-white font-bold">Just Cases Поддръжка</h3>
+              <h3 className="text-white font-bold">Just Cases AI Асистент</h3>
               <p className="text-white/80 text-sm flex items-center">
                 <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-                Онлайн
+                Винаги онлайн • AI-Powered
               </p>
             </div>
           </div>
@@ -357,7 +370,7 @@ export function ChatWindow() {
                     {message.sender === 'agent' && (
                       <div className="flex items-center space-x-2 mb-1">
                         <FiHeadphones className="text-accent text-sm" />
-                        <span className="text-accent text-xs font-medium">Поддръжка</span>
+                        <span className="text-accent text-xs font-medium">AI Асистент</span>
                       </div>
                     )}
                     {message.sender === 'user' && (

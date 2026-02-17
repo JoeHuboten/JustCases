@@ -94,18 +94,36 @@ NOW RESPOND TO THE USER - Make it unique, natural, and directly answer what they
           },
           contents: conversationHistory,
           generationConfig: {
-            temperature: 1.5, // Maximum creativity and variation
-            maxOutputTokens: 300, // Shorter, more focused responses
-            topP: 0.98,
+            temperature: 1.2, // High creativity but within safe range
+            maxOutputTokens: 400,
+            topP: 0.95,
             topK: 64
-          }
+          },
+          safetySettings: [
+            {
+              category: 'HARM_CATEGORY_HARASSMENT',
+              threshold: 'BLOCK_NONE'
+            },
+            {
+              category: 'HARM_CATEGORY_HATE_SPEECH',
+              threshold: 'BLOCK_NONE'
+            },
+            {
+              category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+              threshold: 'BLOCK_NONE'
+            },
+            {
+              category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+              threshold: 'BLOCK_NONE'
+            }
+          ]
         }),
       }
     );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', errorText);
+      console.error('Gemini API error:', response.status, errorText);
       return NextResponse.json({
         reply: generateFallbackResponse(message, userName),
         isAI: false
@@ -113,6 +131,20 @@ NOW RESPOND TO THE USER - Make it unique, natural, and directly answer what they
     }
 
     const data = await response.json();
+    
+    // Log detailed response for debugging
+    console.log('Gemini response:', JSON.stringify(data, null, 2));
+    
+    // Check if response was blocked by safety filters
+    if (data.candidates?.[0]?.finishReason === 'SAFETY') {
+      console.warn('Response blocked by safety filters');
+      const aiReply = "Извинявам се, но не мога да отговоря на този въпрос. Мога да ви помогна с информация за продукти, поръчки и доставка. Имате ли друг въпрос?";
+      return NextResponse.json({
+        reply: aiReply,
+        isAI: true
+      });
+    }
+    
     const aiReply = data.candidates?.[0]?.content?.parts?.[0]?.text || generateFallbackResponse(message, userName);
 
     return NextResponse.json({

@@ -33,6 +33,20 @@ interface ShippingAddress {
   notes: string;
 }
 
+interface SavedAddress {
+  id: string;
+  firstName: string;
+  lastName: string;
+  address1: string;
+  address2?: string | null;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  phone?: string | null;
+  isDefault: boolean;
+}
+
 // InputField component defined outside to prevent re-creation on every render
 const InputField = ({ 
   icon: Icon, 
@@ -105,6 +119,9 @@ export default function CheckoutPage() {
   });
 
   const [errors, setErrors] = useState<Partial<ShippingAddress>>({});
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  const [loadingSavedAddresses, setLoadingSavedAddresses] = useState(false);
+  const [selectedSavedAddressId, setSelectedSavedAddressId] = useState('');
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/auth/signin');
@@ -116,6 +133,71 @@ export default function CheckoutPage() {
       setShippingAddress(prev => ({ ...prev, email: user.email || '' }));
     }
   }, [user]);
+
+  useEffect(() => {
+    const fetchSavedAddresses = async () => {
+      if (!user) return;
+
+      setLoadingSavedAddresses(true);
+      try {
+        const res = await fetch('/api/addresses');
+        if (!res.ok) return;
+
+        const data: SavedAddress[] = await res.json();
+        setSavedAddresses(data);
+
+        if (data.length > 0) {
+          const defaultAddress = data.find(address => address.isDefault) || data[0];
+          if (!defaultAddress) return;
+
+          setSelectedSavedAddressId(defaultAddress.id);
+
+          setShippingAddress(prev => {
+            const isShippingFormEmpty = !prev.firstName && !prev.lastName && !prev.address && !prev.city && !prev.postalCode;
+            if (!isShippingFormEmpty) return prev;
+
+            return {
+              ...prev,
+              firstName: defaultAddress.firstName || '',
+              lastName: defaultAddress.lastName || '',
+              phone: defaultAddress.phone || '',
+              address: [defaultAddress.address1, defaultAddress.address2].filter(Boolean).join(', '),
+              city: defaultAddress.city || '',
+              postalCode: defaultAddress.postalCode || '',
+              country: defaultAddress.country || 'България',
+            };
+          });
+        }
+      } catch {
+        setSavedAddresses([]);
+      } finally {
+        setLoadingSavedAddresses(false);
+      }
+    };
+
+    fetchSavedAddresses();
+  }, [user]);
+
+  const handleSelectSavedAddress = (addressId: string) => {
+    setSelectedSavedAddressId(addressId);
+
+    const selectedAddress = savedAddresses.find(address => address.id === addressId);
+    if (!selectedAddress) return;
+
+    setShippingAddress(prev => ({
+      ...prev,
+      firstName: selectedAddress.firstName || '',
+      lastName: selectedAddress.lastName || '',
+      phone: selectedAddress.phone || '',
+      address: [selectedAddress.address1, selectedAddress.address2].filter(Boolean).join(', '),
+      city: selectedAddress.city || '',
+      postalCode: selectedAddress.postalCode || '',
+      country: selectedAddress.country || 'България',
+    }));
+
+    setErrors({});
+    setError('');
+  };
 
   const validateShippingForm = (): boolean => {
     const newErrors: Partial<ShippingAddress> = {};
@@ -289,6 +371,43 @@ export default function CheckoutPage() {
                     <FiTruck className="text-blue-400" size={20} />
                     Адрес за доставка
                   </h2>
+
+                  {user && (
+                    <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-white/[0.02] border border-white/10 rounded-lg">
+                      <label className="block text-sm font-medium text-white/70 mb-2 font-body">
+                        Запазен адрес
+                      </label>
+                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                        <select
+                          value={selectedSavedAddressId}
+                          onChange={(e) => handleSelectSavedAddress(e.target.value)}
+                          disabled={loadingSavedAddresses || savedAddresses.length === 0}
+                          className="flex-1 px-4 py-3 bg-white/[0.03] border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-body disabled:opacity-60"
+                        >
+                          {savedAddresses.length === 0 ? (
+                            <option value="">Няма запазени адреси</option>
+                          ) : (
+                            <>
+                              <option value="">Изберете запазен адрес</option>
+                              {savedAddresses.map((address) => (
+                                <option key={address.id} value={address.id}>
+                                  {address.firstName} {address.lastName} - {address.address1}, {address.city}
+                                </option>
+                              ))}
+                            </>
+                          )}
+                        </select>
+
+                        <button
+                          type="button"
+                          onClick={() => router.push('/account')}
+                          className="px-4 py-3 border border-white/10 rounded-lg text-white/70 hover:text-white hover:border-white/30 transition-colors font-body"
+                        >
+                          Управление
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                     <InputField

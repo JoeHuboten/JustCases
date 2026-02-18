@@ -4,11 +4,9 @@ import { FiMail, FiPhone, FiMessageCircle, FiClock, FiHelpCircle, FiSearch } fro
 import ScrollAnimation, { StaggerAnimation } from '@/components/ScrollAnimation';
 import Head from 'next/head';
 import { useState } from 'react';
-import { useChatWidget } from '@/components/ChatWidget';
 
 export default function SupportPage() {
   const [selectedCategory, setSelectedCategory] = useState('general');
-  const { openChat } = useChatWidget();
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -186,16 +184,16 @@ export default function SupportPage() {
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
                 <FiMessageCircle className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-4 group-hover:text-accent transition-colors duration-300">Чат поддръжка</h3>
+              <h3 className="text-xl font-bold text-white mb-4 group-hover:text-accent transition-colors duration-300">Имейл поддръжка</h3>
               <p className="text-gray-300 mb-4 group-hover:text-gray-200 transition-colors duration-300">
-                Безплатен онлайн чат с нашия екип
+                Свържете се с нашия екип по имейл
               </p>
-              <button 
-                onClick={openChat}
-                className="bg-accent text-white px-6 py-2 rounded-lg hover:bg-accent-light hover:scale-105 hover:shadow-lg hover:shadow-accent/30 transition-all duration-300 font-medium transform active:scale-95"
+              <a 
+                href="mailto:support@justcases.bg"
+                className="inline-block bg-accent text-white px-6 py-2 rounded-lg hover:bg-accent-light hover:scale-105 hover:shadow-lg hover:shadow-accent/30 transition-all duration-300 font-medium transform active:scale-95"
               >
-                Започнете чат
-              </button>
+                Изпратете имейл
+              </a>
             </div>
           </StaggerAnimation>
         </div>

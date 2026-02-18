@@ -13,7 +13,6 @@ import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import CartSync from "@/components/CartSync";
 import { ToastProvider } from "@/components/Toast";
 import BackToTop from "@/components/BackToTop";
-import ChatWidget, { ChatProvider } from "@/components/ChatWidget";
 
 export default function RootLayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -24,29 +23,26 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
       <LanguageProvider>
         <AuthProvider>
           <ToastProvider>
-            <ChatProvider>
-              {!isAdminPage && (
-                <>
-                  <a href="#main-content" className="skip-to-main">Skip to main content</a>
-                  <Header />
-                </>
-              )}
-              <main id="main-content">
-                {children}
-              </main>
-              {!isAdminPage && (
-                <>
-                  <Footer />
-                  <BackToTop />
-                  <AccessibilityPanel />
-                  <KeyboardShortcuts />
-                  <ChatWidget />
-                </>
-              )}
-              <PWAInstallPrompt />
-              <ServiceWorkerRegistration />
-              <CartSync />
-            </ChatProvider>
+            {!isAdminPage && (
+              <>
+                <a href="#main-content" className="skip-to-main">Skip to main content</a>
+                <Header />
+              </>
+            )}
+            <main id="main-content">
+              {children}
+            </main>
+            {!isAdminPage && (
+              <>
+                <Footer />
+                <BackToTop />
+                <AccessibilityPanel />
+                <KeyboardShortcuts />
+              </>
+            )}
+            <PWAInstallPrompt />
+            <ServiceWorkerRegistration />
+            <CartSync />
           </ToastProvider>
         </AuthProvider>
       </LanguageProvider>

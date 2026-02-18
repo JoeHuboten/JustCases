@@ -14,7 +14,10 @@ export async function POST(req: NextRequest) {
 
     // Check if Gemini API key is configured
     const apiKey = process.env.GEMINI_API_KEY;
+    console.log('API Key present:', !!apiKey, 'Length:', apiKey?.length);
+    
     if (!apiKey) {
+      console.error('No API key configured');
       // Fallback to rule-based responses if no API key
       return NextResponse.json({
         reply: generateFallbackResponse(message, userName),
@@ -81,45 +84,52 @@ NOW RESPOND TO THE USER - Make it unique, natural, and directly answer what they
     });
 
     // Call Google Gemini API
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent?key=${apiKey}`;
+    console.log('Calling Gemini API...');
+    console.log('Message:', message);
+    
+    const requestBody = {
+      systemInstruction: {
+        parts: [{ text: systemPrompt }]
+      },
+      contents: conversationHistory,
+      generationConfig: {
+        temperature: 1.2, // High creativity but within safe range
+        maxOutputTokens: 400,
+        topP: 0.95,
+        topK: 64
+      },
+      safetySettings: [
+        {
+          category: 'HARM_CATEGORY_HARASSMENT',
+          threshold: 'BLOCK_NONE'
         },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: systemPrompt }]
-          },
-          contents: conversationHistory,
-          generationConfig: {
-            temperature: 1.2, // High creativity but within safe range
-            maxOutputTokens: 400,
-            topP: 0.95,
-            topK: 64
-          },
-          safetySettings: [
-            {
-              category: 'HARM_CATEGORY_HARASSMENT',
-              threshold: 'BLOCK_NONE'
-            },
-            {
-              category: 'HARM_CATEGORY_HATE_SPEECH',
-              threshold: 'BLOCK_NONE'
-            },
-            {
-              category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-              threshold: 'BLOCK_NONE'
-            },
-            {
-              category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-              threshold: 'BLOCK_NONE'
-            }
-          ]
-        }),
-      }
-    );
+        {
+          category: 'HARM_CATEGORY_HATE_SPEECH',
+          threshold: 'BLOCK_NONE'
+        },
+        {
+          category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+          threshold: 'BLOCK_NONE'
+        },
+        {
+          category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+          threshold: 'BLOCK_NONE'
+        }
+      ]
+    };
+    
+    console.log('Request body contents length:', JSON.stringify(requestBody.contents).length);
+    
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    console.log('Response status:', response.status, response.statusText);
 
     if (!response.ok) {
       const errorText = await response.text();

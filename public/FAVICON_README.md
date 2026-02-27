@@ -1,6 +1,6 @@
 # Favicon Files
 
-I've created SVG-based favicon files for your AuraCase website based on your logo design.
+I've created SVG-based favicon files for your JustCases website based on your logo design.
 
 ## Files Created:
 - `/public/favicon.svg` - Main favicon (all sizes, scalable)
@@ -38,4 +38,4 @@ The favicons are now configured and will appear in browser tabs. The SVG format 
 3. Check mobile devices for the apple-touch-icon
 4. Install as PWA to see the app icons
 
-The icons use the AuraCase brand colors (#00d4ff cyan/blue on dark background) with the phone case design and wave pattern from your logo.
+The icons use the JustCases brand colors (#00d4ff cyan/blue on dark background) with the phone case design and wave pattern from your logo.

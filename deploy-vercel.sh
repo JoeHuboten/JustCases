@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# AuraCase Vercel Deployment Script
+# JustCases Vercel Deployment Script
 # This script will guide you through deploying to Vercel
 
 set -e
 
-echo "🚀 AuraCase Vercel Deployment"
+echo "🚀 JustCases Vercel Deployment"
 echo "=============================="
 echo ""
 
@@ -39,7 +39,7 @@ echo "   - Copy the DATABASE_URL connection string"
 echo ""
 echo "3. Add DATABASE_URL with the connection string from step 2"
 echo ""
-echo "4. Set NEXTAUTH_URL to your Vercel domain (e.g., https://auracase.vercel.app)"
+echo "4. Set NEXTAUTH_URL to your Vercel domain (e.g., https://justcases.vercel.app)"
 echo ""
 echo "5. Optional: Add Stripe/PayPal keys if needed"
 echo ""

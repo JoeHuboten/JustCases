@@ -120,7 +120,7 @@ export default function OrdersPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-[#0a0a0f]">
         <div className="container-custom py-8">
           <div className="flex justify-between items-center mb-8">
             <div className="h-9 w-40 bg-gray-700/50 rounded animate-pulse" />
@@ -133,7 +133,7 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#0a0a0f]">
       <div className="container-custom py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-white">My Orders</h1>

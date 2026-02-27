@@ -90,9 +90,20 @@ export default function AdminProducts() {
       params.set('limit', '20');
       if (debouncedSearch) params.set('search', debouncedSearch);
       
-      const response = await fetch(`/api/admin/products?${params.toString()}`);
-      const result = await response.json();
+      const response = await fetch(`/api/admin/products?${params.toString()}`, {
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch products: ${response.status}`);
+      }
+
+      const result: PaginatedResponse = await response.json();
       setData(result);
+
+      if (result.totalPages > 0 && currentPage > result.totalPages) {
+        setCurrentPage(result.totalPages);
+      }
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
@@ -283,7 +294,7 @@ export default function AdminProducts() {
             <tbody className="divide-y divide-gray-800">
               {products.map((product) => (
                 <tr key={product.id} className="hover:bg-gray-800/30">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4">
                     <div className="flex items-center">
                       <div className="h-12 w-12 flex-shrink-0 relative rounded-lg overflow-hidden bg-gray-700">
                         <Image
@@ -293,9 +304,9 @@ export default function AdminProducts() {
                           className="object-cover"
                         />
                       </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-white">{product.name}</div>
-                        <div className="text-sm text-text-secondary">{product.slug}</div>
+                      <div className="ml-4 min-w-0 max-w-[260px]">
+                        <div className="text-sm font-medium text-white truncate" title={product.name}>{product.name}</div>
+                        <div className="text-sm text-text-secondary truncate" title={product.slug}>{product.slug}</div>
                       </div>
                     </div>
                   </td>
@@ -325,39 +336,50 @@ export default function AdminProducts() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        product.inStock
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
-                    >
-                      {product.inStock ? 'In Stock' : 'Out of Stock'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {product.featured && (
-                      <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-accent/20 text-accent">
-                        Featured
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          product.inStock
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {product.inStock ? 'In Stock' : 'Out of Stock'}
                       </span>
-                    )}
+                      {product.featured && (
+                        <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-accent/20 text-accent">
+                          Featured
+                        </span>
+                      )}
+                    </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => handleEdit(product)}
-                      className="text-accent hover:text-accent/80 mr-4"
-                    >
-                      <FiEdit2 size={18} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(product.id)}
-                      className="text-red-500 hover:text-red-400"
-                    >
-                      <FiTrash2 size={18} />
-                    </button>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium sticky right-0 bg-background-secondary z-10">
+                    <div className="flex items-center justify-end gap-3">
+                      <button
+                        onClick={() => handleEdit(product)}
+                        className="text-accent hover:text-accent/80"
+                        aria-label={`Edit ${product.name}`}
+                      >
+                        <FiEdit2 size={18} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(product.id)}
+                        className="text-red-500 hover:text-red-400"
+                        aria-label={`Delete ${product.name}`}
+                      >
+                        <FiTrash2 size={18} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
+              {products.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-10 text-center text-text-secondary">
+                    No products found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

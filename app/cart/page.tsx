@@ -18,7 +18,7 @@ import {
 
 export default function CartPage() {
   const router = useRouter();
-  const { t, formatPrice } = useLanguage();
+  const { t, formatPrice, language } = useLanguage();
   const {
     items,
     updateQuantity,
@@ -47,7 +47,7 @@ export default function CartPage() {
     setDiscountError("");
     const success = await applyDiscountCode(discountInput.toUpperCase());
     if (!success) {
-      setDiscountError("Invalid or expired discount code");
+      setDiscountError(t('cart.invalidCoupon', 'Невалиден или изтекъл код за отстъпка'));
     } else {
       setDiscountInput("");
     }
@@ -57,6 +57,16 @@ export default function CartPage() {
   const handleCheckout = () => {
     router.push("/checkout");
   };
+
+  const itemsCountText =
+    language === 'bg'
+      ? `Имате ${items.length} ${items.length === 1 ? 'продукт' : 'продукта'} в количката`
+      : `You have ${items.length} item${items.length !== 1 ? 's' : ''} in your cart`;
+
+  const subtotalItemsText =
+    language === 'bg'
+      ? `${items.length} ${items.length === 1 ? 'продукт' : 'продукта'}`
+      : `${items.length} item${items.length !== 1 ? 's' : ''}`;
 
   if (!mounted) {
     return (
@@ -110,7 +120,7 @@ export default function CartPage() {
             <div>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-white">{t('cart.shoppingCart', 'Shopping Cart')}</h1>
               <p className="text-white/50 text-sm sm:text-base font-body">
-                {t('cart.itemsCount', `You have ${items.length} item${items.length !== 1 ? 's' : ''} in your cart`)}
+                {itemsCountText}
               </p>
             </div>
           </div>
@@ -164,7 +174,7 @@ export default function CartPage() {
                         )}
                         {item.size && (
                           <span className="bg-white/[0.03] text-white/50 text-xs px-3 py-1 rounded-full border border-white/10 font-body">
-                            Size: {item.size}
+                            {t('product.size', 'Размер')}: {item.size}
                           </span>
                         )}
                       </div>
@@ -176,7 +186,7 @@ export default function CartPage() {
                         {formatPrice(item.price * item.quantity)}
                       </p>
                       <span className="text-white/40 text-xs sm:text-sm font-body">
-                        {formatPrice(item.price)} each
+                        {formatPrice(item.price)} {t('cart.each', 'за брой')}
                       </span>
                     </div>
                   </div>
@@ -262,7 +272,7 @@ export default function CartPage() {
               <div className="space-y-3 mb-8">
                 <div className="flex justify-between items-center py-2">
                   <span className="text-white/50 text-sm font-body">
-                    {t('cart.subtotal', 'Subtotal')} ({items.length} item{items.length !== 1 ? 's' : ''})
+                    {t('cart.subtotal', 'Subtotal')} ({subtotalItemsText})
                   </span>
                   <span className="text-white font-semibold text-lg font-body">
                     {formatPrice(getSubtotal())}
@@ -321,7 +331,7 @@ export default function CartPage() {
                             {discountCode.code}
                           </div>
                           <div className="text-green-400/70 text-sm font-body">
-                            -{discountCode.percentage}% discount applied
+                            -{discountCode.percentage}% {t('cart.discountApplied', 'приложена отстъпка')}
                           </div>
                         </div>
                       </div>
@@ -393,7 +403,7 @@ export default function CartPage() {
                   <div className="w-8 h-8 bg-purple-500/10 rounded-lg flex items-center justify-center">
                     <span className="text-purple-400">↺</span>
                   </div>
-                  <span>30-day return policy</span>
+                  <span>{t('cart.returnPolicy30Days', '30-дневна политика за връщане')}</span>
                 </div>
               </div>
             </div>

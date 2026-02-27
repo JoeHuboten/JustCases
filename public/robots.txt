@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://auracase.bg/sitemap.xml
+Sitemap: https://justcases.bg/sitemap.xml
 
 # Disallow admin and API routes
 Disallow: /admin/

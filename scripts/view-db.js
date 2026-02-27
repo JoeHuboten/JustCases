@@ -3,7 +3,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function viewDatabase() {
-  console.log('🔍 AuraCase Database Contents\n');
+  console.log('🔍 JustCases Database Contents\n');
   
   try {
     // Categories

@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FiHeart, FiShoppingCart } from 'react-icons/fi';
 import { useCartStore } from '@/store/cartStore';
+import { useWishlistStore } from '@/store/wishlistStore';
 import { useLanguage } from '@/contexts/LanguageContext';
 import SocialShare from '@/components/SocialShare';
+import { localizeProductDescription, localizeProductOption } from '@/lib/productLocalization';
 
 interface Product {
   id: string;
@@ -20,6 +22,10 @@ interface Product {
   inStock: boolean;
   stock: number;
   lowStockThreshold: number;
+  category?: {
+    name: string;
+    slug: string;
+  };
 }
 
 interface ProductDetailsProps {
@@ -29,14 +35,22 @@ interface ProductDetailsProps {
 export default function ProductDetails({ product }: ProductDetailsProps) {
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedSize, setSelectedSize] = useState<string>('');
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   
   const { addItem: addToCart } = useCartStore();
-  const { t } = useLanguage();
+  const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore();
+  const { t, language } = useLanguage();
 
   const colors = product.colors ? product.colors.split(', ') : [];
   const sizes = product.sizes ? product.sizes.split(', ') : [];
+  const localizedDescription = localizeProductDescription(product.slug, product.description, language);
+  const inWishlist = isMounted && isInWishlist(product.id);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleAddToCart = async () => {
     setIsAddingToCart(true);
@@ -59,9 +73,30 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     }
   };
 
-  const handleWishlist = () => {
-    setIsWishlisted(!isWishlisted);
-    // You can implement wishlist functionality here
+  const handleWishlist = async () => {
+    if (isWishlistLoading) return;
+
+    setIsWishlistLoading(true);
+    try {
+      if (inWishlist) {
+        await removeFromWishlist(product.id);
+      } else {
+        await addToWishlist({
+          id: product.id,
+          name: product.name,
+          slug: product.slug,
+          price: product.price,
+          oldPrice: product.oldPrice ?? undefined,
+          discount: product.discount ?? undefined,
+          image: product.image,
+          category: product.category || { name: '', slug: '' },
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+    } finally {
+      setIsWishlistLoading(false);
+    }
   };
 
   return (
@@ -109,7 +144,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                     : 'border-white/10 text-white/50 hover:border-blue-500/30 hover:text-white hover:bg-blue-500/10'
                 }`}
               >
-                {color}
+                {localizeProductOption(color, language)}
               </button>
             ))}
           </div>
@@ -133,7 +168,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                     : 'border-white/10 text-white/50 hover:border-blue-500/30 hover:text-white hover:bg-blue-500/10'
                 }`}
               >
-                {size}
+                {localizeProductOption(size, language)}
               </button>
             ))}
           </div>
@@ -156,22 +191,23 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         </button>
         <button 
           onClick={handleWishlist}
+          disabled={isWishlistLoading}
           className={`px-6 py-4 border rounded-xl transition-all duration-200 ${
-            isWishlisted 
+            inWishlist 
               ? 'border-red-500 text-red-500 bg-red-500/20 shadow-lg shadow-red-500/20' 
               : 'border-white/10 text-white/50 hover:border-blue-500/30 hover:text-blue-400 hover:shadow-md'
-          }`}
+          } disabled:opacity-60 disabled:cursor-not-allowed`}
         >
-          <FiHeart size={20} className={isWishlisted ? 'fill-current' : ''} />
+          <FiHeart size={20} className={inWishlist ? 'fill-current' : ''} />
         </button>
       </div>
 
       {/* Social Share */}
       <div className="pt-4 border-t border-white/10">
         <SocialShare
-          url={`https://auracase.bg/product/${product.slug}`}
+          url={`https://justcases.bg/product/${product.slug}`}
           title={product.name}
-          description={product.description || undefined}
+          description={localizedDescription || undefined}
           image={product.image}
         />
       </div>

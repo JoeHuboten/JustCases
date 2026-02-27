@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiPercent, FiCalendar, FiToggleLeft, FiToggleRight, FiCopy, FiCheck } from 'react-icons/fi';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DiscountCode {
   id: string;
@@ -16,6 +17,7 @@ interface DiscountCode {
 }
 
 export default function AdminDiscountCodesPage() {
+  const { t, formatDate: formatLocalizedDate } = useLanguage();
   const [codes, setCodes] = useState<DiscountCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -73,16 +75,16 @@ export default function AdminDiscountCodesPage() {
         resetForm();
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to save discount code');
+        alert(error.error || t('admin.discount.saveFailed', 'Неуспешно запазване на кода за отстъпка'));
       }
     } catch (error) {
       console.error('Error saving discount code:', error);
-      alert('Failed to save discount code');
+      alert(t('admin.discount.saveFailed', 'Неуспешно запазване на кода за отстъпка'));
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this discount code?')) return;
+    if (!confirm(t('admin.discount.confirmDelete', 'Сигурни ли сте, че искате да изтриете този код за отстъпка?'))) return;
 
     try {
       const response = await fetch(`/api/admin/discount-codes/${id}`, {
@@ -152,13 +154,9 @@ export default function AdminDiscountCodesPage() {
   };
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'No expiration';
+    if (!dateString) return t('admin.discount.noExpiration', 'Без срок');
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    }).format(date);
+    return formatLocalizedDate(date);
   };
 
   const isExpired = (dateString: string | null) => {
@@ -178,8 +176,8 @@ export default function AdminDiscountCodesPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white">Discount Codes</h1>
-          <p className="text-text-secondary mt-2">Create and manage promotional discount codes</p>
+          <h1 className="text-3xl font-bold text-white">{t('admin.discount.title', 'Кодове за отстъпка')}</h1>
+          <p className="text-text-secondary mt-2">{t('admin.discount.subtitle', 'Създавайте и управлявайте промоционални кодове за отстъпка')}</p>
         </div>
         <button
           onClick={() => {
@@ -189,7 +187,7 @@ export default function AdminDiscountCodesPage() {
           className="btn-primary flex items-center gap-2"
         >
           <FiPlus size={20} />
-          Create Code
+          {t('admin.discount.createCode', 'Създай код')}
         </button>
       </div>
 
@@ -198,14 +196,14 @@ export default function AdminDiscountCodesPage() {
         {codes.length === 0 ? (
           <div className="col-span-full bg-background-secondary rounded-lg p-12 text-center">
             <FiPercent className="mx-auto text-5xl text-gray-600 mb-4" />
-            <h3 className="text-xl font-semibold text-white mb-2">No discount codes yet</h3>
-            <p className="text-text-secondary mb-6">Create your first discount code to start offering promotions</p>
+            <h3 className="text-xl font-semibold text-white mb-2">{t('admin.discount.emptyTitle', 'Все още няма кодове за отстъпка')}</h3>
+            <p className="text-text-secondary mb-6">{t('admin.discount.emptyDescription', 'Създайте първия си код, за да започнете промоции')}</p>
             <button
               onClick={() => setShowModal(true)}
               className="btn-primary inline-flex items-center gap-2"
             >
               <FiPlus />
-              Create First Code
+              {t('admin.discount.createFirstCode', 'Създай първи код')}
             </button>
           </div>
         ) : (
@@ -239,7 +237,7 @@ export default function AdminDiscountCodesPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-3xl font-bold text-accent">{code.percentage}%</span>
-                      <span className="text-text-secondary">OFF</span>
+                      <span className="text-text-secondary">{t('admin.discount.off', 'ОТСТЪПКА')}</span>
                     </div>
                   </div>
                   <button
@@ -259,14 +257,14 @@ export default function AdminDiscountCodesPage() {
                   <div className="flex items-center gap-2 text-sm">
                     <FiCalendar className="text-gray-400" />
                     <span className={`${isExpired(code.expiresAt) ? 'text-red-500' : 'text-text-secondary'}`}>
-                      {isExpired(code.expiresAt) ? 'Expired: ' : 'Expires: '}
+                      {isExpired(code.expiresAt) ? t('admin.discount.expiredLabel', 'Изтекъл: ') : t('admin.discount.expiresLabel', 'Валиден до: ')}
                       {formatDate(code.expiresAt)}
                     </span>
                   </div>
                   
                   {code.maxUses && (
                     <div className="text-sm text-text-secondary">
-                      Usage: {code.currentUses} / {code.maxUses}
+                      {t('admin.discount.usage', 'Използване')}: {code.currentUses} / {code.maxUses}
                       <div className="w-full bg-gray-700 rounded-full h-2 mt-1">
                         <div
                           className="bg-accent h-2 rounded-full transition-all"
@@ -280,7 +278,7 @@ export default function AdminDiscountCodesPage() {
 
                   {!code.maxUses && (
                     <div className="text-sm text-text-secondary">
-                      Used: {code.currentUses} times
+                      {t('admin.discount.used', 'Използван')}: {code.currentUses} {t('admin.discount.times', 'пъти')}
                     </div>
                   )}
                 </div>
@@ -289,15 +287,15 @@ export default function AdminDiscountCodesPage() {
                 <div className="mb-4">
                   {isExpired(code.expiresAt) ? (
                     <span className="inline-block bg-red-500/10 text-red-500 px-3 py-1 rounded-full text-xs font-semibold">
-                      Expired
+                      {t('admin.discount.statusExpired', 'Изтекъл')}
                     </span>
                   ) : code.active ? (
                     <span className="inline-block bg-green-500/10 text-green-500 px-3 py-1 rounded-full text-xs font-semibold">
-                      Active
+                      {t('admin.discount.statusActive', 'Активен')}
                     </span>
                   ) : (
                     <span className="inline-block bg-gray-500/10 text-gray-500 px-3 py-1 rounded-full text-xs font-semibold">
-                      Inactive
+                      {t('admin.discount.statusInactive', 'Неактивен')}
                     </span>
                   )}
                 </div>
@@ -309,7 +307,7 @@ export default function AdminDiscountCodesPage() {
                     className="flex-1 btn-secondary text-sm py-2"
                   >
                     <FiEdit2 className="inline mr-1" size={16} />
-                    Edit
+                    {t('common.edit', 'Редактирай')}
                   </button>
                   <button
                     onClick={() => handleDelete(code.id)}
@@ -329,14 +327,14 @@ export default function AdminDiscountCodesPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-background-secondary rounded-lg max-w-md w-full p-6">
             <h2 className="text-2xl font-bold text-white mb-6">
-              {editingCode ? 'Edit Discount Code' : 'Create Discount Code'}
+              {editingCode ? t('admin.discount.editTitle', 'Редактиране на код за отстъпка') : t('admin.discount.createTitle', 'Създаване на код за отстъпка')}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Code */}
               <div>
                 <label className="block text-white font-semibold mb-2">
-                  Discount Code
+                  {t('admin.discount.codeLabel', 'Код за отстъпка')}
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -352,7 +350,7 @@ export default function AdminDiscountCodesPage() {
                     onClick={generateRandomCode}
                     className="btn-secondary whitespace-nowrap"
                   >
-                    Generate
+                    {t('admin.discount.generate', 'Генерирай')}
                   </button>
                 </div>
               </div>
@@ -360,7 +358,7 @@ export default function AdminDiscountCodesPage() {
               {/* Percentage */}
               <div>
                 <label className="block text-white font-semibold mb-2">
-                  Discount Percentage (1-100)
+                  {t('admin.discount.percentageLabel', 'Процент отстъпка (1-100)')}
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -379,7 +377,7 @@ export default function AdminDiscountCodesPage() {
               {/* Expiration Date */}
               <div>
                 <label className="block text-white font-semibold mb-2">
-                  Expiration Date (Optional)
+                  {t('admin.discount.expirationLabel', 'Крайна дата (по избор)')}
                 </label>
                 <input
                   type="date"
@@ -393,7 +391,7 @@ export default function AdminDiscountCodesPage() {
               {/* Max Uses */}
               <div>
                 <label className="block text-white font-semibold mb-2">
-                  Maximum Uses (Optional)
+                  {t('admin.discount.maxUsesLabel', 'Максимален брой използвания (по избор)')}
                 </label>
                 <input
                   type="number"
@@ -401,13 +399,13 @@ export default function AdminDiscountCodesPage() {
                   value={formData.maxUses}
                   onChange={(e) => setFormData({ ...formData, maxUses: e.target.value })}
                   className="w-full bg-background text-white px-4 py-2 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-accent"
-                  placeholder="Unlimited if not set"
+                  placeholder={t('admin.discount.maxUsesPlaceholder', 'Неограничено, ако е празно')}
                 />
               </div>
 
               {/* Active Toggle */}
               <div className="flex items-center justify-between">
-                <label className="text-white font-semibold">Active</label>
+                <label className="text-white font-semibold">{t('admin.discount.activeLabel', 'Активен')}</label>
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, active: !formData.active })}
@@ -431,10 +429,10 @@ export default function AdminDiscountCodesPage() {
                   }}
                   className="flex-1 btn-secondary"
                 >
-                  Cancel
+                  {t('common.cancel', 'Отказ')}
                 </button>
                 <button type="submit" className="flex-1 btn-primary">
-                  {editingCode ? 'Update' : 'Create'}
+                  {editingCode ? t('admin.discount.update', 'Обнови') : t('admin.discount.create', 'Създай')}
                 </button>
               </div>
             </form>

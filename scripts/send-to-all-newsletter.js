@@ -21,7 +21,7 @@ async function main() {
   const smtpPass = process.env.SMTP_PASS;
   const smtpPort = parseInt(process.env.SMTP_PORT || '587');
   const smtpSecure = process.env.SMTP_SECURE === 'true';
-  const fromEmail = process.env.FROM_EMAIL || 'noreply@auracase.bg';
+  const fromEmail = process.env.FROM_EMAIL || 'noreply@justcases.bg';
 
   if (!smtpHost || !smtpUser || !smtpPass) {
     console.warn('SMTP not configured. Aborting send.');
@@ -59,7 +59,7 @@ async function main() {
   <body>
     <div class="container">
       <div class="header">
-        <h1 style="margin:0; font-size:28px;">AURACASE</h1>
+        <h1 style="margin:0; font-size:28px;">JUSTCASES</h1>
         <div style="opacity:.95; margin-top:6px;">Бърз ъпдейт от нашия екип</div>
       </div>
       <div class="content">
@@ -70,7 +70,7 @@ async function main() {
         <p style="margin-top:18px;" class="small">Ако искате да се отпишете, посетете <a href="${appUrl}/newsletter/unsubscribe">страницата за отписване</a>.</p>
       </div>
       <div class="footer">
-        AURACASE — Премиум мобилни аксесоари
+        JUSTCASES — Премиум мобилни аксесоари
       </div>
     </div>
   </body>

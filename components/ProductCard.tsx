@@ -109,6 +109,8 @@ const ProductCard = ({
     onQuickView?.({ id, name, slug, price, oldPrice, discount, image, rating, reviews, category });
   }, [id, name, slug, price, oldPrice, discount, image, rating, reviews, category, onQuickView]);
 
+  const categoryLabel = category ? t(`category.${category.slug}`, category.name) : '';
+
   return (
     <Link href={`/product/${slug}`} className="group block">
       <div className="relative bg-[#0a0a0f] border border-white/5 rounded-2xl overflow-hidden hover:border-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 transform hover:-translate-y-1">
@@ -180,7 +182,7 @@ const ProductCard = ({
           {/* Category badge */}
           {category && (
             <span className="inline-block text-[10px] sm:text-xs text-blue-400/80 font-body font-medium mb-1.5 sm:mb-2 tracking-wide uppercase">
-              {category.name}
+              {categoryLabel}
             </span>
           )}
           

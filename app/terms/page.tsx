@@ -5,9 +5,9 @@ import ScrollAnimation from '@/components/ScrollAnimation';
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-[#0a0a0f]">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-gray-800 to-gray-700 py-20">
+      <section className="bg-gradient-to-r from-[#0a0a0f] to-blue-900/20 py-20">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn" className="text-center">
             <h1 className="text-5xl font-bold text-white mb-6">Условия за ползване</h1>
@@ -230,7 +230,7 @@ export default function TermsPage() {
                     Ако имате въпроси относно тези условия, моля свържете се с нас:
                   </p>
                   <div className="space-y-2">
-                    <p><strong>Имейл:</strong> legal@auracase.bg</p>
+                    <p><strong>Имейл:</strong> legal@justcases.bg</p>
                     <p><strong>Телефон:</strong> +359 888 123 456</p>
                     <p><strong>Адрес:</strong> София, България</p>
                   </div>

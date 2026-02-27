@@ -55,7 +55,7 @@ export default function PaymentsPage() {
       },
       {
         question: "Какво да правя, ако съм платил два пъти?",
-        answer: "Ако случайно сте платили два пъти, веднага се свържете с нас на support@auracase.bg. Ще върнем двойното плащане в рамките на 5-7 работни дни."
+        answer: "Ако случайно сте платили два пъти, веднага се свържете с нас на support@justcases.bg. Ще върнем двойното плащане в рамките на 5-7 работни дни."
       },
       {
         question: "Мога ли да платя на части?",
@@ -114,9 +114,9 @@ export default function PaymentsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-[#0a0a0f]">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-gray-800 to-gray-700 py-20">
+      <section className="bg-gradient-to-r from-[#0a0a0f] to-blue-900/20 py-20">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn" className="text-center">
             <h1 className="text-5xl font-bold text-white mb-6">Плащания - Често задавани въпроси</h1>

@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       title: product.name,
       description: product.description?.slice(0, 160) || `Купете ${product.name} от Just Cases`,
       type: 'website',
-      url: `https://auracase.bg/product/${slug}`,
+      url: `https://justcases.bg/product/${slug}`,
       images: product.image ? [
         {
           url: product.image,

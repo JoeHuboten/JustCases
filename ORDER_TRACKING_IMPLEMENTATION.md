@@ -88,7 +88,7 @@ Returns: Complete status history for an order
 - Support contact information
 
 **Design**:
-- Dark theme matching AuraCase brand
+- Dark theme matching JustCases brand
 - Responsive layout (mobile-friendly)
 - Loading states and error handling
 - Link to view all orders

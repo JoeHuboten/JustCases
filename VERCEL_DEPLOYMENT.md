@@ -1,7 +1,7 @@
-# Vercel Deployment Guide for AuraCase
+# Vercel Deployment Guide for JustCases
 
 ## Prerequisites
-- GitHub account with AuraCase repository
+- GitHub account with JustCases repository
 - Vercel account (free tier works)
 - Vercel CLI installed ✅ (already installed)
 
@@ -34,7 +34,7 @@ This will open a browser window. Login with your GitHub account.
 ### Step 2: Deploy the Project
 
 ```bash
-cd /Users/nikolay/Documents/AuraCase
+cd /Users/nikolay/Documents/JustCases
 vercel
 ```
 
@@ -42,7 +42,7 @@ Answer the prompts:
 - **Set up and deploy?** → Yes
 - **Which scope?** → Your personal account
 - **Link to existing project?** → No
-- **What's your project's name?** → auracase (or your choice)
+- **What's your project's name?** → justcases (or your choice)
 - **In which directory is your code located?** → ./ (press Enter)
 - **Want to override settings?** → No
 
@@ -51,10 +51,10 @@ Answer the prompts:
 ### Step 3: Create Postgres Database
 
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
-2. Select your **auracase** project
+2. Select your **justcases** project
 3. Click **Storage** tab
 4. Click **Create Database** → **Postgres**
-5. Choose a name: `auracase-db`
+5. Choose a name: `justcases-db`
 6. Select region: **Europe** (closest to Bulgaria)
 7. Click **Create**
 
@@ -84,13 +84,13 @@ NEXTAUTH_SECRET
 → VW2Z+OF+spMSd/kWuC8Agddf0PnkS6D5pICbYYxSPo0=
 
 NEXTAUTH_URL
-→ https://auracase.vercel.app (your actual Vercel domain)
+→ https://justcases.vercel.app (your actual Vercel domain)
 
 NODE_ENV
 → production
 
 NEXT_PUBLIC_APP_URL
-→ https://auracase.vercel.app (your actual Vercel domain)
+→ https://justcases.vercel.app (your actual Vercel domain)
 ```
 
 #### Optional Variables (add if you have them):
@@ -145,7 +145,7 @@ npx prisma db seed
 
 ### Step 7: Verify Deployment
 
-1. Open your Vercel URL: https://auracase.vercel.app
+1. Open your Vercel URL: https://justcases.vercel.app
 2. Check that the homepage loads
 3. Try registering a test account
 4. Check database connection works
@@ -179,7 +179,7 @@ npx prisma db seed
 ### 1. Set up Custom Domain (Optional)
 
 1. Go to **Settings** → **Domains**
-2. Add your domain: `auracase.bg`
+2. Add your domain: `justcases.bg`
 3. Follow DNS configuration instructions
 
 ### 2. Create Admin User
@@ -196,13 +196,13 @@ Or create manually in database.
 
 #### Stripe:
 1. Go to Stripe Dashboard → Webhooks
-2. Add endpoint: `https://auracase.vercel.app/api/webhooks/stripe`
+2. Add endpoint: `https://justcases.vercel.app/api/webhooks/stripe`
 3. Select events: `payment_intent.succeeded`, `payment_intent.payment_failed`
 4. Copy webhook secret to STRIPE_WEBHOOK_SECRET
 
 #### PayPal:
 1. PayPal Developer Dashboard → My Apps
-2. Configure webhooks: `https://auracase.vercel.app/api/webhooks/paypal`
+2. Configure webhooks: `https://justcases.vercel.app/api/webhooks/paypal`
 3. Subscribe to payment events
 
 ---

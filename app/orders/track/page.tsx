@@ -482,9 +482,9 @@ function OrderTrackingContent() {
               <h3 className="text-white font-bold mb-2">Need Help?</h3>
               <p className="text-text-secondary text-sm mb-4">Contact our support team if you have any questions about your order.</p>
               <div className="space-y-2">
-                <a href="mailto:support@auracase.bg" className="flex items-center gap-2 text-accent hover:underline text-sm">
+                <a href="mailto:support@justcases.bg" className="flex items-center gap-2 text-accent hover:underline text-sm">
                   <FiMail size={16} />
-                  support@auracase.bg
+                  support@justcases.bg
                 </a>
                 <a href="tel:+359888123456" className="flex items-center gap-2 text-accent hover:underline text-sm">
                   <FiPhone size={16} />

@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://auracase.bg'),
+  metadataBase: new URL('https://justcases.bg'),
   alternates: {
     canonical: '/',
     languages: {
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Just Cases - Премиум мобилни аксесоари",
     description: "Открийте премиум мобилни аксесоари за всички устройства. Защитни калъфи, безжично зареждане, слушалки, power bank-ове и много повече.",
-    url: "https://auracase.bg",
+    url: "https://justcases.bg",
     siteName: "Just Cases",
     images: [
       {
@@ -80,10 +80,10 @@ export default function Home() {
     "@type": "WebSite",
     "name": "Just Cases",
     "description": "Премиум мобилни аксесоари за всички устройства",
-    "url": "https://auracase.bg",
+    "url": "https://justcases.bg",
     "potentialAction": {
       "@type": "SearchAction",
-      "target": "https://auracase.bg/shop?search={search_term_string}",
+      "target": "https://justcases.bg/shop?search={search_term_string}",
       "query-input": "required name=search_term_string"
     }
   };

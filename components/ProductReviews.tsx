@@ -113,7 +113,7 @@ export default function ProductReviews({ productId, productName }: ProductReview
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit review');
+        throw new Error(data.error || t('product.reviews.failedSubmit', 'Неуспешно публикуване на отзива'));
       }
       
       setSubmitSuccess(true);
@@ -123,7 +123,7 @@ export default function ProductReviews({ productId, productName }: ProductReview
       // Reset success message after 5 seconds
       setTimeout(() => setSubmitSuccess(false), 5000);
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Failed to submit review');
+      setSubmitError(error instanceof Error ? error.message : t('product.reviews.failedSubmit', 'Неуспешно публикуване на отзива'));
     } finally {
       setSubmitLoading(false);
     }

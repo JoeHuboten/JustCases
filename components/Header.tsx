@@ -9,6 +9,7 @@ import { useSearchStore } from '@/store/searchStore';
 import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import AdvancedSearch from './AdvancedSearch';
+import LanguageSwitcher from './LanguageSwitcher';
 import type { Product } from '@/types';
 
 const navItems = [
@@ -140,7 +141,7 @@ const Header = () => {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
-                      placeholder="Search..."
+                      placeholder={t('header.search', 'Търси...')}
                       className="flex-1 bg-transparent text-white text-[13px] placeholder:text-slate-500 focus:outline-none"
                     />
                     <button onClick={() => {setSearchOpen(false); setSearchQuery(''); setSuggestions([]);}} className="text-slate-500 hover:text-white transition-colors">
@@ -161,9 +162,13 @@ const Header = () => {
               <button
                 onClick={() => setSearchOpen(true)}
                 className="md:hidden w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all"
+                title={t('header.search', 'Търси')}
               >
                 <FiSearch size={16} className="text-slate-400" />
               </button>
+
+              {/* Language */}
+              <LanguageSwitcher />
 
               {/* Wishlist */}
               <Link href="/wishlist" className="relative group">
@@ -212,7 +217,7 @@ const Header = () => {
             {searchLoading ? (
               <div className="p-8 flex flex-col items-center justify-center gap-3">
                 <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-                <p className="text-sm text-slate-400">Searching...</p>
+                <p className="text-sm text-slate-400">{t('header.searching', 'Търсене...')}</p>
               </div>
             ) : (
               <>
@@ -232,7 +237,7 @@ const Header = () => {
                         <div className="flex items-center gap-2">
                           <div className="text-blue-400 text-sm font-bold">{(p.price ?? 0).toFixed(2)} €</div>
                           {p.stock && p.stock < 5 && (
-                            <span className="text-[10px] text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded">Low stock</span>
+                            <span className="text-[10px] text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded">{t('header.lowStock', 'Ограничена наличност')}</span>
                           )}
                         </div>
                       </div>
@@ -244,7 +249,7 @@ const Header = () => {
                   onClick={() => { setIsAdvancedSearchOpen(true); setSearchOpen(false); }}
                   className="w-full py-3 text-sm text-slate-400 hover:text-white hover:bg-gradient-to-r hover:from-blue-500/5 hover:to-cyan-500/5 transition-all duration-300 font-medium border-t border-white/5 flex items-center justify-center gap-2 group"
                 >
-                  <span>Advanced Search</span>
+                  <span>{t('header.advancedSearch', 'Разширено търсене')}</span>
                   <FiArrowRight className="group-hover:translate-x-1 transition-transform" size={14} />
                 </button>
               </>
@@ -265,7 +270,7 @@ const Header = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') { handleSearch(searchQuery); setMobileOpen(false); setSuggestions([]); }}}
-                    placeholder="Search products..."
+                    placeholder={t('header.searchProducts', 'Търсене на продукти...')}
                     className="flex-1 bg-transparent text-white text-sm placeholder:text-slate-500 focus:outline-none"
                   />
                 </div>
@@ -309,7 +314,7 @@ const Header = () => {
                   className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-300"
                 >
                   <FiUser size={16} />
-                  Account
+                  {t('nav.account', 'Акаунт')}
                 </Link>
               </div>
             </div>

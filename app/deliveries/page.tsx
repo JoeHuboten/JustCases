@@ -23,7 +23,7 @@ export default function DeliveriesPage() {
       },
       {
         question: "Мога ли да променя адреса за доставка след изпращане?",
-        answer: "Можете да промените адреса само ако пратката все още не е изпратена. Свържете се с нас веднага на support@auracase.bg за помощ."
+        answer: "Можете да промените адреса само ако пратката все още не е изпратена. Свържете се с нас веднага на support@justcases.bg за помощ."
       }
     ],
     addresses: [
@@ -47,7 +47,7 @@ export default function DeliveriesPage() {
     issues: [
       {
         question: "Какво да правя, ако не получа пратката в очаквания срок?",
-        answer: "Първо проверете статуса на пратката с номера за проследяване. Ако има забавяне, свържете се с нас на support@auracase.bg с номера на поръчката."
+        answer: "Първо проверете статуса на пратката с номера за проследяване. Ако има забавяне, свържете се с нас на support@justcases.bg с номера на поръчката."
       },
       {
         question: "Какво да правя, ако пратката е повредена?",
@@ -79,9 +79,9 @@ export default function DeliveriesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-[#0a0a0f]">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-gray-800 to-gray-700 py-20">
+      <section className="bg-gradient-to-r from-[#0a0a0f] to-blue-900/20 py-20">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn" className="text-center">
             <h1 className="text-5xl font-bold text-white mb-6">Управление на доставки</h1>

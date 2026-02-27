@@ -1,4 +1,4 @@
-# AuraCase - Premium Mobile Accessories E-Commerce
+# JustCases - Premium Mobile Accessories E-Commerce
 
 A modern, dark-themed e-commerce website for mobile device accessories built with Next.js 15, TypeScript, Tailwind CSS, and Prisma.
 
@@ -96,7 +96,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 The project uses SQLite for development (no setup required). The database will be automatically created and seeded with sample data.
 
 **Default admin account:**
-- Email: `admin@auracase.com`
+- Email: `admin@justcases.com`
 - Password: `admin123`
 
 ## 🛠️ Available Scripts
@@ -186,7 +186,7 @@ The Prisma schema includes:
 
 ## License
 
-This project is created for AuraCase.
+This project is created for JustCases.
 
 ## Author
 

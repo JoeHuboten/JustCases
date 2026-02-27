@@ -10,12 +10,12 @@ export default function CareerPage() {
     "@type": "WebPage",
     "name": "Кариера в Just Cases - Работни места и възможности",
     "description": "Присъединете се към екипа на Just Cases! Открийте отворени позиции, предимства и възможности за професионално развитие в иновативната компания за мобилни аксесоари.",
-    "url": "https://auracase.bg/career",
+    "url": "https://justcases.bg/career",
     "mainEntity": {
       "@type": "Organization",
       "name": "Just Cases",
       "description": "Премиум мобилни аксесоари за всички устройства",
-      "url": "https://auracase.bg",
+      "url": "https://justcases.bg",
       "hiringOrganization": {
         "@type": "Organization",
         "name": "Just Cases"
@@ -28,13 +28,13 @@ export default function CareerPage() {
           "@type": "ListItem",
           "position": 1,
           "name": "Начало",
-          "item": "https://auracase.bg"
+          "item": "https://justcases.bg"
         },
         {
           "@type": "ListItem",
           "position": 2,
           "name": "Кариера",
-          "item": "https://auracase.bg/career"
+          "item": "https://justcases.bg/career"
         }
       ]
     }
@@ -53,22 +53,22 @@ export default function CareerPage() {
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://auracase.bg/career" />
+        <meta property="og:url" content="https://justcases.bg/career" />
         <meta property="og:title" content="Кариера в Just Cases - Работни места и възможности" />
         <meta property="og:description" content="Присъединете се към екипа на Just Cases! Открийте отворени позиции, предимства и възможности за професионално развитие в иновативната компания за мобилни аксесоари." />
-        <meta property="og:image" content="https://auracase.bg/og-career.jpg" />
+        <meta property="og:image" content="https://justcases.bg/og-career.jpg" />
         <meta property="og:site_name" content="Just Cases" />
         <meta property="og:locale" content="bg_BG" />
         
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://auracase.bg/career" />
+        <meta property="twitter:url" content="https://justcases.bg/career" />
         <meta property="twitter:title" content="Кариера в Just Cases - Работни места и възможности" />
         <meta property="twitter:description" content="Присъединете се към екипа на Just Cases! Открийте отворени позиции, предимства и възможности за професионално развитие в иновативната компания за мобилни аксесоари." />
-        <meta property="twitter:image" content="https://auracase.bg/og-career.jpg" />
+        <meta property="twitter:image" content="https://justcases.bg/og-career.jpg" />
         
         {/* Canonical URL */}
-        <link rel="canonical" href="https://auracase.bg/career" />
+        <link rel="canonical" href="https://justcases.bg/career" />
         
         {/* Structured Data */}
         <script
@@ -77,9 +77,9 @@ export default function CareerPage() {
         />
       </Head>
       
-      <div className="min-h-screen bg-gray-900">
+      <div className="min-h-screen bg-[#0a0a0f]">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-gray-800 to-gray-700 py-20">
+      <section className="bg-gradient-to-r from-[#0a0a0f] to-blue-900/20 py-20">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn" className="text-center">
             <h1 className="text-5xl font-bold text-white mb-6">Кариера в Just Cases</h1>
@@ -356,7 +356,7 @@ export default function CareerPage() {
               </div>
               <h3 className="text-lg font-bold text-white mb-2">Изпратете CV</h3>
               <p className="text-gray-300 text-sm">
-                Изпратете вашето CV и мотивационно писмо на careers@auracase.bg
+                Изпратете вашето CV и мотивационно писмо на careers@justcases.bg
               </p>
             </div>
             <div className="text-center">
@@ -401,13 +401,13 @@ export default function CareerPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
-                href="mailto:careers@auracase.bg"
+                href="mailto:careers@justcases.bg"
                 className="bg-accent text-white px-8 py-4 rounded-lg hover:bg-accent-light hover:scale-105 hover:shadow-lg hover:shadow-accent/30 transition-all duration-300 font-medium transform active:scale-95"
               >
                 Изпратете CV
               </a>
               <a 
-                href="mailto:info@auracase.bg"
+                href="mailto:info@justcases.bg"
                 className="bg-primary text-white px-8 py-4 rounded-lg hover:bg-primary-light hover:scale-105 hover:shadow-lg transition-all duration-300 font-medium border border-gray-600 transform active:scale-95"
               >
                 Свържете се с нас

@@ -2,7 +2,7 @@
 
 ## ✅ Stripe Removed, PayPal Added!
 
-Your AuraCase e-commerce site now uses **PayPal** for payment processing instead of Stripe.
+Your JustCases e-commerce site now uses **PayPal** for payment processing instead of Stripe.
 
 ## Quick Setup (5 Minutes)
 
@@ -14,7 +14,7 @@ Your AuraCase e-commerce site now uses **PayPal** for payment processing instead
 ### Step 2: Get Your API Credentials
 1. Go to https://developer.paypal.com/dashboard/applications/live
 2. Click "Create App"
-3. Give it a name (e.g., "AuraCase")
+3. Give it a name (e.g., "JustCases")
 4. Copy your **Client ID** (starts with `A...`)
 5. Click "Show" under "Secret" and copy your **Client Secret**
 

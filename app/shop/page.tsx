@@ -7,6 +7,7 @@ import { FiChevronRight, FiFilter, FiX, FiSearch, FiGrid, FiList, FiSliders } fr
 import Link from 'next/link';
 import { useState, useEffect, Suspense, useCallback, useTransition } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { Product, Category } from '@/types';
 
 interface ProductsResponse {
@@ -18,6 +19,7 @@ interface ProductsResponse {
 }
 
 function ShopContent() {
+  const { t, language } = useLanguage();
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -153,14 +155,24 @@ function ShopContent() {
 
   const hasActiveFilters = currentCategory !== 'all' || currentSearch || currentMinPrice > 0 || currentMaxPrice < 200;
 
+  const getCategoryLabel = useCallback((category: Category) => {
+    return t(`category.${category.slug}`, category.name);
+  }, [t]);
+
+  const productsFoundText = loading
+    ? t('common.loading', 'Зареждане...')
+    : language === 'bg'
+      ? `Намерени продукти: ${total}`
+      : `${total} products found`;
+
   return (
     <div className="min-h-screen bg-[#0a0a0f]">
       {/* Breadcrumb */}
       <div className="container-custom py-6">
         <div className="flex items-center gap-2 text-sm font-body">
-          <Link href="/" className="text-white/40 hover:text-blue-400 transition-colors">Home</Link>
+          <Link href="/" className="text-white/40 hover:text-blue-400 transition-colors">{t('nav.home', 'Начало')}</Link>
           <FiChevronRight className="text-white/30" />
-          <span className="text-white font-medium">Shop</span>
+          <span className="text-white font-medium">{t('nav.shop', 'Магазин')}</span>
         </div>
       </div>
 
@@ -171,7 +183,7 @@ function ShopContent() {
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40" size={18} />
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder={t('shop.searchProducts', 'Търсене на продукти...')}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               className="w-full pl-10 pr-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05] transition-all text-sm sm:text-base font-body"
@@ -180,7 +192,7 @@ function ShopContent() {
           <button
             onClick={() => setMobileFiltersOpen(true)}
             className="p-3 bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 rounded-xl relative min-w-[48px] min-h-[48px] flex items-center justify-center"
-            aria-label="Open filters"
+            aria-label={t('shop.openFilters', 'Отвори филтри')}
           >
             <FiFilter size={20} />
             {hasActiveFilters && (
@@ -197,7 +209,7 @@ function ShopContent() {
             <div className="bg-white/[0.02] backdrop-blur-xl border border-white/5 rounded-2xl p-6 sticky top-6 shadow-2xl">
               <h2 className="text-xl font-heading font-bold text-white mb-6 flex items-center gap-2">
                 <FiSliders className="text-blue-400" />
-                Filters
+                {t('shop.filters', 'Филтри')}
               </h2>
 
               {/* Desktop Search */}
@@ -206,7 +218,7 @@ function ShopContent() {
                   <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40" size={18} />
                   <input
                     type="text"
-                    placeholder="Search products..."
+                    placeholder={t('shop.searchProducts', 'Търсене на продукти...')}
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05] transition-all font-body"
@@ -216,7 +228,7 @@ function ShopContent() {
 
               {/* Product Type Filter */}
               <div className="mb-8">
-                <h3 className="text-lg font-heading font-semibold text-white mb-4">Product Type</h3>
+                <h3 className="text-lg font-heading font-semibold text-white mb-4">{t('shop.productType', 'Тип продукт')}</h3>
                 <div className="space-y-2">
                   <button
                     onClick={() => updateFilters({ category: null })}
@@ -226,7 +238,7 @@ function ShopContent() {
                         : 'border-white/5 hover:border-white/10 text-white/50 hover:text-white hover:bg-white/[0.03]'
                     }`}
                   >
-                    <span className="font-medium">All Products</span>
+                    <span className="font-medium">{t('shop.allProducts', 'Всички продукти')}</span>
                     <FiChevronRight className={`transition-all duration-200 ${currentCategory === 'all' ? 'rotate-90' : 'group-hover:translate-x-1'}`} />
                   </button>
                   {categories.map((category) => (
@@ -239,7 +251,7 @@ function ShopContent() {
                           : 'border-white/5 hover:border-white/10 text-white/50 hover:text-white hover:bg-white/[0.03]'
                       }`}
                     >
-                      <span className="font-medium">{category.name}</span>
+                      <span className="font-medium">{getCategoryLabel(category)}</span>
                       <FiChevronRight className={`transition-all duration-200 ${currentCategory === category.slug ? 'rotate-90' : 'group-hover:translate-x-1'}`} />
                     </button>
                   ))}
@@ -248,11 +260,11 @@ function ShopContent() {
 
               {/* Price Filter */}
               <div className="mb-8">
-                <h3 className="text-lg font-heading font-semibold text-white mb-4">Price Range</h3>
+                <h3 className="text-lg font-heading font-semibold text-white mb-4">{t('shop.priceRange', 'Ценови диапазон')}</h3>
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <div className="flex-1">
-                      <label className="block text-white/40 text-sm mb-1 font-body">Min</label>
+                      <label className="block text-white/40 text-sm mb-1 font-body">{t('search.minPrice', 'Минимална цена')}</label>
                       <input
                         type="number"
                         min="0"
@@ -267,7 +279,7 @@ function ShopContent() {
                     </div>
                     <span className="text-white/40 mt-6">-</span>
                     <div className="flex-1">
-                      <label className="block text-white/40 text-sm mb-1 font-body">Max</label>
+                      <label className="block text-white/40 text-sm mb-1 font-body">{t('search.maxPrice', 'Максимална цена')}</label>
                       <input
                         type="number"
                         min="0"
@@ -286,7 +298,7 @@ function ShopContent() {
                     disabled={tempPriceRange[0] === currentMinPrice && tempPriceRange[1] === currentMaxPrice}
                     className="w-full py-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-body"
                   >
-                    Apply Price
+                    {t('shop.applyPrice', 'Приложи цена')}
                   </button>
                 </div>
               </div>
@@ -298,7 +310,7 @@ function ShopContent() {
                   className="w-full flex items-center justify-center gap-2 px-6 py-3 border border-white/10 text-white/70 hover:text-white hover:border-white/20 hover:bg-white/[0.03] rounded-xl transition-all font-body"
                 >
                   <FiX size={18} />
-                  Clear All Filters
+                  {t('search.clearFilters', 'Изчисти филтрите')}
                 </button>
               )}
             </div>
@@ -310,7 +322,7 @@ function ShopContent() {
             <div className="flex flex-col xs:flex-row sm:flex-row items-start xs:items-center sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
               <div className="flex items-center gap-3 sm:gap-4">
                 <p className="text-white/50 text-sm sm:text-base font-body">
-                  {loading ? 'Loading...' : `${total} products found`}
+                  {productsFoundText}
                 </p>
                 {isPending && (
                   <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400" />
@@ -324,11 +336,11 @@ function ShopContent() {
                   onChange={(e) => updateFilters({ sort: e.target.value === 'popular' ? null : e.target.value })}
                   className="flex-1 xs:flex-none sm:flex-none bg-white/[0.03] border border-white/10 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-sm sm:text-base focus:outline-none focus:border-blue-500/50 cursor-pointer min-h-[44px] font-body"
                 >
-                  <option value="popular">Most Popular</option>
-                  <option value="newest">Newest</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
-                  <option value="rating">Highest Rated</option>
+                  <option value="popular">{t('shop.sort.popular', 'Най-популярни')}</option>
+                  <option value="newest">{t('shop.sort.newest', 'Най-нови')}</option>
+                  <option value="price-low">{t('shop.sort.priceLow', 'Цена: ниска към висока')}</option>
+                  <option value="price-high">{t('shop.sort.priceHigh', 'Цена: висока към ниска')}</option>
+                  <option value="rating">{t('shop.sort.rating', 'Най-висок рейтинг')}</option>
                 </select>
                 
                 {/* View Mode Toggle */}
@@ -336,14 +348,14 @@ function ShopContent() {
                   <button
                     onClick={() => setViewMode('grid')}
                     className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-blue-500 text-white' : 'text-white/50 hover:text-white'}`}
-                    aria-label="Grid view"
+                    aria-label={t('shop.gridView', 'Изглед мрежа')}
                   >
                     <FiGrid size={18} />
                   </button>
                   <button
                     onClick={() => setViewMode('list')}
                     className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-blue-500 text-white' : 'text-white/50 hover:text-white'}`}
-                    aria-label="List view"
+                    aria-label={t('shop.listView', 'Изглед списък')}
                   >
                     <FiList size={18} />
                   </button>
@@ -384,13 +396,13 @@ function ShopContent() {
                 <div className="w-24 h-24 bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <FiSearch className="text-blue-400" size={32} />
                 </div>
-                <h3 className="text-xl font-heading font-semibold text-white mb-2">No products found</h3>
-                <p className="text-white/50 mb-6 font-body">Try adjusting your filters or search terms</p>
+                <h3 className="text-xl font-heading font-semibold text-white mb-2">{t('shop.noProducts', 'Няма намерени продукти')}</h3>
+                <p className="text-white/50 mb-6 font-body">{t('shop.noProductsHint', 'Опитайте да промените филтрите или търсенето')}</p>
                 <button
                   onClick={clearAllFilters}
                   className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-colors font-body"
                 >
-                  Clear All Filters
+                  {t('search.clearFilters', 'Изчисти филтрите')}
                 </button>
               </div>
             )}
@@ -406,12 +418,12 @@ function ShopContent() {
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h2 className="text-lg sm:text-xl font-heading font-bold text-white flex items-center gap-2">
                 <FiSliders className="text-blue-400" size={18} />
-                Filters
+                {t('shop.filters', 'Филтри')}
               </h2>
               <button
                 onClick={() => setMobileFiltersOpen(false)}
                 className="p-2.5 text-white/50 hover:text-white rounded-lg hover:bg-white/5 min-w-[44px] min-h-[44px] flex items-center justify-center"
-                aria-label="Close filters"
+                aria-label={t('shop.closeFilters', 'Затвори филтри')}
               >
                 <FiX size={20} />
               </button>
@@ -419,7 +431,7 @@ function ShopContent() {
 
             {/* Mobile Category Filter */}
             <div className="mb-6 sm:mb-8">
-              <h3 className="text-base sm:text-lg font-heading font-semibold text-white mb-3 sm:mb-4">Product Type</h3>
+              <h3 className="text-base sm:text-lg font-heading font-semibold text-white mb-3 sm:mb-4">{t('shop.productType', 'Тип продукт')}</h3>
               <div className="space-y-2">
                 <button
                   onClick={() => {
@@ -432,7 +444,7 @@ function ShopContent() {
                       : 'border-white/10 text-white/50 hover:text-white'
                   }`}
                 >
-                  <span className="font-medium text-sm sm:text-base">All Products</span>
+                  <span className="font-medium text-sm sm:text-base">{t('shop.allProducts', 'Всички продукти')}</span>
                 </button>
                 {categories.map((category) => (
                   <button
@@ -447,7 +459,7 @@ function ShopContent() {
                         : 'border-white/10 text-white/50 hover:text-white'
                     }`}
                   >
-                    <span className="font-medium text-sm sm:text-base">{category.name}</span>
+                    <span className="font-medium text-sm sm:text-base">{getCategoryLabel(category)}</span>
                   </button>
                 ))}
               </div>
@@ -455,7 +467,7 @@ function ShopContent() {
 
             {/* Mobile Price Filter */}
             <div className="mb-6 sm:mb-8">
-              <h3 className="text-base sm:text-lg font-heading font-semibold text-white mb-3 sm:mb-4">Price Range</h3>
+              <h3 className="text-base sm:text-lg font-heading font-semibold text-white mb-3 sm:mb-4">{t('shop.priceRange', 'Ценови диапазон')}</h3>
               <div className="flex items-center justify-between text-sm mb-4">
                 <span className="text-blue-400 font-semibold font-body">${tempPriceRange[0]}</span>
                 <span className="text-blue-400 font-semibold font-body">${tempPriceRange[1]}</span>
@@ -475,7 +487,7 @@ function ShopContent() {
                 }}
                 className="w-full mt-4 py-3 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-all min-h-[48px] font-medium font-body"
               >
-                Apply Price
+                {t('shop.applyPrice', 'Приложи цена')}
               </button>
             </div>
 
@@ -488,7 +500,7 @@ function ShopContent() {
                 }}
                 className="w-full min-h-[48px] px-6 py-3 border border-white/10 text-white/70 hover:text-white hover:border-white/20 hover:bg-white/[0.03] rounded-xl transition-all font-body"
               >
-                Clear All Filters
+                {t('search.clearFilters', 'Изчисти филтрите')}
               </button>
             )}
           </div>
@@ -499,13 +511,15 @@ function ShopContent() {
 }
 
 export default function ShopPage() {
+  const { t } = useLanguage();
+
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-[#0a0a0f] py-12">
         <div className="container-custom">
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
-            <p className="mt-4 text-white/50 font-body">Loading products...</p>
+            <p className="mt-4 text-white/50 font-body">{t('shop.loadingProducts', 'Зареждане на продукти...')}</p>
           </div>
         </div>
       </div>

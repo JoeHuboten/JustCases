@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { FiZoomIn, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ProductImageGalleryProps {
   images: string[];
@@ -10,6 +11,7 @@ interface ProductImageGalleryProps {
 }
 
 export default function ProductImageGallery({ images, productName }: ProductImageGalleryProps) {
+  const { t } = useLanguage();
   const [selectedImage, setSelectedImage] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -68,7 +70,7 @@ export default function ProductImageGallery({ images, productName }: ProductImag
             }`}
           >
             <FiZoomIn size={18} />
-            <span className="text-sm">Hover to zoom</span>
+            <span className="text-sm">{t('product.gallery.hoverToZoom', 'Задръж за увеличение')}</span>
           </div>
 
           {/* Navigation Arrows */}
@@ -77,14 +79,14 @@ export default function ProductImageGallery({ images, productName }: ProductImag
               <button
                 onClick={prevImage}
                 className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 backdrop-blur-sm text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
-                aria-label="Previous image"
+                aria-label={t('product.gallery.previousImage', 'Предишно изображение')}
               >
                 <FiChevronLeft size={24} />
               </button>
               <button
                 onClick={nextImage}
                 className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 backdrop-blur-sm text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
-                aria-label="Next image"
+                aria-label={t('product.gallery.nextImage', 'Следващо изображение')}
               >
                 <FiChevronRight size={24} />
               </button>

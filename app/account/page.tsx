@@ -12,6 +12,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/animate-ui/components/animate/tabs';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Address {
   id: string;
@@ -40,6 +41,7 @@ interface PaymentMethod {
 
 export default function AccountPage() {
   const { user, loading, signOut } = useAuth();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('details');
@@ -92,10 +94,11 @@ export default function AccountPage() {
   }, []);
 
   useEffect(() => {
+    // Fallback client-side redirect if proxy didn't catch it (e.g. client-side nav)
     if (!loading && !user && mounted) {
-      router.push('/auth/signin');
+      window.location.href = '/auth/signin';
     }
-  }, [user, loading, router, mounted]);
+  }, [user, loading, mounted]);
 
   // Fetch addresses
   const fetchAddresses = useCallback(async () => {
@@ -193,20 +196,20 @@ export default function AccountPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || 'Failed to save address');
+        throw new Error(data.error || t('account.address.saveFailed', 'Неуспешно запазване на адрес'));
       }
 
       await fetchAddresses();
       setShowAddressModal(false);
     } catch (error) {
-      setAddressError(error instanceof Error ? error.message : 'Failed to save address');
+      setAddressError(error instanceof Error ? error.message : t('account.address.saveFailed', 'Неуспешно запазване на адрес'));
     } finally {
       setSavingAddress(false);
     }
   };
 
   const handleDeleteAddress = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this address?')) return;
+    if (!confirm(t('account.address.deleteConfirm', 'Сигурни ли сте, че искате да изтриете този адрес?'))) return;
 
     try {
       const res = await fetch(`/api/addresses/${id}`, { method: 'DELETE' });
@@ -251,7 +254,7 @@ export default function AccountPage() {
     setPaymentError('');
 
     if (paymentForm.cardNumber.replace(/\s/g, '').length < 13) {
-      setPaymentError('Please enter a valid card number');
+      setPaymentError(t('account.payment.invalidCard', 'Моля, въведете валиден номер на карта'));
       setSavingPayment(false);
       return;
     }
@@ -271,20 +274,20 @@ export default function AccountPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || 'Failed to save payment method');
+        throw new Error(data.error || t('account.payment.saveFailed', 'Неуспешно запазване на метод за плащане'));
       }
 
       await fetchPaymentMethods();
       setShowPaymentModal(false);
     } catch (error) {
-      setPaymentError(error instanceof Error ? error.message : 'Failed to save payment method');
+      setPaymentError(error instanceof Error ? error.message : t('account.payment.saveFailed', 'Неуспешно запазване на метод за плащане'));
     } finally {
       setSavingPayment(false);
     }
   };
 
   const handleDeletePayment = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this payment method?')) return;
+    if (!confirm(t('account.payment.deleteConfirm', 'Сигурни ли сте, че искате да изтриете този метод за плащане?'))) return;
 
     try {
       const res = await fetch(`/api/payment-methods/${id}`, { method: 'DELETE' });
@@ -319,13 +322,13 @@ export default function AccountPage() {
     setPasswordSuccess('');
 
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordError('New passwords do not match');
+      setPasswordError(t('account.password.noMatch', 'Новите пароли не съвпадат'));
       setSavingPassword(false);
       return;
     }
 
     if (passwordForm.newPassword.length < 8) {
-      setPasswordError('Password must be at least 8 characters long');
+      setPasswordError(t('account.password.minLength', 'Паролата трябва да е поне 8 символа'));
       setSavingPassword(false);
       return;
     }
@@ -344,13 +347,13 @@ export default function AccountPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to change password');
+        throw new Error(data.error || t('account.password.changeFailed', 'Неуспешна смяна на паролата'));
       }
 
-      setPasswordSuccess('Password changed successfully!');
+      setPasswordSuccess(t('account.password.changed', 'Паролата е сменена успешно!'));
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (error) {
-      setPasswordError(error instanceof Error ? error.message : 'Failed to change password');
+      setPasswordError(error instanceof Error ? error.message : t('account.password.changeFailed', 'Неуспешна смяна на паролата'));
     } finally {
       setSavingPassword(false);
     }
@@ -359,21 +362,25 @@ export default function AccountPage() {
   if (!mounted || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-primary/10 to-background flex items-center justify-center">
-        <div className="animate-pulse text-white text-xl">Loading...</div>
+        <div className="animate-pulse text-white text-xl">{t('common.loading', 'Зареждане...')}</div>
       </div>
     );
   }
 
   if (!user) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-primary/10 to-background flex items-center justify-center">
+        <div className="animate-pulse text-white text-xl">{t('account.redirecting', 'Пренасочване...')}</div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/10 to-background py-12">
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">My Account</h1>
-          <p className="text-text-secondary">Manage your account settings and view your orders</p>
+          <h1 className="text-4xl font-bold text-white mb-2">{t('account.title', 'Моят акаунт')}</h1>
+          <p className="text-text-secondary">{t('account.subtitle', 'Управлявайте настройките на акаунта си и преглеждайте поръчките си')}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -383,12 +390,12 @@ export default function AccountPage() {
               <div className="w-24 h-24 bg-gradient-to-br from-accent to-accent-light rounded-full flex items-center justify-center mb-4">
                 <FiUser size={48} className="text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-1">{user.name || 'User'}</h2>
+              <h2 className="text-2xl font-bold text-white mb-1">{user.name || t('account.userFallback', 'Потребител')}</h2>
               <p className="text-text-secondary text-sm mb-2">{user.email}</p>
               {user.role === 'ADMIN' && (
                 <div className="flex items-center gap-2 bg-accent/20 text-accent px-3 py-1 rounded-full text-sm">
                   <FiShield size={14} />
-                  <span>Admin</span>
+                  <span>{t('account.admin', 'Админ')}</span>
                 </div>
               )}
             </div>
@@ -399,28 +406,28 @@ export default function AccountPage() {
                 className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-white ${activeTab === 'details' ? 'bg-gray-800/70' : 'hover:bg-gray-800/50'}`}
               >
                 <FiUser size={20} />
-                <span>Account Details</span>
+                <span>{t('account.details', 'Детайли на акаунта')}</span>
               </button>
               <button
                 onClick={() => setActiveTab('password')}
                 className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-white ${activeTab === 'password' ? 'bg-gray-800/70' : 'hover:bg-gray-800/50'}`}
               >
                 <FiLock size={20} />
-                <span>Change Password</span>
+                <span>{t('account.changePassword', 'Смяна на парола')}</span>
               </button>
               <button
                 onClick={() => setActiveTab('addresses')}
                 className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-white ${activeTab === 'addresses' ? 'bg-gray-800/70' : 'hover:bg-gray-800/50'}`}
               >
                 <FiMapPin size={20} />
-                <span>Addresses</span>
+                <span>{t('account.addresses', 'Адреси')}</span>
               </button>
               <button
                 onClick={() => setActiveTab('payments')}
                 className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-white ${activeTab === 'payments' ? 'bg-gray-800/70' : 'hover:bg-gray-800/50'}`}
               >
                 <FiCreditCard size={20} />
-                <span>Payment Methods</span>
+                <span>{t('account.paymentMethods', 'Начини на плащане')}</span>
               </button>
               
               <div className="border-t border-gray-700 my-3"></div>
@@ -430,14 +437,14 @@ export default function AccountPage() {
                 className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800/50 transition-colors text-white"
               >
                 <FiPackage size={20} />
-                <span>My Orders</span>
+                <span>{t('account.orders', 'Поръчки')}</span>
               </Link>
               <Link
                 href="/wishlist"
                 className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800/50 transition-colors text-white"
               >
                 <FiHeart size={20} />
-                <span>Wishlist</span>
+                <span>{t('nav.wishlist', 'Желания')}</span>
               </Link>
               {user.role === 'ADMIN' && (
                 <Link
@@ -445,7 +452,7 @@ export default function AccountPage() {
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800/50 transition-colors text-white"
                 >
                   <FiSettings size={20} />
-                  <span>Admin Dashboard</span>
+                  <span>{t('account.adminDashboard', 'Админ панел')}</span>
                 </Link>
               )}
               <button
@@ -453,7 +460,7 @@ export default function AccountPage() {
                 className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-500/20 transition-colors text-red-400"
               >
                 <FiLogOut size={20} />
-                <span>Sign Out</span>
+                <span>{t('nav.signout', 'Изход')}</span>
               </button>
             </div>
           </div>
@@ -464,36 +471,36 @@ export default function AccountPage() {
               <TabsList className="mb-6">
                 <TabsTrigger value="details">
                   <FiUser size={16} className="mr-2" />
-                  Account
+                  {t('nav.account', 'Акаунт')}
                 </TabsTrigger>
                 <TabsTrigger value="password">
                   <FiLock size={16} className="mr-2" />
-                  Password
+                  {t('account.security', 'Сигурност')}
                 </TabsTrigger>
                 <TabsTrigger value="addresses">
                   <FiMapPin size={16} className="mr-2" />
-                  Addresses
+                  {t('account.addresses', 'Адреси')}
                 </TabsTrigger>
                 <TabsTrigger value="payments">
                   <FiCreditCard size={16} className="mr-2" />
-                  Payments
+                  {t('account.paymentMethods', 'Начини на плащане')}
                 </TabsTrigger>
               </TabsList>
               
               <TabsContents>
                 {/* Account Details Tab */}
                 <TabsContent value="details">
-                  <h3 className="text-2xl font-bold text-white mb-6">Account Details</h3>
+                  <h3 className="text-2xl font-bold text-white mb-6">{t('account.details', 'Детайли на акаунта')}</h3>
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-text-secondary text-sm mb-2">Full Name</label>
+                        <label className="block text-text-secondary text-sm mb-2">{t('account.fullName', 'Пълно име')}</label>
                         <div className="bg-background/50 border border-gray-700 rounded-lg px-4 py-3 text-white">
-                          {user.name || 'Not set'}
+                          {user.name || t('account.notSet', 'Не е зададено')}
                         </div>
                       </div>
                       <div>
-                        <label className="block text-text-secondary text-sm mb-2">Email Address</label>
+                        <label className="block text-text-secondary text-sm mb-2">{t('account.emailAddress', 'Имейл адрес')}</label>
                         <div className="bg-background/50 border border-gray-700 rounded-lg px-4 py-3 text-white">
                           {user.email}
                         </div>
@@ -501,33 +508,33 @@ export default function AccountPage() {
                     </div>
 
                     <div>
-                      <label className="block text-text-secondary text-sm mb-2">Account Type</label>
+                      <label className="block text-text-secondary text-sm mb-2">{t('account.accountType', 'Тип акаунт')}</label>
                       <div className="bg-background/50 border border-gray-700 rounded-lg px-4 py-3 text-white">
-                        {user.role === 'ADMIN' ? 'Administrator' : 'Customer'}
+                        {user.role === 'ADMIN' ? t('account.typeAdmin', 'Администратор') : t('account.typeCustomer', 'Клиент')}
                       </div>
                     </div>
 
                     <div className="pt-6 border-t border-gray-700">
-                      <h4 className="text-xl font-bold text-white mb-4">Quick Stats</h4>
+                      <h4 className="text-xl font-bold text-white mb-4">{t('account.quickStats', 'Бърза статистика')}</h4>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         <div className="bg-background/50 border border-gray-700 rounded-lg p-4">
                           <div className="text-3xl font-bold text-accent mb-1">0</div>
-                          <div className="text-text-secondary text-sm">Total Orders</div>
+                          <div className="text-text-secondary text-sm">{t('account.totalOrders', 'Общо поръчки')}</div>
                         </div>
                         <div className="bg-background/50 border border-gray-700 rounded-lg p-4">
                           <div className="text-3xl font-bold text-accent mb-1">0</div>
-                          <div className="text-text-secondary text-sm">Wishlist Items</div>
+                          <div className="text-text-secondary text-sm">{t('account.wishlistItems', 'Любими продукти')}</div>
                         </div>
                         <div className="bg-background/50 border border-gray-700 rounded-lg p-4">
-                          <div className="text-3xl font-bold text-accent mb-1">$0</div>
-                          <div className="text-text-secondary text-sm">Total Spent</div>
+                          <div className="text-3xl font-bold text-accent mb-1">{language === 'bg' ? '0 лв.' : '$0'}</div>
+                          <div className="text-text-secondary text-sm">{t('account.totalSpent', 'Общо похарчени')}</div>
                         </div>
                       </div>
                     </div>
 
                     <div className="pt-6">
                       <p className="text-text-secondary text-sm">
-                        Need to update your information? Contact our support team for assistance.
+                        {t('account.supportHint', 'Трябва да обновите информацията си? Свържете се с нашата поддръжка.')}
                       </p>
                     </div>
                   </div>
@@ -535,10 +542,10 @@ export default function AccountPage() {
 
                 {/* Password Tab */}
                 <TabsContent value="password">
-                  <h3 className="text-2xl font-bold text-white mb-6">Change Password</h3>
+                  <h3 className="text-2xl font-bold text-white mb-6">{t('account.changePassword', 'Смяна на парола')}</h3>
                   <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
                     <div>
-                      <label className="block text-text-secondary text-sm mb-2">Current Password</label>
+                      <label className="block text-text-secondary text-sm mb-2">{t('account.password.current', 'Текуща парола')}</label>
                       <input 
                         type="password"
                         value={passwordForm.currentPassword}
@@ -548,7 +555,7 @@ export default function AccountPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-text-secondary text-sm mb-2">New Password</label>
+                      <label className="block text-text-secondary text-sm mb-2">{t('account.password.new', 'Нова парола')}</label>
                       <input 
                         type="password"
                         value={passwordForm.newPassword}
@@ -558,7 +565,7 @@ export default function AccountPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-text-secondary text-sm mb-2">Confirm New Password</label>
+                      <label className="block text-text-secondary text-sm mb-2">{t('account.password.confirm', 'Потвърдете новата парола')}</label>
                       <input 
                         type="password"
                         value={passwordForm.confirmPassword}
@@ -578,7 +585,7 @@ export default function AccountPage() {
                       disabled={savingPassword}
                       className="bg-accent hover:bg-accent-light text-white font-semibold px-6 py-3 rounded-lg transition-colors disabled:opacity-50"
                     >
-                      {savingPassword ? 'Updating...' : 'Update Password'}
+                      {savingPassword ? t('account.password.updating', 'Обновяване...') : t('account.password.updateButton', 'Обнови паролата')}
                     </button>
                   </form>
                 </TabsContent>
@@ -586,13 +593,13 @@ export default function AccountPage() {
                 {/* Addresses Tab */}
                 <TabsContent value="addresses">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-2xl font-bold text-white">Saved Addresses</h3>
+                    <h3 className="text-2xl font-bold text-white">{t('account.savedAddresses', 'Запазени адреси')}</h3>
                     <button 
                       onClick={handleAddAddress}
                       className="flex items-center gap-2 bg-accent hover:bg-accent-light text-white font-semibold px-4 py-2 rounded-lg transition-colors"
                     >
                       <FiPlus size={18} />
-                      Add Address
+                      {t('account.addAddress', 'Добави адрес')}
                     </button>
                   </div>
                   
@@ -603,8 +610,8 @@ export default function AccountPage() {
                   ) : addresses.length === 0 ? (
                     <div className="text-center py-12 text-text-secondary">
                       <FiMapPin size={48} className="mx-auto mb-4 opacity-50" />
-                      <p>No saved addresses yet.</p>
-                      <p className="text-sm">Add an address for faster checkout.</p>
+                      <p>{t('account.noAddresses', 'Няма запазени адреси.')}</p>
+                      <p className="text-sm">{t('account.noAddressesHint', 'Добавете адрес за по-бързо плащане.')}</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -619,7 +626,7 @@ export default function AccountPage() {
                                 <span className="font-medium text-white">{address.firstName} {address.lastName}</span>
                                 {address.isDefault && (
                                   <span className="text-xs bg-accent/20 text-accent px-2 py-0.5 rounded-full flex items-center gap-1">
-                                    <FiStar size={10} /> Default
+                                    <FiStar size={10} /> {t('account.default', 'По подразбиране')}
                                   </span>
                                 )}
                               </div>
@@ -638,7 +645,7 @@ export default function AccountPage() {
                                 <button 
                                   onClick={() => handleSetDefaultAddress(address.id)}
                                   className="p-2 text-text-secondary hover:text-white transition-colors"
-                                  title="Set as default"
+                                  title={t('account.setDefault', 'Задай по подразбиране')}
                                 >
                                   <FiCheck size={18} />
                                 </button>
@@ -666,13 +673,13 @@ export default function AccountPage() {
                 {/* Payment Methods Tab */}
                 <TabsContent value="payments">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-2xl font-bold text-white">Payment Methods</h3>
+                    <h3 className="text-2xl font-bold text-white">{t('account.paymentMethods', 'Начини на плащане')}</h3>
                     <button 
                       onClick={handleAddPayment}
                       className="flex items-center gap-2 bg-accent hover:bg-accent-light text-white font-semibold px-4 py-2 rounded-lg transition-colors"
                     >
                       <FiPlus size={18} />
-                      Add Card
+                      {t('account.payment.addCard', 'Добави карта')}
                     </button>
                   </div>
                   
@@ -683,8 +690,8 @@ export default function AccountPage() {
                   ) : paymentMethods.length === 0 ? (
                     <div className="text-center py-12 text-text-secondary">
                       <FiCreditCard size={48} className="mx-auto mb-4 opacity-50" />
-                      <p>No saved payment methods yet.</p>
-                      <p className="text-sm">Add a card for faster checkout.</p>
+                      <p>{t('account.payment.none', 'Няма запазени методи за плащане.')}</p>
+                      <p className="text-sm">{t('account.payment.noneHint', 'Добавете карта за по-бързо плащане.')}</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -705,12 +712,12 @@ export default function AccountPage() {
                                   </span>
                                   {payment.isDefault && (
                                     <span className="text-xs bg-accent/20 text-accent px-2 py-0.5 rounded-full flex items-center gap-1">
-                                      <FiStar size={10} /> Default
+                                      <FiStar size={10} /> {t('account.default', 'По подразбиране')}
                                     </span>
                                   )}
                                 </div>
                                 <p className="text-sm text-text-secondary">
-                                  {payment.holderName} • Expires {payment.expiryMonth.toString().padStart(2, '0')}/{payment.expiryYear}
+                                  {payment.holderName} • {t('account.payment.expires', 'Валидна до')} {payment.expiryMonth.toString().padStart(2, '0')}/{payment.expiryYear}
                                 </p>
                               </div>
                             </div>
@@ -719,7 +726,7 @@ export default function AccountPage() {
                                 <button 
                                   onClick={() => handleSetDefaultPayment(payment.id)}
                                   className="p-2 text-text-secondary hover:text-white transition-colors"
-                                  title="Set as default"
+                                  title={t('account.setDefault', 'Задай по подразбиране')}
                                 >
                                   <FiCheck size={18} />
                                 </button>
@@ -749,7 +756,7 @@ export default function AccountPage() {
           <div className="bg-primary border border-gray-800 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-gray-800">
               <h2 className="text-lg font-semibold text-white">
-                {editingAddress ? 'Edit Address' : 'Add New Address'}
+                {editingAddress ? t('account.address.edit', 'Редактирай адрес') : t('account.address.addNew', 'Добави нов адрес')}
               </h2>
               <button onClick={() => setShowAddressModal(false)} className="text-text-secondary hover:text-white">
                 <FiX size={20} />
@@ -758,89 +765,89 @@ export default function AccountPage() {
             <div className="p-4 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-text-secondary text-sm mb-2">First Name</label>
+                  <label className="block text-text-secondary text-sm mb-2">{t('checkout.firstName', 'Име')}</label>
                   <input
                     value={addressForm.firstName}
                     onChange={(e) => setAddressForm({...addressForm, firstName: e.target.value})}
                     className="w-full bg-background/50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent"
-                    placeholder="John"
+                    placeholder={t('account.address.firstNamePlaceholder', 'Иван')}
                   />
                 </div>
                 <div>
-                  <label className="block text-text-secondary text-sm mb-2">Last Name</label>
+                  <label className="block text-text-secondary text-sm mb-2">{t('checkout.lastName', 'Фамилия')}</label>
                   <input
                     value={addressForm.lastName}
                     onChange={(e) => setAddressForm({...addressForm, lastName: e.target.value})}
                     className="w-full bg-background/50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent"
-                    placeholder="Doe"
+                    placeholder={t('account.address.lastNamePlaceholder', 'Иванов')}
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-text-secondary text-sm mb-2">Address Line 1</label>
+                <label className="block text-text-secondary text-sm mb-2">{t('account.address.line1', 'Адрес')}</label>
                 <input
                   value={addressForm.address1}
                   onChange={(e) => setAddressForm({...addressForm, address1: e.target.value})}
                   className="w-full bg-background/50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent"
-                  placeholder="123 Main St"
+                  placeholder={t('account.address.line1Placeholder', 'ул. Пример 123')}
                 />
               </div>
               <div>
-                <label className="block text-text-secondary text-sm mb-2">Address Line 2 (Optional)</label>
+                <label className="block text-text-secondary text-sm mb-2">{t('account.address.line2', 'Адрес 2 (по избор)')}</label>
                 <input
                   value={addressForm.address2}
                   onChange={(e) => setAddressForm({...addressForm, address2: e.target.value})}
                   className="w-full bg-background/50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent"
-                  placeholder="Apt 4"
+                  placeholder={t('account.address.line2Placeholder', 'Ап. 4')}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-text-secondary text-sm mb-2">City</label>
+                  <label className="block text-text-secondary text-sm mb-2">{t('checkout.city', 'Град')}</label>
                   <input
                     value={addressForm.city}
                     onChange={(e) => setAddressForm({...addressForm, city: e.target.value})}
                     className="w-full bg-background/50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent"
-                    placeholder="New York"
+                    placeholder={t('account.address.cityPlaceholder', 'София')}
                   />
                 </div>
                 <div>
-                  <label className="block text-text-secondary text-sm mb-2">State</label>
+                  <label className="block text-text-secondary text-sm mb-2">{t('account.address.state', 'Област')}</label>
                   <input
                     value={addressForm.state}
                     onChange={(e) => setAddressForm({...addressForm, state: e.target.value})}
                     className="w-full bg-background/50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent"
-                    placeholder="NY"
+                    placeholder={t('account.address.statePlaceholder', 'София-град')}
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-text-secondary text-sm mb-2">Postal Code</label>
+                  <label className="block text-text-secondary text-sm mb-2">{t('checkout.postalCode', 'Пощенски код')}</label>
                   <input
                     value={addressForm.postalCode}
                     onChange={(e) => setAddressForm({...addressForm, postalCode: e.target.value})}
                     className="w-full bg-background/50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent"
-                    placeholder="10001"
+                    placeholder={t('account.address.postalPlaceholder', '1000')}
                   />
                 </div>
                 <div>
-                  <label className="block text-text-secondary text-sm mb-2">Country</label>
+                  <label className="block text-text-secondary text-sm mb-2">{t('checkout.country', 'Държава')}</label>
                   <input
                     value={addressForm.country}
                     onChange={(e) => setAddressForm({...addressForm, country: e.target.value})}
                     className="w-full bg-background/50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent"
-                    placeholder="United States"
+                    placeholder={t('account.address.countryPlaceholder', 'България')}
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-text-secondary text-sm mb-2">Phone Number (Optional)</label>
+                <label className="block text-text-secondary text-sm mb-2">{t('account.address.phoneOptional', 'Телефон (по избор)')}</label>
                 <input
                   value={addressForm.phone}
                   onChange={(e) => setAddressForm({...addressForm, phone: e.target.value})}
                   className="w-full bg-background/50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent"
-                  placeholder="+1 (555) 123-4567"
+                  placeholder={t('account.address.phonePlaceholder', '+359 888 123 456')}
                 />
               </div>
               {addressError && (
@@ -851,14 +858,14 @@ export default function AccountPage() {
                   onClick={() => setShowAddressModal(false)}
                   className="flex-1 border border-gray-700 text-white font-semibold px-4 py-3 rounded-lg hover:bg-gray-800/50 transition-colors"
                 >
-                  Cancel
+                  {t('common.cancel', 'Отказ')}
                 </button>
                 <button 
                   onClick={handleSaveAddress}
                   disabled={savingAddress}
                   className="flex-1 bg-accent hover:bg-accent-light text-white font-semibold px-4 py-3 rounded-lg transition-colors disabled:opacity-50"
                 >
-                  {savingAddress ? 'Saving...' : 'Save Address'}
+                  {savingAddress ? t('account.saving', 'Запазване...') : t('account.address.save', 'Запази адрес')}
                 </button>
               </div>
             </div>
@@ -871,14 +878,14 @@ export default function AccountPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
           <div className="bg-primary border border-gray-800 rounded-2xl w-full max-w-md">
             <div className="flex items-center justify-between p-4 border-b border-gray-800">
-              <h2 className="text-lg font-semibold text-white">Add Payment Method</h2>
+              <h2 className="text-lg font-semibold text-white">{t('account.payment.addMethod', 'Добави метод за плащане')}</h2>
               <button onClick={() => setShowPaymentModal(false)} className="text-text-secondary hover:text-white">
                 <FiX size={20} />
               </button>
             </div>
             <div className="p-4 space-y-4">
               <div>
-                <label className="block text-text-secondary text-sm mb-2">Card Number</label>
+                <label className="block text-text-secondary text-sm mb-2">{t('account.payment.cardNumber', 'Номер на карта')}</label>
                 <input
                   value={paymentForm.cardNumber}
                   onChange={(e) => {
@@ -891,17 +898,17 @@ export default function AccountPage() {
                 />
               </div>
               <div>
-                <label className="block text-text-secondary text-sm mb-2">Cardholder Name</label>
+                <label className="block text-text-secondary text-sm mb-2">{t('checkout.cardholderName', 'Име на притежателя')}</label>
                 <input
                   value={paymentForm.holderName}
                   onChange={(e) => setPaymentForm({...paymentForm, holderName: e.target.value})}
                   className="w-full bg-background/50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent"
-                  placeholder="JOHN DOE"
+                  placeholder={t('account.payment.holderPlaceholder', 'ИВАН ИВАНОВ')}
                 />
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-text-secondary text-sm mb-2">Month</label>
+                  <label className="block text-text-secondary text-sm mb-2">{t('account.payment.month', 'Месец')}</label>
                   <input
                     value={paymentForm.expiryMonth}
                     onChange={(e) => {
@@ -913,7 +920,7 @@ export default function AccountPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-text-secondary text-sm mb-2">Year</label>
+                  <label className="block text-text-secondary text-sm mb-2">{t('account.payment.year', 'Година')}</label>
                   <input
                     value={paymentForm.expiryYear}
                     onChange={(e) => {
@@ -942,21 +949,21 @@ export default function AccountPage() {
                 <p className="text-red-400 text-sm">{paymentError}</p>
               )}
               <p className="text-xs text-text-secondary">
-                Your card information is stored securely. Only the last 4 digits are saved for display purposes.
+                {t('account.payment.securityNote', 'Данните на картата се съхраняват сигурно. За визуализация се пазят само последните 4 цифри.')}
               </p>
               <div className="flex gap-3 pt-2">
                 <button 
                   onClick={() => setShowPaymentModal(false)}
                   className="flex-1 border border-gray-700 text-white font-semibold px-4 py-3 rounded-lg hover:bg-gray-800/50 transition-colors"
                 >
-                  Cancel
+                  {t('common.cancel', 'Отказ')}
                 </button>
                 <button 
                   onClick={handleSavePayment}
                   disabled={savingPayment}
                   className="flex-1 bg-accent hover:bg-accent-light text-white font-semibold px-4 py-3 rounded-lg transition-colors disabled:opacity-50"
                 >
-                  {savingPayment ? 'Saving...' : 'Save Card'}
+                  {savingPayment ? t('account.saving', 'Запазване...') : t('account.payment.saveCard', 'Запази карта')}
                 </button>
               </div>
             </div>

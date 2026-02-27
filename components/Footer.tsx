@@ -35,8 +35,8 @@ const Footer = memo(function Footer() {
           {/* Brand */}
           <div className="col-span-2 sm:col-span-2 md:col-span-2 lg:col-span-1">
             <Link href="/" className="inline-block text-xl sm:text-2xl font-heading font-bold mb-4 sm:mb-6 group">
-              <span className="bg-gradient-to-r from-white via-white to-blue-400 bg-clip-text text-transparent group-hover:from-blue-400 group-hover:to-cyan-400 transition-all duration-300">AURA</span>
-              <span className="text-blue-400 group-hover:text-cyan-400 transition-colors duration-300">CASE</span>
+              <span className="bg-gradient-to-r from-white via-white to-blue-400 bg-clip-text text-transparent group-hover:from-blue-400 group-hover:to-cyan-400 transition-all duration-300">JUST</span>
+              <span className="text-blue-400 group-hover:text-cyan-400 transition-colors duration-300">CASES</span>
             </Link>
             <p className="text-white/40 text-sm mb-6 sm:mb-8 leading-relaxed font-body">
               {t('footer.brand.description')}

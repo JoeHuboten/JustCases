@@ -6,7 +6,7 @@
 
   <!-- Homepage -->
   <url>
-    <loc>https://auracase.bg/</loc>
+    <loc>https://justcases.bg/</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
@@ -14,7 +14,7 @@
 
   <!-- Shop Pages -->
   <url>
-    <loc>https://auracase.bg/shop</loc>
+    <loc>https://justcases.bg/shop</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
@@ -22,25 +22,25 @@
 
   <!-- Product Categories -->
   <url>
-    <loc>https://auracase.bg/shop/phone-cases</loc>
+    <loc>https://justcases.bg/shop/phone-cases</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://auracase.bg/shop/chargers</loc>
+    <loc>https://justcases.bg/shop/chargers</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://auracase.bg/shop/headphones</loc>
+    <loc>https://justcases.bg/shop/headphones</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://auracase.bg/shop/power-banks</loc>
+    <loc>https://justcases.bg/shop/power-banks</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -48,25 +48,25 @@
 
   <!-- Information Pages -->
   <url>
-    <loc>https://auracase.bg/about</loc>
+    <loc>https://justcases.bg/about</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://auracase.bg/features</loc>
+    <loc>https://justcases.bg/features</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://auracase.bg/works</loc>
+    <loc>https://justcases.bg/works</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://auracase.bg/contact</loc>
+    <loc>https://justcases.bg/contact</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -74,25 +74,25 @@
 
   <!-- Support Pages -->
   <url>
-    <loc>https://auracase.bg/support</loc>
+    <loc>https://justcases.bg/support</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://auracase.bg/delivery</loc>
+    <loc>https://justcases.bg/delivery</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://auracase.bg/terms</loc>
+    <loc>https://justcases.bg/terms</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://auracase.bg/privacy</loc>
+    <loc>https://justcases.bg/privacy</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
@@ -100,7 +100,7 @@
 
   <!-- Career Page -->
   <url>
-    <loc>https://auracase.bg/career</loc>
+    <loc>https://justcases.bg/career</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -108,25 +108,25 @@
 
   <!-- Account Pages -->
   <url>
-    <loc>https://auracase.bg/account</loc>
+    <loc>https://justcases.bg/account</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://auracase.bg/deliveries</loc>
+    <loc>https://justcases.bg/deliveries</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://auracase.bg/orders-faq</loc>
+    <loc>https://justcases.bg/orders-faq</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://auracase.bg/payments</loc>
+    <loc>https://justcases.bg/payments</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
@@ -134,13 +134,13 @@
 
   <!-- Authentication Pages -->
   <url>
-    <loc>https://auracase.bg/auth/signin</loc>
+    <loc>https://justcases.bg/auth/signin</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://auracase.bg/auth/signup</loc>
+    <loc>https://justcases.bg/auth/signup</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
@@ -148,19 +148,19 @@
 
   <!-- User Account Pages -->
   <url>
-    <loc>https://auracase.bg/cart</loc>
+    <loc>https://justcases.bg/cart</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://auracase.bg/checkout</loc>
+    <loc>https://justcases.bg/checkout</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://auracase.bg/orders</loc>
+    <loc>https://justcases.bg/orders</loc>
     <lastmod>2025-01-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>

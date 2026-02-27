@@ -115,12 +115,6 @@ export default function HomePage() {
     return () => cancelAnimationFrame(animationId);
   }, [mounted]);
 
-  const qualities = [
-    { label: 'Защита', value: 98, color: '#8B5CF6' },
-    { label: 'Стил', value: 95, color: '#06B6D4' },
-    { label: 'Издръжливост', value: 97, color: '#10B981' },
-  ];
-
   return (
     <div className="min-h-screen bg-[#050508] overflow-hidden">
       {/* Aurora Canvas Background */}
@@ -188,7 +182,7 @@ export default function HomePage() {
               <div className="flex flex-wrap items-center gap-4 mb-16">
                 <Link
                   href="/shop"
-                  className="group relative overflow-hidden"
+                  className="group relative"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-cyan-600 rounded-full opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
                   <div className="relative flex items-center gap-3 px-8 py-4 bg-white rounded-full font-heading font-semibold text-[#050508] transition-transform duration-300 group-hover:scale-[1.02]">
@@ -212,29 +206,6 @@ export default function HomePage() {
                   </div>
                   <span>Научи повече</span>
                 </Link>
-              </div>
-
-              {/* Quality Bars */}
-              <div className="space-y-4">
-                <span className="font-body text-xs text-white/30 tracking-wider uppercase">Нашите стандарти</span>
-                <div className="space-y-3">
-                  {qualities.map((q, i) => (
-                    <div key={i} className="flex items-center gap-4">
-                      <span className="font-body text-sm text-white/50 w-28">{q.label}</span>
-                      <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full rounded-full transition-all duration-1000"
-                          style={{ 
-                            width: `${q.value}%`, 
-                            background: `linear-gradient(90deg, ${q.color}50, ${q.color})`,
-                            boxShadow: `0 0 20px ${q.color}50`,
-                          }} 
-                        />
-                      </div>
-                      <span className="font-heading text-sm text-white/70 w-12 text-right">{q.value}%</span>
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
 
@@ -364,9 +335,9 @@ export default function HomePage() {
           </div>
 
           {/* Bento Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
-            {/* Main Feature - Large */}
-            <div className="md:col-span-2 lg:col-span-2 relative group overflow-hidden rounded-3xl bg-gradient-to-br from-violet-500/10 via-transparent to-cyan-500/10 border border-white/5 p-8 md:p-10">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
+            {/* Main Feature - Large Hero */}
+            <div className="md:col-span-2 lg:col-span-2 lg:row-span-2 relative group overflow-hidden rounded-3xl bg-gradient-to-br from-violet-500/10 via-transparent to-cyan-500/10 border border-white/5 p-8 md:p-10 flex flex-col justify-between">
               <div className="absolute inset-0 bg-gradient-to-br from-violet-600/20 to-cyan-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               <div className="relative z-10">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/20 to-cyan-500/20 border border-white/10 mb-6">
@@ -376,22 +347,22 @@ export default function HomePage() {
                 <p className="font-body text-white/40 text-lg max-w-md leading-relaxed">
                   Тествано при падане от 3 метра. Калъфите са сертифицирани по MIL-STD-810G стандарт за максимална издръжливост.
                 </p>
-                {/* Visual Element */}
-                <div className="mt-8 flex items-center gap-4">
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
-                    <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                    <span className="font-body text-sm text-white/60">MIL-STD-810G</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
-                    <div className="w-2 h-2 rounded-full bg-cyan-400" />
-                    <span className="font-body text-sm text-white/60">3м Drop Test</span>
-                  </div>
+              </div>
+              {/* Visual Element */}
+              <div className="relative z-10 mt-8 flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <span className="font-body text-sm text-white/60">MIL-STD-810G</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
+                  <div className="w-2 h-2 rounded-full bg-cyan-400" />
+                  <span className="font-body text-sm text-white/60">3м Drop Test</span>
                 </div>
               </div>
             </div>
 
-            {/* Feature 2 */}
-            <div className="relative group overflow-hidden rounded-3xl bg-white/[0.02] border border-white/5 p-6 md:p-8">
+            {/* Feature 2 - Premium Materials */}
+            <div className="lg:col-span-2 relative group overflow-hidden rounded-3xl bg-white/[0.02] border border-white/5 p-6 md:p-8">
               <div className="absolute inset-0 bg-gradient-to-br from-pink-600/10 to-orange-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               <div className="relative z-10">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 border border-white/10 mb-5">
@@ -404,7 +375,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Feature 3 */}
+            {/* Feature 3 - Express Delivery */}
             <div className="relative group overflow-hidden rounded-3xl bg-white/[0.02] border border-white/5 p-6 md:p-8">
               <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               <div className="relative z-10">
@@ -418,7 +389,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Feature 4 */}
+            {/* Feature 4 - 30 Days Return */}
             <div className="relative group overflow-hidden rounded-3xl bg-white/[0.02] border border-white/5 p-6 md:p-8">
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/10 to-teal-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               <div className="relative z-10">
@@ -432,8 +403,8 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Feature 5 - Wide */}
-            <div className="md:col-span-2 relative group overflow-hidden rounded-3xl bg-white/[0.02] border border-white/5 p-6 md:p-8">
+            {/* Feature 5 - Quality Guarantee - Wide Bottom */}
+            <div className="md:col-span-2 lg:col-span-4 relative group overflow-hidden rounded-3xl bg-white/[0.02] border border-white/5 p-6 md:p-8">
               <div className="absolute inset-0 bg-gradient-to-br from-yellow-600/10 to-orange-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 border border-white/10 shrink-0">

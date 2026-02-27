@@ -9,7 +9,7 @@ async function testAuth() {
     
     // Find the admin user
     const user = await prisma.user.findUnique({
-      where: { email: 'admin@auracase.com' }
+      where: { email: 'admin@justcases.com' }
     });
     
     if (!user) {

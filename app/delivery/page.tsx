@@ -5,9 +5,9 @@ import ScrollAnimation, { StaggerAnimation } from '@/components/ScrollAnimation'
 
 export default function DeliveryPage() {
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-[#0a0a0f]">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-gray-800 to-gray-700 py-20">
+      <section className="bg-gradient-to-r from-[#0a0a0f] to-blue-900/20 py-20">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn" className="text-center">
             <h1 className="text-5xl font-bold text-white mb-6">Детайли за доставка</h1>
@@ -286,7 +286,7 @@ export default function DeliveryPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
-                href="mailto:delivery@auracase.bg"
+                href="mailto:delivery@justcases.bg"
                 className="bg-accent text-white px-8 py-4 rounded-lg hover:bg-accent-light hover:scale-105 hover:shadow-lg hover:shadow-accent/30 transition-all duration-300 font-medium transform active:scale-95"
               >
                 Пишете ни

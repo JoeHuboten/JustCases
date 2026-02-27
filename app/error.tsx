@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { FiAlertTriangle, FiRefreshCw, FiHome } from 'react-icons/fi';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -10,6 +11,8 @@ interface ErrorProps {
 }
 
 export default function Error({ error, reset }: ErrorProps) {
+  const { t } = useLanguage();
+
   useEffect(() => {
     // Log the error to an error reporting service
     console.error('Application error:', error);
@@ -32,11 +35,11 @@ export default function Error({ error, reset }: ErrorProps) {
         </div>
 
         <h1 className="text-4xl font-heading font-bold text-white mb-4">
-          Something Went Wrong
+          {t('error.title', 'Възникна грешка')}
         </h1>
         
         <p className="text-white/50 text-lg mb-4 font-body">
-          We apologize for the inconvenience. An unexpected error occurred.
+          {t('error.description', 'Извиняваме се за неудобството. Възникна неочаквана грешка.')}
         </p>
 
         {/* Error Details (Development Only) */}
@@ -47,7 +50,7 @@ export default function Error({ error, reset }: ErrorProps) {
             </p>
             {error.digest && (
               <p className="text-red-400/50 text-xs">
-                Error ID: {error.digest}
+                {t('error.id', 'Идентификатор на грешка')}: {error.digest}
               </p>
             )}
           </div>
@@ -56,7 +59,7 @@ export default function Error({ error, reset }: ErrorProps) {
         {/* Production Error Message */}
         {process.env.NODE_ENV === 'production' && error.digest && (
           <p className="text-white/40 text-sm mb-8 font-body">
-            Error ID: {error.digest}
+            {t('error.id', 'Идентификатор на грешка')}: {error.digest}
           </p>
         )}
 
@@ -67,7 +70,7 @@ export default function Error({ error, reset }: ErrorProps) {
             className="inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-8 py-4 rounded-xl font-medium hover:scale-105 transition-transform shadow-lg shadow-blue-500/20 font-body"
           >
             <FiRefreshCw size={20} />
-            Try Again
+            {t('error.tryAgain', 'Опитай отново')}
           </button>
           
           <Link
@@ -75,16 +78,16 @@ export default function Error({ error, reset }: ErrorProps) {
             className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl font-medium transition-colors font-body"
           >
             <FiHome size={20} />
-            Go Home
+            {t('notFound.goHome', 'Към началото')}
           </Link>
         </div>
 
         {/* Support Link */}
         <div className="mt-12 pt-8 border-t border-white/10">
           <p className="text-white/40 text-sm font-body">
-            If this problem persists, please{' '}
+            {t('error.supportPrefix', 'Ако проблемът продължава, моля ')}
             <Link href="/contact" className="text-blue-400 hover:text-blue-300 transition-colors">
-              contact support
+              {t('error.contactSupport', 'свържете се с поддръжката')}
             </Link>
           </p>
         </div>

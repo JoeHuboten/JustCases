@@ -10,17 +10,17 @@ export default function FeaturesPage() {
     "@type": "WebPage",
     "name": "Функции на Just Cases - Премиум мобилни аксесоари",
     "description": "Открийте защо нашите премиум мобилни аксесоари са изборът на хиляди клиенти. Максимална защита, бързо зареждане, универсална съвместимост и много повече.",
-    "url": "https://auracase.bg/features",
+    "url": "https://justcases.bg/features",
     "mainEntity": {
       "@type": "Organization",
       "name": "Just Cases",
       "description": "Премиум мобилни аксесоари за всички устройства",
-      "url": "https://auracase.bg",
-      "logo": "https://auracase.bg/logo.png",
+      "url": "https://justcases.bg",
+      "logo": "https://justcases.bg/logo.png",
       "sameAs": [
-        "https://facebook.com/auracase",
-        "https://instagram.com/auracase",
-        "https://twitter.com/auracase"
+        "https://facebook.com/justcases",
+        "https://instagram.com/justcases",
+        "https://twitter.com/justcases"
       ]
     },
     "breadcrumb": {
@@ -30,13 +30,13 @@ export default function FeaturesPage() {
           "@type": "ListItem",
           "position": 1,
           "name": "Начало",
-          "item": "https://auracase.bg"
+          "item": "https://justcases.bg"
         },
         {
           "@type": "ListItem",
           "position": 2,
           "name": "Функции",
-          "item": "https://auracase.bg/features"
+          "item": "https://justcases.bg/features"
         }
       ]
     }
@@ -55,22 +55,22 @@ export default function FeaturesPage() {
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://auracase.bg/features" />
+        <meta property="og:url" content="https://justcases.bg/features" />
         <meta property="og:title" content="Функции на Just Cases - Премиум мобилни аксесоари" />
         <meta property="og:description" content="Открийте защо нашите премиум мобилни аксесоари са изборът на хиляди клиенти. Максимална защита, бързо зареждане, универсална съвместимост и много повече." />
-        <meta property="og:image" content="https://auracase.bg/og-features.jpg" />
+        <meta property="og:image" content="https://justcases.bg/og-features.jpg" />
         <meta property="og:site_name" content="Just Cases" />
         <meta property="og:locale" content="bg_BG" />
         
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://auracase.bg/features" />
+        <meta property="twitter:url" content="https://justcases.bg/features" />
         <meta property="twitter:title" content="Функции на Just Cases - Премиум мобилни аксесоари" />
         <meta property="twitter:description" content="Открийте защо нашите премиум мобилни аксесоари са изборът на хиляди клиенти. Максимална защита, бързо зареждане, универсална съвместимост и много повече." />
-        <meta property="twitter:image" content="https://auracase.bg/og-features.jpg" />
+        <meta property="twitter:image" content="https://justcases.bg/og-features.jpg" />
         
         {/* Canonical URL */}
-        <link rel="canonical" href="https://auracase.bg/features" />
+        <link rel="canonical" href="https://justcases.bg/features" />
         
         {/* Structured Data */}
         <script
@@ -79,7 +79,7 @@ export default function FeaturesPage() {
         />
       </Head>
       
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-[#0a0a0f]">
       {/* Hero Section */}
       <header className="relative py-24 overflow-hidden">
         {/* Background effects */}

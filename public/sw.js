@@ -1,7 +1,7 @@
-// Service Worker for AuraCase
-const CACHE_NAME = 'auracase-v1';
-const STATIC_CACHE = 'auracase-static-v1';
-const DYNAMIC_CACHE = 'auracase-dynamic-v1';
+// Service Worker for JustCases
+const CACHE_NAME = 'justcases-v1';
+const STATIC_CACHE = 'justcases-static-v1';
+const DYNAMIC_CACHE = 'justcases-dynamic-v1';
 
 // Files to cache for offline functionality
 const STATIC_FILES = [

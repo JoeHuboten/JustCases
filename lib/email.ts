@@ -24,7 +24,7 @@ const transporter = NODEMAILER_CONFIGURED ? nodemailer.createTransport({
   },
 }) : null;
 
-const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@auracase.bg';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@justcases.bg';
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 interface EmailTemplate {
@@ -117,7 +117,7 @@ export const emailTemplates = {
     
     <div class="footer">
       <p>Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}</p>
-      <p><a href="${SITE_URL}" style="color: #667eea;">www.auracase.bg</a></p>
+      <p><a href="${SITE_URL}" style="color: #667eea;">www.justcases.bg</a></p>
     </div>
   </div>
 </body>
@@ -215,7 +215,7 @@ Just Cases
     
     <div class="footer">
       <p>Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}</p>
-      <p><a href="${SITE_URL}" style="color: #667eea;">www.auracase.bg</a></p>
+      <p><a href="${SITE_URL}" style="color: #667eea;">www.justcases.bg</a></p>
     </div>
   </div>
 </body>
@@ -301,7 +301,7 @@ Just Cases
     
     <div class="footer">
       <p>Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}</p>
-      <p><a href="${SITE_URL}" style="color: #667eea;">www.auracase.bg</a></p>
+      <p><a href="${SITE_URL}" style="color: #667eea;">www.justcases.bg</a></p>
     </div>
   </div>
 </body>
@@ -391,7 +391,7 @@ Just Cases
     
     <div class="footer">
       <p>Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}</p>
-      <p><a href="${SITE_URL}" style="color: #667eea;">www.auracase.bg</a></p>
+      <p><a href="${SITE_URL}" style="color: #667eea;">www.justcases.bg</a></p>
     </div>
   </div>
 </body>
@@ -531,7 +531,7 @@ Just Cases
     
     <div class="footer">
       <p><strong>Just Cases</strong> - ${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}</p>
-      <p><a href="${SITE_URL}" style="color: #667eea; text-decoration: none;">www.auracase.bg</a></p>
+      <p><a href="${SITE_URL}" style="color: #667eea; text-decoration: none;">www.justcases.bg</a></p>
       
       <p class="unsubscribe">
         ${isBulgarian 

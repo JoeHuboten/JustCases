@@ -1,12 +1,12 @@
-# AuraCase Project Documentation
+# JustCases Project Documentation
 
-> Comprehensive technical and operational guide for the AuraCase e-commerce application. This document is written for both non-technical operators and developers who need to understand, run, maintain, or extend the project.
+> Comprehensive technical and operational guide for the JustCases e-commerce application. This document is written for both non-technical operators and developers who need to understand, run, maintain, or extend the project.
 
 ---
 
 ## 1. Project Overview
 
-AuraCase is a modern e-commerce platform focused on premium mobile accessories. It combines a performant Next.js 15 (App Router) front end, PostgreSQL database, Prisma ORM, and a rich component library to deliver a PWA-ready shopping experience with accessibility, internationalisation, cart management, authentication, and payment integrations.
+JustCases is a modern e-commerce platform focused on premium mobile accessories. It combines a performant Next.js 15 (App Router) front end, PostgreSQL database, Prisma ORM, and a rich component library to deliver a PWA-ready shopping experience with accessibility, internationalisation, cart management, authentication, and payment integrations.
 
 **Key capabilities**
 - Dark-themed responsive UI optimised for mobile and desktop.
@@ -58,7 +58,7 @@ AuraCase is a modern e-commerce platform focused on premium mobile accessories. 
 ## 4. Project Structure Walkthrough
 
 ```
-AuraCase/
+JustCases/
 ├── app/                   # Next.js App Router pages & layouts
 │   ├── layout.tsx         # Root layout with providers & metadata
 │   ├── page.tsx           # Home page
@@ -87,7 +87,7 @@ AuraCase/
 - `public/sw.js` caches HTML, assets, and API responses, handles offline page fallback, and stubs background sync for cart/wishlist.
 - `prisma/schema.prisma` models the complete e-commerce data layer (users, accounts, sessions, categories, products, cart items, orders, reviews, discounts, contact messages, etc.).
 - `prisma/seed.ts` creates 6 product categories and 36+ sample products, then seeds initial data for demos.
-- `scripts/create-admin.js` creates the default admin account (`admin@auracase.com` / `admin123`).
+- `scripts/create-admin.js` creates the default admin account (`admin@justcases.com` / `admin123`).
 
 ---
 
@@ -97,7 +97,7 @@ Create a `.env.local` file for local development (already present in repo). Upda
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DATABASE_URL` | ✅ | PostgreSQL connection string (e.g. `postgresql://auracase_user:auracase123@localhost:5432/auracase`). |
+| `DATABASE_URL` | ✅ | PostgreSQL connection string (e.g. `postgresql://justcases_user:justcases123@localhost:5432/justcases`). |
 | `JWT_SECRET` | ✅ | Secret for signing auth tokens (generate via `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`). |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | (if Stripe used) | Client-side Stripe publishable key. |
 | `STRIPE_SECRET_KEY` | (if Stripe used) | Server-side Stripe secret key. Required by `/api/payment/create-intent`. |
@@ -114,7 +114,7 @@ Create a `.env.local` file for local development (already present in repo). Upda
 #### Option A – Docker (most hands-off)
 
 1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop) and ensure it is running.
-2. Open the AuraCase project folder.
+2. Open the JustCases project folder.
 3. Windows: double-click `setup-docker.bat`. macOS/Linux: run
    ```bash
    chmod +x setup-docker.sh
@@ -126,7 +126,7 @@ Create a `.env.local` file for local development (already present in repo). Upda
    - Run Prisma migrations and seed data.
 4. Wait until the console prints **“Application running at http://localhost:3000”**.
 5. Open a browser and visit `http://localhost:3000`.
-6. Sign in with the default admin account (`admin@auracase.com` / `admin123`).
+6. Sign in with the default admin account (`admin@justcases.com` / `admin123`).
 
 #### Option B – Guided script (no Docker)
 
@@ -158,8 +158,8 @@ Create a `.env.local` file for local development (already present in repo). Upda
    - Copy `env.example` to `.env.local`.
    - Set `DATABASE_URL`, `JWT_SECRET`, and Stripe keys if needed.
 3. **Prepare PostgreSQL**
-   - Create database: `auracase`.
-   - Create user: `auracase_user` / `auracase123`.
+   - Create database: `justcases`.
+   - Create user: `justcases_user` / `justcases123`.
    - Grant privileges and set schema owner (see Section 7.2).
    - Seed default admin: `node scripts/create-admin.js` (after migrations).
 4. **Run Prisma migrations & seeds**
@@ -215,12 +215,12 @@ Create a `.env.local` file for local development (already present in repo). Upda
 
 ```powershell
 $env:PGPASSWORD = '<postgres_password>'
-& "C:\Program Files\PostgreSQL\18\bin\createdb.exe" -U postgres auracase
-& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -c "DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'auracase_user') THEN CREATE USER auracase_user WITH PASSWORD 'auracase123'; ELSE ALTER USER auracase_user WITH PASSWORD 'auracase123'; END IF; END $$;"
-& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE auracase TO auracase_user;"
-& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d auracase -c "ALTER SCHEMA public OWNER TO auracase_user;"
-& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d auracase -c "GRANT ALL ON SCHEMA public TO auracase_user;"
-& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d auracase -c "GRANT ALL ON ALL TABLES IN SCHEMA public TO auracase_user;"
+& "C:\Program Files\PostgreSQL\18\bin\createdb.exe" -U postgres justcases
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -c "DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'justcases_user') THEN CREATE USER justcases_user WITH PASSWORD 'justcases123'; ELSE ALTER USER justcases_user WITH PASSWORD 'justcases123'; END IF; END $$;"
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE justcases TO justcases_user;"
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d justcases -c "ALTER SCHEMA public OWNER TO justcases_user;"
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d justcases -c "GRANT ALL ON SCHEMA public TO justcases_user;"
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d justcases -c "GRANT ALL ON ALL TABLES IN SCHEMA public TO justcases_user;"
 Remove-Item Env:\PGPASSWORD
 ```
 
@@ -228,7 +228,7 @@ Remove-Item Env:\PGPASSWORD
 
 - Seed products/categories: `npm run prisma:seed`.
 - Create admin login: `node scripts/create-admin.js`.
-- Admin credentials: `admin@auracase.com` / `admin123`.
+- Admin credentials: `admin@justcases.com` / `admin123`.
 
 ---
 
@@ -370,7 +370,7 @@ Provide environment variables (`DATABASE_URL`, `JWT_SECRET`, Stripe keys) via `.
 
 - `README.md` – quick start summary (original project readme).
 - `DOCKER_SETUP.md`, `SETUP.md`, `DEPLOYMENT.md` *(if present)* – targeted guides referenced in README.
-- `AURACASE_TECHNICAL_DOCUMENTATION.txt` *(if provided in repo)* – legacy docs, cross-check details.
+- `JUSTCASES_TECHNICAL_DOCUMENTATION.txt` *(if provided in repo)* – legacy docs, cross-check details.
 - Prisma docs: https://www.prisma.io/docs
 - Next.js App Router docs: https://nextjs.org/docs/app
 - Stripe integration docs: https://stripe.com/docs/payments
@@ -381,7 +381,7 @@ Provide environment variables (`DATABASE_URL`, `JWT_SECRET`, Stripe keys) via `.
 
 | Symptom | Likely Cause | Fix |
 |---------|--------------|-----|
-| `401 Unauthorized` on sign-in | Admin account missing or wrong password | Run `node scripts/create-admin.js`; use `admin@auracase.com` / `admin123`. |
+| `401 Unauthorized` on sign-in | Admin account missing or wrong password | Run `node scripts/create-admin.js`; use `admin@justcases.com` / `admin123`. |
 | `DATABASE_URL` missing | `.env.local` not configured | Copy `env.example` and set the correct Postgres URL. |
 | `Prisma P1000` auth error | Wrong DB credentials | Reset PostgreSQL user password or update `.env.local`. |
 | Docker app cannot connect to DB | Container order or credentials mismatch | Ensure docker-compose `.env` matches DB credentials; run `docker-compose down -v && docker-compose up --build`. |
@@ -418,8 +418,8 @@ Use this template to maintain transparency as the project evolves.
 
 ## 18. Contact & Ownership
 
-- **Product Owner:** AuraCase Team
-- **Primary Repository:** `c:\Users\Nikolay\Desktop\AuraCase`
-- **Support Email:** `support@auracase.bg`
+- **Product Owner:** JustCases Team
+- **Primary Repository:** `c:\Users\Nikolay\Desktop\JustCases`
+- **Support Email:** `support@justcases.bg`
 
 Maintain this document alongside code changes to ensure new contributors and non-technical stakeholders always have an up-to-date, single source of truth.

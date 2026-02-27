@@ -143,15 +143,15 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              "name": "AURACASE",
+              "name": "JUSTCASES",
               "description": "Премиум мобилни аксесоари за всички устройства",
-              "url": "https://auracase.bg",
-              "logo": "https://auracase.bg/logo.png",
+              "url": "https://justcases.bg",
+              "logo": "https://justcases.bg/logo.png",
               "contactPoint": {
                 "@type": "ContactPoint",
                 "telephone": "+359888123456",
                 "contactType": "customer service",
-                "email": "support@auracase.bg",
+                "email": "support@justcases.bg",
                 "availableLanguage": "Bulgarian"
               },
               "address": {
@@ -160,14 +160,14 @@ export default function RootLayout({
                 "addressLocality": "София"
               },
               "sameAs": [
-                "https://facebook.com/auracase",
-                "https://instagram.com/auracase",
-                "https://twitter.com/auracase"
+                "https://facebook.com/justcases",
+                "https://instagram.com/justcases",
+                "https://twitter.com/justcases"
               ],
               "foundingDate": "2020",
               "founder": {
                 "@type": "Person",
-                "name": "AURACASE Team"
+                "name": "JUSTCASES Team"
               }
             })
           }}

@@ -15,7 +15,7 @@ Nodemailer allows sending emails to **any recipient** using your Gmail account (
 2. **Create an App Password**:
    - Go to https://myaccount.google.com/apppasswords
    - Select "Mail" and "Other (Custom name)"
-   - Enter "AuraCase" as the name
+   - Enter "JustCases" as the name
    - Click "Generate"
    - Copy the 16-character password (e.g., `abcd efgh ijkl mnop`)
 

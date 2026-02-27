@@ -84,8 +84,8 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="text-white font-heading font-semibold mb-1">Имейл</h3>
-                      <p className="text-white/60 font-body">support@auracase.com</p>
-                      <p className="text-white/60 font-body">info@auracase.com</p>
+                      <p className="text-white/60 font-body">support@justcases.com</p>
+                      <p className="text-white/60 font-body">info@justcases.com</p>
                     </div>
                   </div>
                   

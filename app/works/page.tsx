@@ -10,12 +10,12 @@ export default function WorksPage() {
     "@type": "WebPage",
     "name": "Как работи Just Cases - Процес на поръчка и доставка",
     "description": "Научете как лесно и бързо можете да намерите и поръчате идеалните мобилни аксесоари за вашето устройство. 4-стъпков процес на поръчка.",
-    "url": "https://auracase.bg/works",
+    "url": "https://justcases.bg/works",
     "mainEntity": {
       "@type": "Organization",
       "name": "Just Cases",
       "description": "Премиум мобилни аксесоари за всички устройства",
-      "url": "https://auracase.bg"
+      "url": "https://justcases.bg"
     },
     "breadcrumb": {
       "@type": "BreadcrumbList",
@@ -24,13 +24,13 @@ export default function WorksPage() {
           "@type": "ListItem",
           "position": 1,
           "name": "Начало",
-          "item": "https://auracase.bg"
+          "item": "https://justcases.bg"
         },
         {
           "@type": "ListItem",
           "position": 2,
           "name": "Как работи",
-          "item": "https://auracase.bg/works"
+          "item": "https://justcases.bg/works"
         }
       ]
     }
@@ -49,22 +49,22 @@ export default function WorksPage() {
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://auracase.bg/works" />
+        <meta property="og:url" content="https://justcases.bg/works" />
         <meta property="og:title" content="Как работи Just Cases - Процес на поръчка и доставка" />
         <meta property="og:description" content="Научете как лесно и бързо можете да намерите и поръчате идеалните мобилни аксесоари за вашето устройство. 4-стъпков процес на поръчка." />
-        <meta property="og:image" content="https://auracase.bg/og-works.jpg" />
+        <meta property="og:image" content="https://justcases.bg/og-works.jpg" />
         <meta property="og:site_name" content="Just Cases" />
         <meta property="og:locale" content="bg_BG" />
         
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://auracase.bg/works" />
+        <meta property="twitter:url" content="https://justcases.bg/works" />
         <meta property="twitter:title" content="Как работи Just Cases - Процес на поръчка и доставка" />
         <meta property="twitter:description" content="Научете как лесно и бързо можете да намерите и поръчате идеалните мобилни аксесоари за вашето устройство. 4-стъпков процес на поръчка." />
-        <meta property="twitter:image" content="https://auracase.bg/og-works.jpg" />
+        <meta property="twitter:image" content="https://justcases.bg/og-works.jpg" />
         
         {/* Canonical URL */}
-        <link rel="canonical" href="https://auracase.bg/works" />
+        <link rel="canonical" href="https://justcases.bg/works" />
         
         {/* Structured Data */}
         <script
@@ -73,9 +73,9 @@ export default function WorksPage() {
         />
       </Head>
       
-      <div className="min-h-screen bg-gray-900">
+      <div className="min-h-screen bg-[#0a0a0f]">
       {/* Hero Section */}
-      <header className="bg-gradient-to-r from-gray-800 to-gray-700 py-20">
+      <header className="bg-gradient-to-r from-[#0a0a0f] to-blue-900/20 py-20">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn" className="text-center">
             <h1 className="text-5xl font-bold text-white mb-6">Как работи Just Cases</h1>

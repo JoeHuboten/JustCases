@@ -29,8 +29,10 @@ export default function SignInPage() {
       const result = await signIn(email, password, rememberMe);
 
       if (result.success) {
-        // Navigate to home page after successful sign in
-        router.push('/');
+        // Navigate to callbackUrl if provided, otherwise go to account page
+        const params = new URLSearchParams(window.location.search);
+        const callbackUrl = params.get('callbackUrl') || '/account';
+        router.push(callbackUrl);
       } else {
         setError(result.error || 'Sign in failed');
       }

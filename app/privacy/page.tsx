@@ -5,9 +5,9 @@ import ScrollAnimation from '@/components/ScrollAnimation';
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-[#0a0a0f]">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-gray-800 to-gray-700 py-20">
+      <section className="bg-gradient-to-r from-[#0a0a0f] to-blue-900/20 py-20">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn" className="text-center">
             <h1 className="text-5xl font-bold text-white mb-6">Политика за поверителност</h1>
@@ -245,7 +245,7 @@ export default function PrivacyPage() {
                     <li><strong>Право на възражение:</strong> Можете да се противопоставите на обработката</li>
                   </ul>
                   <p>
-                    За упражняване на тези права, моля свържете се с нас на privacy@auracase.bg
+                    За упражняване на тези права, моля свържете се с нас на privacy@justcases.bg
                   </p>
                 </div>
               </div>
@@ -308,10 +308,10 @@ export default function PrivacyPage() {
                     упражните вашите права, моля свържете се с нас:
                   </p>
                   <div className="space-y-2">
-                    <p><strong>Имейл:</strong> privacy@auracase.bg</p>
+                    <p><strong>Имейл:</strong> privacy@justcases.bg</p>
                     <p><strong>Телефон:</strong> +359 888 123 456</p>
                     <p><strong>Адрес:</strong> София, България</p>
-                    <p><strong>DPO:</strong> dpo@auracase.bg</p>
+                    <p><strong>DPO:</strong> dpo@justcases.bg</p>
                   </div>
                 </div>
               </div>

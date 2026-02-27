@@ -8,8 +8,8 @@ export default function AdminSettings() {
     // General Settings
     siteName: 'Just Cases',
     siteDescription: 'Premium phone cases and accessories',
-    siteUrl: 'https://auracase.com',
-    contactEmail: 'support@auracase.com',
+    siteUrl: 'https://justcases.com',
+    contactEmail: 'support@justcases.com',
     
     // Currency Settings
     currency: 'USD',

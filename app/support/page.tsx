@@ -13,17 +13,17 @@ export default function SupportPage() {
     "@type": "WebPage",
     "name": "Клиентска поддръжка Just Cases - Помощ и ЧЗВ",
     "description": "Получете бърза и професионална помощ от нашия екип за поддръжка. Имейл, телефон и онлайн чат поддръжка. ЧЗВ за всички въпроси.",
-    "url": "https://auracase.bg/support",
+    "url": "https://justcases.bg/support",
     "mainEntity": {
       "@type": "Organization",
       "name": "Just Cases",
       "description": "Премиум мобилни аксесоари за всички устройства",
-      "url": "https://auracase.bg",
+      "url": "https://justcases.bg",
       "contactPoint": {
         "@type": "ContactPoint",
         "telephone": "+359888123456",
         "contactType": "customer service",
-        "email": "support@auracase.bg",
+        "email": "support@justcases.bg",
         "availableLanguage": "Bulgarian"
       }
     },
@@ -34,13 +34,13 @@ export default function SupportPage() {
           "@type": "ListItem",
           "position": 1,
           "name": "Начало",
-          "item": "https://auracase.bg"
+          "item": "https://justcases.bg"
         },
         {
           "@type": "ListItem",
           "position": 2,
           "name": "Поддръжка",
-          "item": "https://auracase.bg/support"
+          "item": "https://justcases.bg/support"
         }
       ]
     }
@@ -104,22 +104,22 @@ export default function SupportPage() {
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://auracase.bg/support" />
+        <meta property="og:url" content="https://justcases.bg/support" />
         <meta property="og:title" content="Клиентска поддръжка Just Cases - Помощ и ЧЗВ" />
         <meta property="og:description" content="Получете бърза и професионална помощ от нашия екип за поддръжка. Имейл, телефон и онлайн чат поддръжка. ЧЗВ за всички въпроси." />
-        <meta property="og:image" content="https://auracase.bg/og-support.jpg" />
+        <meta property="og:image" content="https://justcases.bg/og-support.jpg" />
         <meta property="og:site_name" content="Just Cases" />
         <meta property="og:locale" content="bg_BG" />
         
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://auracase.bg/support" />
+        <meta property="twitter:url" content="https://justcases.bg/support" />
         <meta property="twitter:title" content="Клиентска поддръжка Just Cases - Помощ и ЧЗВ" />
         <meta property="twitter:description" content="Получете бърза и професионална помощ от нашия екип за поддръжка. Имейл, телефон и онлайн чат поддръжка. ЧЗВ за всички въпроси." />
-        <meta property="twitter:image" content="https://auracase.bg/og-support.jpg" />
+        <meta property="twitter:image" content="https://justcases.bg/og-support.jpg" />
         
         {/* Canonical URL */}
-        <link rel="canonical" href="https://auracase.bg/support" />
+        <link rel="canonical" href="https://justcases.bg/support" />
         
         {/* Structured Data */}
         <script
@@ -128,9 +128,9 @@ export default function SupportPage() {
         />
       </Head>
       
-      <div className="min-h-screen bg-gray-900">
+      <div className="min-h-screen bg-[#0a0a0f]">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-gray-800 to-gray-700 py-20">
+      <section className="bg-gradient-to-r from-[#0a0a0f] to-blue-900/20 py-20">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn" className="text-center">
             <h1 className="text-5xl font-bold text-white mb-6">Клиентска поддръжка</h1>
@@ -157,10 +157,10 @@ export default function SupportPage() {
                 Изпратете ни имейл и ще отговорим в рамките на 24 часа
               </p>
               <a 
-                href="mailto:support@auracase.bg"
+                href="mailto:support@justcases.bg"
                 className="text-accent hover:text-accent-light transition-colors font-medium hover:scale-105 inline-block"
               >
-                support@auracase.bg
+                support@justcases.bg
               </a>
             </div>
 
@@ -267,33 +267,36 @@ export default function SupportPage() {
           </ScrollAnimation>
           
           {/* FAQ Categories */}
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
+          <div className="flex flex-wrap justify-center gap-3 mb-8 p-2 rounded-2xl bg-white/[0.02] border border-white/10 max-w-fit mx-auto">
             <button
               onClick={() => setSelectedCategory('general')}
-              className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg ${
+              aria-pressed={selectedCategory === 'general'}
+              className={`px-6 py-3 rounded-xl font-medium border transition-all duration-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60 ${
                 selectedCategory === 'general'
-                  ? 'bg-accent text-white shadow-lg shadow-accent/30'
-                  : 'bg-primary text-gray-300 hover:text-white hover:shadow-lg hover:shadow-gray-500/20'
+                  ? 'bg-gradient-to-r from-blue-500/80 to-cyan-500/80 text-white border-blue-400/60 shadow-lg shadow-blue-500/30'
+                  : 'bg-white/[0.04] text-white/80 border-white/20 hover:bg-white/[0.08] hover:text-white hover:border-blue-400/40'
               }`}
             >
               Общи въпроси
             </button>
             <button
               onClick={() => setSelectedCategory('delivery')}
-              className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg ${
+              aria-pressed={selectedCategory === 'delivery'}
+              className={`px-6 py-3 rounded-xl font-medium border transition-all duration-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60 ${
                 selectedCategory === 'delivery'
-                  ? 'bg-accent text-white shadow-lg shadow-accent/30'
-                  : 'bg-primary text-gray-300 hover:text-white hover:shadow-lg hover:shadow-gray-500/20'
+                  ? 'bg-gradient-to-r from-blue-500/80 to-cyan-500/80 text-white border-blue-400/60 shadow-lg shadow-blue-500/30'
+                  : 'bg-white/[0.04] text-white/80 border-white/20 hover:bg-white/[0.08] hover:text-white hover:border-blue-400/40'
               }`}
             >
               Доставка
             </button>
             <button
               onClick={() => setSelectedCategory('returns')}
-              className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg ${
+              aria-pressed={selectedCategory === 'returns'}
+              className={`px-6 py-3 rounded-xl font-medium border transition-all duration-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60 ${
                 selectedCategory === 'returns'
-                  ? 'bg-accent text-white shadow-lg shadow-accent/30'
-                  : 'bg-primary text-gray-300 hover:text-white hover:shadow-lg hover:shadow-gray-500/20'
+                  ? 'bg-gradient-to-r from-blue-500/80 to-cyan-500/80 text-white border-blue-400/60 shadow-lg shadow-blue-500/30'
+                  : 'bg-white/[0.04] text-white/80 border-white/20 hover:bg-white/[0.08] hover:text-white hover:border-blue-400/40'
               }`}
             >
               Връщане и замяна

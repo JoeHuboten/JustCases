@@ -11,6 +11,11 @@ import RecentlyViewed from '@/components/RecentlyViewed';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRecentlyViewedStore } from '@/store/recentlyViewedStore';
+import {
+  localizeProductDescription,
+  localizeSpecificationKey,
+  localizeSpecificationValue,
+} from '@/lib/productLocalization';
 
 interface Product {
   id: string;
@@ -51,8 +56,10 @@ interface ProductPageClientProps {
 }
 
 export default function ProductPageClient({ product, relatedProducts }: ProductPageClientProps) {
-  const { t, formatPrice } = useLanguage();
+  const { t, formatPrice, language } = useLanguage();
   const addToRecentlyViewed = useRecentlyViewedStore((state) => state.addProduct);
+  const categoryLabel = t(`category.${product.category.slug}`, product.category.name);
+  const localizedDescription = localizeProductDescription(product.slug, product.description, language);
 
   // Track product view
   useEffect(() => {
@@ -80,8 +87,8 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
       <div className="container-custom">
         <Breadcrumbs
           items={[
-            { label: t('product.breadcrumb.shop', 'Shop'), href: '/shop' },
-            { label: product.category.name, href: `/shop/${product.category.slug}` },
+            { label: t('product.breadcrumb.shop', 'Магазин'), href: '/shop' },
+            { label: categoryLabel, href: `/shop/${product.category.slug}` },
             { label: product.name },
           ]}
         />
@@ -110,7 +117,7 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                     ))}
                   </div>
                   <span className="text-white/50 font-body">
-                    {product.rating} ({product.reviews} {t('product.reviews', 'reviews')})
+                    {product.rating} ({product.reviews} {t('product.reviews', 'отзива')})
                   </span>
                 </div>
               </div>
@@ -134,9 +141,9 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
             {/* Description */}
             <div>
               <h3 className="text-xl font-heading font-semibold text-white mb-3">
-                {t('product.description', 'Description')}
+                {t('product.description', 'Описание')}
               </h3>
-              <p className="text-white/60 leading-relaxed font-body">{product.description}</p>
+              <p className="text-white/60 leading-relaxed font-body">{localizedDescription}</p>
             </div>
 
             {/* Interactive Product Details */}
@@ -146,14 +153,17 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
             {product.specifications && (
               <div>
                 <h3 className="text-xl font-heading font-semibold text-white mb-3">
-                  {t('product.specifications', 'Specifications')}
+                  {t('product.specifications', 'Спецификации')}
                 </h3>
                 <div className="space-y-2">
                   {Object.entries(product.specifications as Record<string, any>).map(([key, value]) => (
                     <div key={key} className="flex justify-between font-body">
-                      <span className="text-white/50 capitalize">{key}:</span>
+                      <span className="text-white/50 capitalize">{localizeSpecificationKey(key, language)}:</span>
                       <span className="text-white">
-                        {Array.isArray(value) ? value.join(', ') : value}
+                        {(() => {
+                          const localizedValue = localizeSpecificationValue(value, language);
+                          return Array.isArray(localizedValue) ? localizedValue.join(', ') : localizedValue;
+                        })()}
                       </span>
                     </div>
                   ))}
@@ -172,7 +182,7 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
         {relatedProducts.length > 0 && (
           <div className="mt-16">
             <h2 className="text-3xl font-heading font-bold text-white mb-8">
-              {t('product.relatedProducts', 'Related Products')}
+              {t('product.relatedProducts', 'Свързани продукти')}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct) => (

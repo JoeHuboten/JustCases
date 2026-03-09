@@ -8,6 +8,10 @@ services:
     healthCheckPath: /api/health
     # Docker build args for NEXT_PUBLIC_ variables
     dockerBuildArgs:
+      - key: DATABASE_URL
+        fromEnvVar: DATABASE_URL
+      - key: JWT_SECRET
+        fromEnvVar: JWT_SECRET
       - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
         fromEnvVar: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
       - key: NEXT_PUBLIC_PAYPAL_CLIENT_ID

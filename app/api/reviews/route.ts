@@ -4,6 +4,9 @@ import { apiRateLimit } from '@/lib/rate-limit';
 import { validateCsrf } from '@/lib/csrf';
 import { reviewSchema, sanitizeInput } from '@/lib/validation';
 import { getUserFromRequest } from '@/lib/auth-utils';
+import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+
+const logger = createLogger('api:reviews');
 
 // GET - Fetch product reviews
 export async function GET(request: NextRequest) {
@@ -59,7 +62,6 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             name: true,
-            email: true,
             image: true,
           },
         },
@@ -95,7 +97,7 @@ export async function GET(request: NextRequest) {
       totalReviews,
     });
   } catch (error) {
-    console.error('Error fetching reviews:', error);
+    logger.error('Error fetching reviews', { error: getSafeErrorDetails(error) });
     return NextResponse.json(
       { error: 'Failed to fetch reviews' },
       { status: 500 }
@@ -177,7 +179,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
-    console.error('Error creating review:', error);
+    logger.error('Error creating review', { error: getSafeErrorDetails(error) });
     
     // Handle unique constraint violation (user already reviewed this product)
     if (error.code === 'P2002') {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FiSend, FiUsers, FiMail, FiPercent, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { apiFetch } from '@/lib/client-api';
 
 interface Subscriber {
   id: string;
@@ -64,7 +65,7 @@ export default function NewsletterPage() {
     setSendResult(null);
 
     try {
-      const res = await fetch('/api/admin/newsletter/send', {
+      const res = await apiFetch('/api/admin/newsletter/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -86,7 +87,12 @@ export default function NewsletterPage() {
       }
       
       if (res.ok) {
-        setSendResult({ success: true, sent: data.sent, failed: data.failed, message: data.message });
+        setSendResult({
+          success: true,
+          sent: data.sent ?? data.queued,
+          failed: data.failed ?? data.skipped,
+          message: data.message,
+        });
         setSubject('');
         setMessage('');
       } else {

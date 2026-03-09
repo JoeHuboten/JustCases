@@ -43,8 +43,27 @@ export async function verifyPassword(password: string, hashedPassword: string): 
   return bcrypt.compare(password, hashedPassword);
 }
 
-export async function createToken(userId: string, email: string, role: string): Promise<string> {
-  return new SignJWT({ userId, email, role })
+export async function createToken(
+  userId: string,
+  email: string,
+  role: string,
+  tokenVersion?: number,
+): Promise<string> {
+  let resolvedTokenVersion = tokenVersion;
+  if (resolvedTokenVersion === undefined) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { tokenVersion: true },
+    });
+    resolvedTokenVersion = user?.tokenVersion ?? 0;
+  }
+
+  return new SignJWT({
+    userId,
+    email,
+    role,
+    tokenVersion: resolvedTokenVersion,
+  })
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime('7d')
     .sign(getJwtSecret());
@@ -69,8 +88,22 @@ export async function getUserFromRequest(request: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { id: payload.userId as string },
-      select: { id: true, email: true, name: true, role: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        emailVerified: true,
+        tokenVersion: true,
+      },
     });
+
+    if (!user) return null;
+
+    const tokenVersion = Number(payload.tokenVersion ?? 0);
+    if (tokenVersion !== user.tokenVersion) {
+      return null;
+    }
 
     return user;
   } catch (error) {

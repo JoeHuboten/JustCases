@@ -7,25 +7,41 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function HomePage() {
   const { t } = useLanguage();
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
-  const [scrollY, setScrollY] = useState(0);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [mounted, setMounted] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  // Use refs for high-frequency values to avoid per-frame re-renders
+  const mousePosRef = useRef({ x: 0, y: 0 });
+  const scrollYRef = useRef(0);
+  const windowSizeRef = useRef({ width: 1920, height: 1080 });
+  const hexRef = useRef<SVGPolygonElement>(null);
+  const phoneRef = useRef<HTMLDivElement>(null);
+  const orb1Ref = useRef<HTMLDivElement>(null);
+  const orb2Ref = useRef<HTMLDivElement>(null);
+  const prismRef = useRef<HTMLDivElement>(null);
+
+  // Keep a state copy of windowSize only for canvas resize (infrequent)
+  const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
+
   useEffect(() => {
     setMounted(true);
     if (typeof window !== 'undefined') {
-      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+      const size = { width: window.innerWidth, height: window.innerHeight };
+      windowSizeRef.current = size;
+      setWindowSize(size);
     }
   }, []);
 
   useEffect(() => {
     if (!mounted) return;
-    const handleScroll = () => setScrollY(window.scrollY);
-    const handleMouse = (e: MouseEvent) => setMousePos({ x: e.clientX, y: e.clientY });
-    const handleResize = () => setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    const handleScroll = () => { scrollYRef.current = window.scrollY; };
+    const handleMouse = (e: MouseEvent) => { mousePosRef.current = { x: e.clientX, y: e.clientY }; };
+    const handleResize = () => {
+      const size = { width: window.innerWidth, height: window.innerHeight };
+      windowSizeRef.current = size;
+      setWindowSize(size);
+    };
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('mousemove', handleMouse, { passive: true });
     window.addEventListener('resize', handleResize, { passive: true });
@@ -39,6 +55,9 @@ export default function HomePage() {
   // Aurora wave animation
   useEffect(() => {
     if (!mounted) return;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -48,9 +67,20 @@ export default function HomePage() {
     canvas.height = windowSize.height;
 
     let animationId: number;
+    let lastFrame = 0;
     let time = 0;
 
-    const animate = () => {
+    const animate = (now: number) => {
+      if (document.visibilityState !== 'visible') {
+        animationId = requestAnimationFrame(animate);
+        return;
+      }
+      if (now - lastFrame < 33) {
+        animationId = requestAnimationFrame(animate);
+        return;
+      }
+      lastFrame = now;
+
       time += 0.003;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -92,7 +122,7 @@ export default function HomePage() {
       animationId = requestAnimationFrame(animate);
     };
 
-    animate();
+    animationId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationId);
   }, [mounted, windowSize]);
 
@@ -102,16 +132,61 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Hexagon float animation state
-  const [hexFloat, setHexFloat] = useState(0);
+  // Hexagon + interactive parallax: update DOM directly via refs (no state = no re-renders)
   useEffect(() => {
     if (!mounted) return;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) return;
+
     let animationId: number;
-    const animateHex = () => {
-      setHexFloat(Math.sin(Date.now() * 0.001) * 10);
-      animationId = requestAnimationFrame(animateHex);
+    let lastFrame = 0;
+    const tick = (frameTs: number) => {
+      if (document.visibilityState !== 'visible') {
+        animationId = requestAnimationFrame(tick);
+        return;
+      }
+      if (frameTs - lastFrame < 33) {
+        animationId = requestAnimationFrame(tick);
+        return;
+      }
+      lastFrame = frameTs;
+
+      const nowTs = Date.now();
+      const hexY = Math.sin(nowTs * 0.001) * 10;
+      if (hexRef.current) {
+        (hexRef.current.closest('svg') as SVGSVGElement | null)?.setAttribute(
+          'style',
+          `transform: translateY(${hexY}px); transition: transform 0.1s ease-out`,
+        );
+      }
+
+      const mp = mousePosRef.current;
+      const ws = windowSizeRef.current;
+      const sy = scrollYRef.current;
+
+      // Floating orbs
+      if (orb1Ref.current) {
+        orb1Ref.current.style.left = `calc(20% + ${mp.x * 0.02}px)`;
+        orb1Ref.current.style.top = `calc(20% + ${mp.y * 0.02}px)`;
+      }
+      if (orb2Ref.current) {
+        orb2Ref.current.style.right = `calc(15% - ${mp.x * 0.015}px)`;
+        orb2Ref.current.style.bottom = `calc(20% - ${mp.y * 0.015}px)`;
+      }
+
+      // Prism rotation from scroll
+      if (prismRef.current) {
+        prismRef.current.style.transform = `rotate(${sy * 0.02}deg)`;
+      }
+
+      // Phone perspective tilt
+      if (phoneRef.current) {
+        phoneRef.current.style.transform = `perspective(1000px) rotateY(${(mp.x - ws.width / 2) * 0.01}deg) rotateX(${(mp.y - ws.height / 2) * -0.01}deg)`;
+      }
+
+      animationId = requestAnimationFrame(tick);
     };
-    animateHex();
+    animationId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animationId);
   }, [mounted]);
 
@@ -124,20 +199,22 @@ export default function HomePage() {
       <section className="relative min-h-screen flex items-center justify-center">
         {/* Floating Orbs that follow mouse slightly */}
         <div 
+          ref={orb1Ref}
           className="absolute w-[600px] h-[600px] rounded-full opacity-40 pointer-events-none"
           style={{
             background: 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)',
-            left: `calc(20% + ${mousePos.x * 0.02}px)`,
-            top: `calc(20% + ${mousePos.y * 0.02}px)`,
+            left: '20%',
+            top: '20%',
             transition: 'all 0.5s ease-out',
           }}
         />
         <div 
+          ref={orb2Ref}
           className="absolute w-[500px] h-[500px] rounded-full opacity-30 pointer-events-none"
           style={{
             background: 'radial-gradient(circle, rgba(6,182,212,0.12) 0%, transparent 70%)',
-            right: `calc(15% - ${mousePos.x * 0.015}px)`,
-            bottom: `calc(20% - ${mousePos.y * 0.015}px)`,
+            right: '15%',
+            bottom: '20%',
             transition: 'all 0.6s ease-out',
           }}
         />
@@ -151,14 +228,14 @@ export default function HomePage() {
                 <div className="relative">
                   <div className="absolute inset-0 bg-violet-500/50 blur-lg rounded-full" />
                   <div className="relative px-4 py-1.5 rounded-full bg-gradient-to-r from-violet-500/20 to-cyan-500/20 border border-white/10 backdrop-blur-sm">
-                    <span className="text-xs font-body text-white/80 tracking-wider uppercase">Нова колекция 2026</span>
+                    <span className="text-xs font-body text-white/80 tracking-wider uppercase">{t('homePage.newCollection')}</span>
                   </div>
                 </div>
               </div>
 
               {/* Headline with staggered reveal effect */}
               <h1 className="font-heading text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-bold leading-[0.95] mb-8">
-                <span className="block text-white/90">Защита с</span>
+                <span className="block text-white/90">{t('homePage.heroTitle1')}</span>
                 <span className="block relative mt-2">
                   <span 
                     className="bg-clip-text text-transparent"
@@ -168,14 +245,14 @@ export default function HomePage() {
                       animation: 'gradientShift 8s ease infinite',
                     }}
                   >
-                    характер
+                    {t('homePage.heroTitle2')}
                   </span>
                 </span>
               </h1>
 
               {/* Subtitle */}
               <p className="font-body text-lg md:text-xl text-white/40 max-w-md mb-10 leading-relaxed">
-                Премиум калъфи, създадени за тези, които не правят компромиси. Уникален дизайн среща военна защита.
+                {t('homePage.heroDesc')}
               </p>
 
               {/* CTA Group */}
@@ -186,7 +263,7 @@ export default function HomePage() {
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-cyan-600 rounded-full opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
                   <div className="relative flex items-center gap-3 px-8 py-4 bg-white rounded-full font-heading font-semibold text-[#050508] transition-transform duration-300 group-hover:scale-[1.02]">
-                    <span>Разгледай колекцията</span>
+                    <span>{t('homePage.shopCollection')}</span>
                     <div className="w-6 h-6 rounded-full bg-[#050508] flex items-center justify-center">
                       <svg className="w-3 h-3 text-white transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -204,7 +281,7 @@ export default function HomePage() {
                       <path d="M8 5v14l11-7z"/>
                     </svg>
                   </div>
-                  <span>Научи повече</span>
+                  <span>{t('homePage.learnMore')}</span>
                 </Link>
               </div>
             </div>
@@ -214,6 +291,7 @@ export default function HomePage() {
               <div className="relative w-full max-w-md aspect-[3/4]">
                 {/* Prism Effect Background */}
                 <div 
+                  ref={prismRef}
                   className="absolute inset-0"
                   style={{
                     background: `
@@ -222,14 +300,13 @@ export default function HomePage() {
                       linear-gradient(315deg, rgba(16,185,129,0.08) 0%, transparent 50%)
                     `,
                     clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-                    transform: `rotate(${scrollY * 0.02}deg)`,
                     transition: 'transform 0.1s ease-out',
                   }}
                 />
 
                 {/* Hexagonal Frame */}
                 <div className="absolute inset-8">
-                  <svg className="w-full h-full" viewBox="0 0 200 230" fill="none" style={{ transform: mounted ? `translateY(${hexFloat}px)` : 'translateY(0px)', transition: 'transform 0.1s ease-out' }}>
+                  <svg className="w-full h-full" viewBox="0 0 200 230" fill="none" style={{ transition: 'transform 0.1s ease-out' }}>
                     <defs>
                       <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%" stopColor="rgba(139,92,246,0.3)" />
@@ -238,6 +315,7 @@ export default function HomePage() {
                       </linearGradient>
                     </defs>
                     <polygon 
+                      ref={hexRef}
                       points="100,10 180,55 180,145 100,190 20,145 20,55" 
                       fill="url(#hexGrad)"
                       stroke="url(#hexGrad)"
@@ -249,9 +327,9 @@ export default function HomePage() {
                 {/* Central Phone Mockup */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div 
+                    ref={phoneRef}
                     className="relative w-48 h-96 rounded-[2.5rem] bg-gradient-to-b from-white/10 to-white/5 border border-white/10 backdrop-blur-sm overflow-hidden"
                     style={{ 
-                      transform: `perspective(1000px) rotateY(${(mousePos.x - windowSize.width / 2) * 0.01}deg) rotateX(${(mousePos.y - windowSize.height / 2) * -0.01}deg)`,
                       transition: 'transform 0.3s ease-out',
                     }}
                   >
@@ -262,8 +340,8 @@ export default function HomePage() {
                         <div className="w-16 h-16 mb-4 rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center">
                           <span className="font-heading text-2xl text-white font-bold">A</span>
                         </div>
-                        <span className="font-heading text-white text-lg font-semibold">JUST CASES</span>
-                        <span className="font-body text-white/40 text-xs mt-1">Premium Protection</span>
+                        <span className="font-heading text-white text-lg font-semibold">{t('homePage.brandName')}</span>
+                        <span className="font-body text-white/40 text-xs mt-1">{t('homePage.brandSlogan')}</span>
                       </div>
                       {/* Screen Glare */}
                       <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent pointer-events-none" />
@@ -276,10 +354,10 @@ export default function HomePage() {
 
                 {/* Floating Feature Pills */}
                 {[
-                  { label: '3м защита', icon: '🛡️', pos: 'top-12 -left-4', delay: '0s' },
-                  { label: 'Премиум', icon: '✨', pos: 'top-24 -right-8', delay: '0.5s' },
-                  { label: '1-3 дни', icon: '📦', pos: 'bottom-32 -left-8', delay: '1s' },
-                  { label: '30 дни', icon: '↩️', pos: 'bottom-16 -right-4', delay: '1.5s' },
+                  { label: t('homePage.pill.protection'), icon: '🛡️', pos: 'top-12 -left-4', delay: '0s' },
+                  { label: t('homePage.pill.premium'), icon: '✨', pos: 'top-24 -right-8', delay: '0.5s' },
+                  { label: t('homePage.pill.delivery'), icon: '📦', pos: 'bottom-32 -left-8', delay: '1s' },
+                  { label: t('homePage.pill.returns'), icon: '↩️', pos: 'bottom-16 -right-4', delay: '1.5s' },
                 ].map((pill, i) => (
                   <div
                     key={i}
@@ -301,7 +379,7 @@ export default function HomePage() {
         {/* Scroll Hint */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3">
           <div className="w-px h-12 bg-gradient-to-b from-transparent via-white/20 to-transparent" />
-          <span className="font-body text-[10px] text-white/20 tracking-[0.3em] uppercase">Scroll</span>
+          <span className="font-body text-[10px] text-white/20 tracking-[0.3em] uppercase">{t('homePage.scroll')}</span>
         </div>
       </section>
 
@@ -327,10 +405,9 @@ export default function HomePage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Intro */}
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="inline-block font-body text-xs tracking-[0.3em] uppercase text-violet-400/80 mb-4">Предимства</span>
+            <span className="inline-block font-body text-xs tracking-[0.3em] uppercase text-violet-400/80 mb-4">{t('homePage.advantages')}</span>
             <h2 className="font-heading text-3xl md:text-5xl font-bold text-white leading-tight">
-              Всеки детайл е{' '}
-              <span className="text-white/30">обмислен</span>
+              {t('homePage.advantagesDesc')}
             </h2>
           </div>
 
@@ -343,20 +420,20 @@ export default function HomePage() {
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/20 to-cyan-500/20 border border-white/10 mb-6">
                   <span className="text-3xl">🛡️</span>
                 </div>
-                <h3 className="font-heading text-2xl md:text-3xl font-bold text-white mb-3">Военна степен защита</h3>
+                <h3 className="font-heading text-2xl md:text-3xl font-bold text-white mb-3">{t('homePage.feature.protection')}</h3>
                 <p className="font-body text-white/40 text-lg max-w-md leading-relaxed">
-                  Тествано при падане от 3 метра. Калъфите са сертифицирани по MIL-STD-810G стандарт за максимална издръжливост.
+                  {t('homePage.feature.protectionDesc')}
                 </p>
               </div>
               {/* Visual Element */}
               <div className="relative z-10 mt-8 flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
                   <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                  <span className="font-body text-sm text-white/60">MIL-STD-810G</span>
+                  <span className="font-body text-sm text-white/60">{t('homePage.milStd')}</span>
                 </div>
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
                   <div className="w-2 h-2 rounded-full bg-cyan-400" />
-                  <span className="font-body text-sm text-white/60">3м Drop Test</span>
+                  <span className="font-body text-sm text-white/60">{t('homePage.dropTest')}</span>
                 </div>
               </div>
             </div>
@@ -368,9 +445,9 @@ export default function HomePage() {
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 border border-white/10 mb-5">
                   <span className="text-2xl">✨</span>
                 </div>
-                <h3 className="font-heading text-xl font-bold text-white mb-2">Премиум материали</h3>
+                <h3 className="font-heading text-xl font-bold text-white mb-2">{t('homePage.feature.materials')}</h3>
                 <p className="font-body text-white/40 text-sm leading-relaxed">
-                  Естествена кожа, карбон, soft-touch силикон. Материали, които се усещат луксозно.
+                  {t('homePage.feature.materialsDesc')}
                 </p>
               </div>
             </div>
@@ -382,9 +459,9 @@ export default function HomePage() {
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 border border-white/10 mb-5">
                   <span className="text-2xl">🚀</span>
                 </div>
-                <h3 className="font-heading text-xl font-bold text-white mb-2">Експресна доставка</h3>
+                <h3 className="font-heading text-xl font-bold text-white mb-2">{t('homePage.feature.delivery')}</h3>
                 <p className="font-body text-white/40 text-sm leading-relaxed">
-                  1-3 работни дни за цяла България. Безплатна доставка над 25€.
+                  {t('homePage.feature.deliveryDesc')}
                 </p>
               </div>
             </div>
@@ -396,9 +473,9 @@ export default function HomePage() {
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 border border-white/10 mb-5">
                   <span className="text-2xl">↩️</span>
                 </div>
-                <h3 className="font-heading text-xl font-bold text-white mb-2">30 дни връщане</h3>
+                <h3 className="font-heading text-xl font-bold text-white mb-2">{t('homePage.feature.returns')}</h3>
                 <p className="font-body text-white/40 text-sm leading-relaxed">
-                  Не си доволен? Върни в рамките на 30 дни за пълно възстановяване.
+                  {t('homePage.feature.returnsDesc')}
                 </p>
               </div>
             </div>
@@ -411,9 +488,9 @@ export default function HomePage() {
                   <span className="text-2xl">💎</span>
                 </div>
                 <div>
-                  <h3 className="font-heading text-xl font-bold text-white mb-2">Гаранция за качество</h3>
+                  <h3 className="font-heading text-xl font-bold text-white mb-2">{t('homePage.feature.guarantee')}</h3>
                   <p className="font-body text-white/40 text-sm leading-relaxed">
-                    Всеки продукт преминава през стриктен контрол на качеството. Ако забележите дефект - заменяме безплатно.
+                    {t('homePage.feature.guaranteeDesc')}
                   </p>
                 </div>
               </div>
@@ -431,10 +508,9 @@ export default function HomePage() {
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="inline-block font-body text-xs tracking-[0.3em] uppercase text-cyan-400/80 mb-4">Отзиви</span>
+            <span className="inline-block font-body text-xs tracking-[0.3em] uppercase text-cyan-400/80 mb-4">{t('homePage.reviews')}</span>
             <h2 className="font-heading text-3xl md:text-5xl font-bold text-white leading-tight">
-              Клиентите{' '}
-              <span className="text-white/30">говорят</span>
+              {t('homePage.reviewsDesc')}
             </h2>
           </div>
 
@@ -443,22 +519,22 @@ export default function HomePage() {
             <div className="flex gap-6 overflow-hidden">
               {[
                 { 
-                  name: 'Мария Иванова', 
-                  role: 'iPhone 15 Pro', 
-                  text: 'Калъфът е невероятен! Изглежда много по-скъп отколкото е. Доставката беше супер бърза и опаковката - перфектна.',
-                  avatar: 'М'
+                  name: t('homePage.review1.name'), 
+                  role: t('homePage.review1.role'), 
+                  text: t('homePage.review1.text'),
+                  avatar: t('homePage.review1.name').charAt(0)
                 },
                 { 
-                  name: 'Георги Петров', 
-                  role: 'Samsung S24 Ultra', 
-                  text: 'Вече поръчах за цялото семейство. Качеството е безкомпромисно, а дизайнът - точно това, което търсех.',
-                  avatar: 'Г'
+                  name: t('homePage.review2.name'), 
+                  role: t('homePage.review2.role'), 
+                  text: t('homePage.review2.text'),
+                  avatar: t('homePage.review2.name').charAt(0)
                 },
                 { 
-                  name: 'Елена Костова', 
-                  role: 'Xiaomi 14 Pro', 
-                  text: 'Третата ми поръчка от Just Cases. Винаги съм доволна от качеството и обслужването. Горещо препоръчвам!',
-                  avatar: 'Е'
+                  name: t('homePage.review3.name'), 
+                  role: t('homePage.review3.role'), 
+                  text: t('homePage.review3.text'),
+                  avatar: t('homePage.review3.name').charAt(0)
                 },
               ].map((testimonial, i) => (
                 <div
@@ -515,9 +591,9 @@ export default function HomePage() {
           {/* Stats */}
           <div className="flex flex-wrap justify-center gap-8 md:gap-16 mt-16 pt-16 border-t border-white/5">
             {[
-              { value: '30K+', label: 'Доволни клиенти' },
-              { value: '4.9', label: 'Среден рейтинг' },
-              { value: '2K+', label: 'Продукти' },
+              { value: '30K+', label: t('homePage.stats.customers') },
+              { value: '4.9', label: t('homePage.stats.rating') },
+              { value: '2K+', label: t('homePage.stats.products') },
             ].map((stat, i) => (
               <div key={i} className="text-center">
                 <div className="font-heading text-4xl md:text-5xl font-bold text-white mb-2">{stat.value}</div>
@@ -551,21 +627,19 @@ export default function HomePage() {
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
-            <span className="inline-block font-body text-xs tracking-[0.3em] uppercase text-emerald-400/80 mb-4">Готови?</span>
+            <span className="inline-block font-body text-xs tracking-[0.3em] uppercase text-emerald-400/80 mb-4">{t('homePage.cta.ready')}</span>
             <h2 className="font-heading text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
-              Открийте вашия
-              <br />
               <span 
                 className="bg-clip-text text-transparent"
                 style={{
                   backgroundImage: 'linear-gradient(135deg, #8B5CF6 0%, #06B6D4 50%, #10B981 100%)',
                 }}
               >
-                перфектен калъф
+                {t('homePage.cta.find')}
               </span>
             </h2>
             <p className="font-body text-white/40 text-lg mb-10 max-w-lg mx-auto">
-              Над 2000 модела за всички популярни устройства. Намерете своя днес.
+              {t('homePage.cta.desc')}
             </p>
             <Link
               href="/shop"
@@ -573,7 +647,7 @@ export default function HomePage() {
             >
               <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-cyan-600 to-emerald-600 rounded-full opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
               <div className="relative flex items-center gap-3 px-10 py-5 bg-white rounded-full font-heading font-semibold text-lg text-[#050508] transition-transform duration-300 group-hover:scale-[1.02]">
-                <span>Към магазина</span>
+                <span>{t('homePage.cta.shop')}</span>
                 <div className="w-8 h-8 rounded-full bg-[#050508] flex items-center justify-center">
                   <svg className="w-4 h-4 text-white transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -604,4 +678,3 @@ export default function HomePage() {
     </div>
   );
 }
-

@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import nodemailer from 'nodemailer';
+import { createNewsletterUnsubscribeToken } from '@/lib/newsletter-token';
 
 // Email provider configuration
 const EMAIL_PROVIDER = process.env.EMAIL_PROVIDER || 'nodemailer'; // 'resend' or 'nodemailer'
@@ -26,6 +27,11 @@ const transporter = NODEMAILER_CONFIGURED ? nodemailer.createTransport({
 
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@justcases.bg';
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+function getNewsletterUnsubscribeUrl(email: string): string {
+  const token = createNewsletterUnsubscribeToken(email);
+  return `${SITE_URL}/api/newsletter?token=${encodeURIComponent(token)}`;
+}
 
 interface EmailTemplate {
   subject: string;
@@ -423,6 +429,7 @@ Just Cases
     language?: 'bg' | 'en';
   }): EmailTemplate => {
     const isBulgarian = data.language === 'bg';
+    const unsubscribeUrl = getNewsletterUnsubscribeUrl(data.email);
     
     const subject = isBulgarian 
       ? '🎉 Добре дошли в Just Cases бюлетина!' 
@@ -537,7 +544,7 @@ Just Cases
         ${isBulgarian 
           ? 'Ако желаете да се отпишете:' 
           : 'To unsubscribe:'}
-        <a href="${SITE_URL}/newsletter/unsubscribe?email=${encodeURIComponent(data.email)}" style="color: #999;">
+        <a href="${unsubscribeUrl}" style="color: #999;">
           ${isBulgarian ? 'отписване' : 'click here'}
         </a>
       </p>
@@ -561,7 +568,7 @@ ${isBulgarian ? 'Като абонат, ще получавате:' : 'As a subs
 
 ${isBulgarian ? 'Разгледайте магазина:' : 'Browse our shop:'} ${SITE_URL}/shop
 
-${isBulgarian ? 'За отписване:' : 'To unsubscribe:'} ${SITE_URL}/newsletter/unsubscribe?email=${encodeURIComponent(data.email)}
+${isBulgarian ? 'За отписване:' : 'To unsubscribe:'} ${unsubscribeUrl}
 
 Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}
     `.trim();
@@ -580,6 +587,7 @@ Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' 
     language?: 'bg' | 'en';
   }): EmailTemplate => {
     const isBulgarian = data.language === 'bg';
+    const unsubscribeUrl = getNewsletterUnsubscribeUrl(data.email);
     
     const subject = data.subject;
 
@@ -636,7 +644,7 @@ Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' 
       
       <p class="small">
         ${isBulgarian ? 'Ако искате да се отпишете, посетете' : 'To unsubscribe, visit'}
-        <a href="${SITE_URL}/newsletter/unsubscribe?email=${encodeURIComponent(data.email)}" style="color: #667eea;">
+        <a href="${unsubscribeUrl}" style="color: #667eea;">
           ${isBulgarian ? 'страницата за отписване' : 'unsubscribe page'}
         </a>.
       </p>
@@ -663,7 +671,7 @@ ${data.discountPercent}% ${isBulgarian ? 'отстъпка — валиден д
 
 ${isBulgarian ? 'Пазарувай сега:' : 'Shop now:'} ${SITE_URL}/shop
 
-${isBulgarian ? 'За отписване:' : 'To unsubscribe:'} ${SITE_URL}/newsletter/unsubscribe?email=${encodeURIComponent(data.email)}
+${isBulgarian ? 'За отписване:' : 'To unsubscribe:'} ${unsubscribeUrl}
 
 Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}
     `.trim();
@@ -682,6 +690,7 @@ Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' 
     language?: 'bg' | 'en';
   }): EmailTemplate => {
     const isBulgarian = data.language === 'bg';
+    const unsubscribeUrl = getNewsletterUnsubscribeUrl(data.email);
     
     const subject = data.subject;
 
@@ -739,7 +748,7 @@ Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' 
       
       <p class="small">
         ${isBulgarian ? 'Ако искате да се отпишете, посетете' : 'To unsubscribe, visit'}
-        <a href="${SITE_URL}/newsletter/unsubscribe?email=${encodeURIComponent(data.email)}" style="color: #667eea;">
+        <a href="${unsubscribeUrl}" style="color: #667eea;">
           ${isBulgarian ? 'страницата за отписване' : 'unsubscribe page'}
         </a>.
       </p>
@@ -765,7 +774,7 @@ ${data.ctaText && data.ctaUrl ? `${data.ctaText}: ${data.ctaUrl}` : ''}
 
 ${isBulgarian ? 'Благодарим, че сте част от общността на Just Cases!' : 'Thank you for being part of the Just Cases community!'}
 
-${isBulgarian ? 'За отписване:' : 'To unsubscribe:'} ${SITE_URL}/newsletter/unsubscribe?email=${encodeURIComponent(data.email)}
+${isBulgarian ? 'За отписване:' : 'To unsubscribe:'} ${unsubscribeUrl}
 
 Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}
     `.trim();
@@ -786,6 +795,7 @@ Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' 
   }): EmailTemplate => {
     const isBulgarian = data.language === 'bg';
     const currency = isBulgarian ? '€' : 'BGN';
+    const unsubscribeUrl = getNewsletterUnsubscribeUrl(data.email);
     
     const subject = isBulgarian 
       ? `🚀 Нов продукт: ${data.productName}!`
@@ -875,7 +885,7 @@ Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' 
       
       <p class="small" style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
         ${isBulgarian ? 'Ако искате да се отпишете, посетете' : 'To unsubscribe, visit'}
-        <a href="${SITE_URL}/newsletter/unsubscribe?email=${encodeURIComponent(data.email)}" style="color: #667eea;">
+        <a href="${unsubscribeUrl}" style="color: #667eea;">
           ${isBulgarian ? 'страницата за отписване' : 'unsubscribe page'}
         </a>.
       </p>
@@ -905,7 +915,7 @@ ${isBulgarian ? 'Разгледайте продукта:' : 'View product:'} ${
 
 ${isBulgarian ? 'Бъдете сред първите, които ще притежават този невероятен продукт!' : 'Be among the first to own this amazing product!'}
 
-${isBulgarian ? 'За отписване:' : 'To unsubscribe:'} ${SITE_URL}/newsletter/unsubscribe?email=${encodeURIComponent(data.email)}
+${isBulgarian ? 'За отписване:' : 'To unsubscribe:'} ${unsubscribeUrl}
 
 Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}
     `.trim();

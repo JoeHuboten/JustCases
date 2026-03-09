@@ -14,6 +14,12 @@ interface LogEntry {
   requestId?: string;
 }
 
+interface ErrorWithCode {
+  code?: string | number;
+  name?: string;
+  message?: string;
+}
+
 const LOG_LEVELS: Record<LogLevel, number> = {
   debug: 0,
   info: 1,
@@ -152,5 +158,46 @@ export const createLogger = (context: string): Logger => new Logger(context);
 export const getRequestId = (headers: Headers): string => {
   return headers.get('x-request-id') || crypto.randomUUID();
 };
+
+export function getSafeErrorDetails(error: unknown): { name: string; code?: string | number; message?: string } {
+  if (error instanceof Error) {
+    const details: { name: string; code?: string | number; message?: string } = {
+      name: error.name || 'Error',
+    };
+
+    const maybeCode = (error as ErrorWithCode).code;
+    if (typeof maybeCode === 'string' || typeof maybeCode === 'number') {
+      details.code = maybeCode;
+    }
+
+    if (process.env.NODE_ENV !== 'production') {
+      details.message = error.message;
+    }
+
+    return details;
+  }
+
+  if (error && typeof error === 'object') {
+    const maybeCode = (error as ErrorWithCode).code;
+    const maybeName = (error as ErrorWithCode).name;
+    const maybeMessage = (error as ErrorWithCode).message;
+
+    const details: { name: string; code?: string | number; message?: string } = {
+      name: typeof maybeName === 'string' && maybeName ? maybeName : 'UnknownError',
+    };
+
+    if (typeof maybeCode === 'string' || typeof maybeCode === 'number') {
+      details.code = maybeCode;
+    }
+
+    if (process.env.NODE_ENV !== 'production' && typeof maybeMessage === 'string' && maybeMessage) {
+      details.message = maybeMessage;
+    }
+
+    return details;
+  }
+
+  return { name: 'UnknownError' };
+}
 
 export default Logger;

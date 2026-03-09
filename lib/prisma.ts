@@ -60,8 +60,7 @@ export const orderSelectFields = {
   id: true,
   total: true,
   status: true,
-  paymentMethod: true,
-  paymentStatus: true,
+  paymentType: true,
   trackingNumber: true,
   createdAt: true,
   updatedAt: true,
@@ -69,7 +68,15 @@ export const orderSelectFields = {
 
 export const orderDetailFields = {
   ...orderSelectFields,
-  paypalOrderId: true,
+  subtotal: true,
+  discount: true,
+  deliveryFee: true,
+  paymentIntentId: true,
+  paymentId: true,
+  notes: true,
+  customerNotes: true,
+  courierService: true,
+  estimatedDelivery: true,
   items: {
     select: {
       id: true,

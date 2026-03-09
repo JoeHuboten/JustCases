@@ -70,6 +70,10 @@ export const categorySchema = z.object({
   image: z.string().url('Invalid image URL').optional(),
 });
 
+export const categoryUpdateSchema = categorySchema
+  .partial()
+  .refine((data) => Object.keys(data).length > 0, 'At least one field is required');
+
 // Order status validation
 export const orderStatusSchema = z.enum(['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED']);
 
@@ -80,6 +84,83 @@ export const discountCodeSchema = z.object({
   active: z.boolean().default(true),
   expiresAt: z.string().nullable().optional(),
   maxUses: z.number().positive().nullable().optional(),
+});
+
+export const discountCodeUpdateSchema = z
+  .object({
+    code: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .min(1, 'Code is required')
+      .max(50)
+      .regex(/^[A-Z0-9-]+$/, 'Code must be uppercase alphanumeric')
+      .optional(),
+    percentage: z.number().min(1).max(100).optional(),
+    active: z.boolean().optional(),
+    expiresAt: z.string().nullable().optional(),
+    maxUses: z.number().int().positive().nullable().optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, 'At least one field is required');
+
+export const productUpdateSchema = z
+  .object({
+    name: z.string().min(1).max(200).optional(),
+    slug: z.string().min(1).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase with hyphens').optional(),
+    description: z.string().nullable().optional(),
+    price: z.coerce.number().positive().optional(),
+    oldPrice: z.coerce.number().positive().nullable().optional(),
+    discount: z.coerce.number().int().min(0).max(100).nullable().optional(),
+    image: z.string().url('Invalid image URL').optional(),
+    images: z.string().optional(),
+    categoryId: z.string().cuid('Invalid category ID').optional(),
+    colors: z.string().optional(),
+    sizes: z.string().optional(),
+    rating: z.coerce.number().min(0).max(5).optional(),
+    reviews: z.coerce.number().int().min(0).optional(),
+    inStock: z.boolean().optional(),
+    featured: z.boolean().optional(),
+    specifications: z.unknown().optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, 'At least one field is required');
+
+export const adminOrderUpdateSchema = z
+  .object({
+    status: orderStatusSchema.optional(),
+    trackingNumber: z.string().trim().max(100).nullable().optional(),
+    notes: z.string().trim().max(1000).nullable().optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, 'At least one field is required');
+
+export const adminOrderStatusUpdateSchema = z.object({
+  orderId: z.string().cuid('Invalid order ID'),
+  status: orderStatusSchema,
+  notes: z.string().trim().max(1000).optional().nullable(),
+  trackingNumber: z.string().trim().max(100).optional().nullable(),
+  courierService: z.string().trim().max(100).optional().nullable(),
+  estimatedDelivery: z.string().datetime().optional().nullable(),
+});
+
+export const checkoutItemSchema = z.object({
+  productId: z.string().cuid('Invalid product ID'),
+  quantity: z.number().int().min(1).max(100),
+  color: z.string().max(50).optional().nullable(),
+  size: z.string().max(50).optional().nullable(),
+});
+
+export const checkoutSessionSchema = z.object({
+  items: z.array(checkoutItemSchema).min(1, 'At least one item is required'),
+  discountCode: z.string().trim().toUpperCase().max(50).optional().nullable(),
+  shippingAddress: shippingAddressSchema.optional().nullable(),
+});
+
+export const checkoutPaymentCreateSchema = z.object({
+  checkoutSessionId: z.string().cuid('Invalid checkout session ID'),
+});
+
+export const checkoutPaymentCaptureSchema = z.object({
+  checkoutSessionId: z.string().cuid('Invalid checkout session ID'),
+  providerPaymentId: z.string().min(1, 'providerPaymentId is required'),
 });
 
 // Sanitize input to prevent XSS

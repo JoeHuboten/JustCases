@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { apiRateLimit } from '@/lib/rate-limit';
 import { validateCsrf } from '@/lib/csrf';
+import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+
+const logger = createLogger('api:discount:apply');
 
 export async function POST(request: NextRequest) {
   // Rate limiting
@@ -81,9 +84,7 @@ export async function POST(request: NextRequest) {
       message: `${updatedCode.percentage}% discount applied successfully!`,
     });
   } catch (error) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error('Error applying discount code:', error);
-    }
+    logger.error('Error applying discount code', { error: getSafeErrorDetails(error) });
     return NextResponse.json(
       { error: 'Failed to apply discount code' },
       { status: 500 }

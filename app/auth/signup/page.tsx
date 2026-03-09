@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FiMail, FiLock, FiUser, FiArrowLeft } from 'react-icons/fi';
@@ -15,6 +16,7 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const { signUp } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,12 +25,13 @@ export default function SignUpPage() {
     setSuccess(false);
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('auth.signup.passwordMismatch'));
       return;
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+    const strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    if (!strongPassword.test(password)) {
+      setError(t('auth.signup.passwordTooShort'));
       return;
     }
 
@@ -43,7 +46,7 @@ export default function SignUpPage() {
         router.push('/');
       }
     } else {
-      setError(result.error || 'Sign up failed');
+      setError(result.error || t('auth.signup.failed'));
     }
 
     setLoading(false);
@@ -54,18 +57,17 @@ export default function SignUpPage() {
       <div className="w-full max-w-md">
         <Link href="/" className="flex items-center gap-2 text-text-secondary hover:text-white transition-colors mb-8">
           <FiArrowLeft size={20} />
-          <span>Back to Home</span>
+          <span>{t('auth.signup.backHome')}</span>
         </Link>
         <div className="bg-gradient-to-br from-primary/80 to-primary backdrop-blur-xl border border-gray-800/50 rounded-2xl p-8 shadow-2xl">
-          <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
-          <p className="text-text-secondary mb-8">Sign up to get started</p>
+          <h1 className="text-3xl font-bold text-white mb-2">{t('auth.signup.title')}</h1>
+          <p className="text-text-secondary mb-8">{t('auth.signup.subtitle')}</p>
           
           {success && (
             <div className="bg-green-500/10 border border-green-500/50 rounded-lg p-4 mb-6">
-              <p className="text-green-500 text-sm font-medium mb-2">✓ Registration Successful!</p>
+              <p className="text-green-500 text-sm font-medium mb-2">{t('auth.signup.success')}</p>
               <p className="text-green-400 text-sm">
-                Please check your email (<strong>{email}</strong>) to verify your account. 
-                You need to verify your email before you can make purchases.
+                {t('auth.signup.checkEmail')}
               </p>
             </div>
           )}
@@ -79,35 +81,35 @@ export default function SignUpPage() {
           {!success && (
             <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="name" className="block text-white mb-2 font-medium">Name</label>
+              <label htmlFor="name" className="block text-white mb-2 font-medium">{t('auth.signup.name')}</label>
               <div className="relative">
                 <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={20} />
-                <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full bg-background/50 border border-gray-700 rounded-lg px-12 py-3 text-white placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder="Your name" />
+                <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full bg-background/50 border border-gray-700 rounded-lg px-12 py-3 text-white placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder={t('auth.signup.namePlaceholder')} />
               </div>
             </div>
             <div>
-              <label htmlFor="email" className="block text-white mb-2 font-medium">Email</label>
+              <label htmlFor="email" className="block text-white mb-2 font-medium">{t('auth.signup.email')}</label>
               <div className="relative">
                 <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={20} />
-                <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full bg-background/50 border border-gray-700 rounded-lg px-12 py-3 text-white placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder="your@email.com" />
+                <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full bg-background/50 border border-gray-700 rounded-lg px-12 py-3 text-white placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder={t('auth.signup.emailPlaceholder')} />
               </div>
             </div>
             <div>
-              <label htmlFor="password" className="block text-white mb-2 font-medium">Password</label>
+              <label htmlFor="password" className="block text-white mb-2 font-medium">{t('auth.signup.password')}</label>
               <div className="relative">
                 <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={20} />
-                <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="w-full bg-background/50 border border-gray-700 rounded-lg px-12 py-3 text-white placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder="" />
+                <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} className="w-full bg-background/50 border border-gray-700 rounded-lg px-12 py-3 text-white placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder="" />
               </div>
             </div>
             <div>
-              <label htmlFor="confirmPassword" className="block text-white mb-2 font-medium">Confirm Password</label>
+              <label htmlFor="confirmPassword" className="block text-white mb-2 font-medium">{t('auth.signup.confirmPassword')}</label>
               <div className="relative">
                 <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={20} />
-                <input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={6} className="w-full bg-background/50 border border-gray-700 rounded-lg px-12 py-3 text-white placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder="" />
+                <input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={8} className="w-full bg-background/50 border border-gray-700 rounded-lg px-12 py-3 text-white placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder="" />
               </div>
             </div>
             <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-accent to-accent/80 text-white py-3 rounded-lg font-medium hover:from-accent-light hover:to-accent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
-              {loading ? 'Creating account...' : 'Sign Up'}
+              {loading ? t('auth.signup.creating') : t('auth.signup.create')}
             </button>
           </form>
           )}
@@ -115,18 +117,18 @@ export default function SignUpPage() {
           <div className="mt-6 text-center">
             {success ? (
               <p className="text-text-secondary">
-                Didn't receive the email?{' '}
+                {t('auth.signup.noEmail')}{' '}
                 <button 
                   onClick={() => setSuccess(false)} 
                   className="text-accent hover:text-accent-light transition-colors"
                 >
-                  Try again
+                  {t('auth.signup.tryAgain')}
                 </button>
               </p>
             ) : (
               <p className="text-text-secondary">
-                Already have an account?{' '}
-                <Link href="/auth/signin" className="text-accent hover:text-accent-light transition-colors">Sign in</Link>
+                {t('auth.signup.hasAccount')}{' '}
+                <Link href="/auth/signin" className="text-accent hover:text-accent-light transition-colors">{t('auth.signup.signIn')}</Link>
               </p>
             )}
           </div>

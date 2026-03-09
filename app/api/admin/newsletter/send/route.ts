@@ -1,10 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth-utils';
-import { sendEmail } from '@/lib/email';
 import crypto from 'crypto';
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { withApiGuard } from '@/lib/api-guard';
+import { strictRateLimit } from '@/lib/rate-limit';
+import { enqueueEmailJobs } from '@/lib/email-jobs';
+import { createNewsletterUnsubscribeToken } from '@/lib/newsletter-token';
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+const newsletterSendSchema = z.object({
+  subject: z.string().trim().min(1).max(200),
+  message: z.string().trim().min(1).max(5000),
+  type: z.enum(['custom', 'promo']).optional().default('custom'),
+  discountPercent: z.coerce.number().int().min(1).max(99).optional(),
+});
 
 function generatePromoCode(prefix = 'HALKI'): string {
   return `${prefix}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
@@ -14,7 +24,7 @@ async function createUniqueDiscountCode(percentage: number, maxRetries = 5) {
   for (let i = 0; i < maxRetries; i++) {
     const code = generatePromoCode();
     try {
-      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
       const discount = await prisma.discountCode.create({
         data: {
           code,
@@ -25,9 +35,13 @@ async function createUniqueDiscountCode(percentage: number, maxRetries = 5) {
         },
       });
       return discount;
-    } catch (error: any) {
-      if (error.code === 'P2002') {
-        // Unique constraint violation, try again
+    } catch (error: unknown) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        (error as { code?: string }).code === 'P2002'
+      ) {
         continue;
       }
       throw error;
@@ -45,6 +59,9 @@ function createEmailTemplate(data: {
   expiresAt?: Date;
 }) {
   const { subject, message, email, promoCode, discountPercent, expiresAt } = data;
+  const unsubscribeUrl = `${SITE_URL}/api/newsletter?token=${encodeURIComponent(
+    createNewsletterUnsubscribeToken(email),
+  )}`;
 
   const html = `<!DOCTYPE html>
 <html>
@@ -72,7 +89,9 @@ function createEmailTemplate(data: {
     <div class="content">
       <p>Здравейте,</p>
       <div class="message">${message}</div>
-      ${promoCode ? `
+      ${
+        promoCode
+          ? `
         <div style="text-align:center; margin:24px 0;">
           <p style="margin-bottom:12px;">Вашият персонален промо код за <strong>${discountPercent}% намаление</strong>:</p>
           <div class="code-box">${promoCode}</div>
@@ -80,13 +99,15 @@ function createEmailTemplate(data: {
             Валиден еднократно до <strong>${expiresAt ? new Date(expiresAt).toLocaleDateString('bg-BG') : ''}</strong>
           </p>
         </div>
-      ` : ''}
+      `
+          : ''
+      }
       <div style="text-align:center;">
         <a class="cta" href="${SITE_URL}/shop">Разгледай магазина</a>
       </div>
       <p class="small">
-        Ако искате да се отпишете, посетете 
-        <a href="${SITE_URL}/newsletter/unsubscribe?email=${encodeURIComponent(email)}" style="color:#667eea;">
+        Ако искате да се отпишете, посетете
+        <a href="${unsubscribeUrl}" style="color:#667eea;">
           страницата за отписване
         </a>.
       </p>
@@ -98,48 +119,55 @@ function createEmailTemplate(data: {
 </body>
 </html>`;
 
-  const text = `${subject}\n\n${message}${promoCode ? `\n\nВашият код: ${promoCode}\n${discountPercent}% намаление — валиден до ${expiresAt ? new Date(expiresAt).toLocaleDateString('bg-BG') : ''}` : ''}\n\nЗа отписване: ${SITE_URL}/newsletter/unsubscribe?email=${encodeURIComponent(email)}`;
+  const text = `${subject}\n\n${message}${
+    promoCode
+      ? `\n\nВашият код: ${promoCode}\n${discountPercent}% намаление — валиден до ${
+          expiresAt ? new Date(expiresAt).toLocaleDateString('bg-BG') : ''
+        }`
+      : ''
+  }\n\nЗа отписване: ${unsubscribeUrl}`;
 
   return { subject, html, text };
 }
 
-export async function POST(req: NextRequest) {
-  try {
-    // Verify admin authentication
-    const user = await getUserFromRequest(req);
-    if (!user || user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+export const POST = withApiGuard(
+  {
+    requireAdmin: true,
+    csrf: true,
+    rateLimit: strictRateLimit,
+    bodySchema: newsletterSendSchema,
+  },
+  async (_request, { body }) => {
+    const { subject, message, type = 'custom', discountPercent } = body!;
+
+    if (type === 'promo' && !discountPercent) {
+      return NextResponse.json(
+        { error: 'discountPercent is required for promo newsletters' },
+        { status: 400 },
+      );
     }
 
-    const body = await req.json();
-    const { subject, message, type = 'custom', discountPercent = 0 } = body;
-
-    if (!subject?.trim() || !message?.trim()) {
-      return NextResponse.json({ error: 'Subject and message are required' }, { status: 400 });
-    }
-
-    // Get active subscribers
     const subscribers = await prisma.newsletterSubscription.findMany({
       where: { active: true },
+      select: { email: true },
     });
 
     if (subscribers.length === 0) {
       return NextResponse.json({ error: 'No active subscribers found' }, { status: 400 });
     }
 
-    const results: Array<{ email: string; success: boolean; error?: string }> = [];
+    const jobs: Array<{
+      type: 'RAW_TEMPLATE';
+      to: string;
+      payload: { subject: string; html: string; text: string };
+    }> = [];
+    const skipped: Array<{ email: string; reason: string }> = [];
 
     for (const subscriber of subscribers) {
       try {
-        let emailData: { subject: string; html: string; text: string };
-        let promoCode: string | undefined;
-
-        if (type === 'promo' && discountPercent > 0) {
-          // Create unique discount code
+        if (type === 'promo' && discountPercent) {
           const discount = await createUniqueDiscountCode(discountPercent);
-          promoCode = discount.code;
-
-          emailData = createEmailTemplate({
+          const payload = createEmailTemplate({
             subject,
             message,
             email: subscriber.email,
@@ -147,46 +175,49 @@ export async function POST(req: NextRequest) {
             discountPercent,
             expiresAt: discount.expiresAt || undefined,
           });
+          jobs.push({
+            type: 'RAW_TEMPLATE',
+            to: subscriber.email,
+            payload,
+          });
         } else {
-          emailData = createEmailTemplate({
+          const payload = createEmailTemplate({
             subject,
             message,
             email: subscriber.email,
           });
+          jobs.push({
+            type: 'RAW_TEMPLATE',
+            to: subscriber.email,
+            payload,
+          });
         }
-
-        const result = await sendEmail(subscriber.email, emailData);
-
-        results.push({
-          email: subscriber.email,
-          success: result.success,
-          error: result.success ? undefined : String(result.error),
-        });
       } catch (error) {
-        console.error(`Failed to send to ${subscriber.email}:`, error);
-        results.push({
+        skipped.push({
           email: subscriber.email,
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          reason: error instanceof Error ? error.message : 'Unknown error',
         });
       }
     }
 
-    const sent = results.filter(r => r.success).length;
-    const failed = results.filter(r => !r.success).length;
+    if (jobs.length === 0) {
+      return NextResponse.json(
+        { error: 'Failed to queue newsletter emails', skipped },
+        { status: 500 },
+      );
+    }
+
+    const batchSize = 200;
+    for (let i = 0; i < jobs.length; i += batchSize) {
+      await enqueueEmailJobs(jobs.slice(i, i + batchSize));
+    }
 
     return NextResponse.json({
       success: true,
-      sent,
-      failed,
-      message: `Изпратено до ${sent} абонати${failed > 0 ? `, ${failed} неуспешни` : ''}`,
-      details: results,
+      queued: jobs.length,
+      skipped: skipped.length,
+      message: `Добавени в опашката: ${jobs.length}${skipped.length > 0 ? `, пропуснати: ${skipped.length}` : ''}`,
+      skippedDetails: skipped,
     });
-  } catch (error) {
-    console.error('Error sending newsletter:', error);
-    return NextResponse.json(
-      { error: 'Failed to send newsletter' },
-      { status: 500 }
-    );
-  }
-}
+  },
+);

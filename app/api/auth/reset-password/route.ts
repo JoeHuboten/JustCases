@@ -3,6 +3,10 @@ import { prisma } from '@/lib/prisma';
 import { strictRateLimit } from '@/lib/rate-limit';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { passwordSchema } from '@/lib/validation';
+import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+
+const logger = createLogger('api:auth:reset-password');
 
 export async function POST(request: NextRequest) {
   // Strict rate limiting
@@ -24,10 +28,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate password strength
-    if (password.length < 8) {
+    const passwordValidation = passwordSchema.safeParse(password);
+    if (!passwordValidation.success) {
       return NextResponse.json(
-        { error: 'Password must be at least 8 characters long' },
+        { error: 'Password must be at least 8 characters with uppercase, lowercase, and number' },
         { status: 400 }
       );
     }
@@ -36,8 +40,11 @@ export async function POST(request: NextRequest) {
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
     // Find valid token
-    const verificationToken = await prisma.verificationToken.findUnique({
-      where: { token: hashedToken },
+    const verificationToken = await prisma.verificationToken.findFirst({
+      where: {
+        token: hashedToken,
+        type: 'PASSWORD_RESET',
+      },
     });
 
     if (!verificationToken) {
@@ -77,7 +84,10 @@ export async function POST(request: NextRequest) {
     // Update user password
     await prisma.user.update({
       where: { id: user.id },
-      data: { password: hashedPassword },
+      data: {
+        password: hashedPassword,
+        tokenVersion: { increment: 1 },
+      },
     });
 
     // Delete used token
@@ -87,7 +97,10 @@ export async function POST(request: NextRequest) {
 
     // Delete all other tokens for this user (invalidate all password reset requests)
     await prisma.verificationToken.deleteMany({
-      where: { identifier: user.email! },
+      where: {
+        identifier: user.email!,
+        type: 'PASSWORD_RESET',
+      },
     });
 
     return NextResponse.json({
@@ -95,7 +108,7 @@ export async function POST(request: NextRequest) {
       message: 'Password has been reset successfully',
     });
   } catch (error) {
-    console.error('Password reset error:', error);
+    logger.error('Password reset failed', { error: getSafeErrorDetails(error) });
     return NextResponse.json(
       { error: 'Failed to reset password' },
       { status: 500 }

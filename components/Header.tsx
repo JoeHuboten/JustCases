@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { FiSearch, FiShoppingBag, FiX, FiHeart, FiUser, FiMenu, FiArrowRight } from 'react-icons/fi';
 import { useCartStore } from '@/store/cartStore';
@@ -36,6 +37,7 @@ const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  const searchLabel = mounted ? t('header.search', 'Търси...') : 'Търси...';
 
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => { setMobileOpen(false); setSearchOpen(false); }, [pathname]);
@@ -60,14 +62,21 @@ const Header = () => {
   useEffect(() => {
     if (searchQuery.length < 2) { setSuggestions([]); setSearchLoading(false); return; }
     setSearchLoading(true);
+    const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/products/search?q=${encodeURIComponent(searchQuery)}&limit=5`);
+        const res = await fetch(
+          `/api/products/search?q=${encodeURIComponent(searchQuery)}&limit=5`,
+          { signal: controller.signal },
+        );
         if (res.ok) { const data = await res.json(); setSuggestions(data.products || []); }
-      } catch {}
+      } catch (err: unknown) {
+        // Silently ignore aborted requests
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+      }
       setSearchLoading(false);
     }, 250);
-    return () => clearTimeout(timer);
+    return () => { clearTimeout(timer); controller.abort(); };
   }, [searchQuery]);
 
   const cartCount = mounted ? cartItems.reduce((s, i) => s + i.quantity, 0) : 0;
@@ -104,7 +113,7 @@ const Header = () => {
               </div>
               <div className="hidden sm:block">
                 <div className="text-sm font-bold text-white tracking-tight leading-none">Just Cases</div>
-                <div className="text-[10px] text-blue-400 font-medium">Premium Quality</div>
+                <div className="text-[10px] text-blue-400 font-medium">{t('header.premiumQuality', 'Premium Quality')}</div>
               </div>
             </Link>
 
@@ -141,7 +150,7 @@ const Header = () => {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
-                      placeholder={t('header.search', 'Търси...')}
+                      placeholder={searchLabel}
                       className="flex-1 bg-transparent text-white text-[13px] placeholder:text-slate-500 focus:outline-none"
                     />
                     <button onClick={() => {setSearchOpen(false); setSearchQuery(''); setSuggestions([]);}} className="text-slate-500 hover:text-white transition-colors">
@@ -162,13 +171,20 @@ const Header = () => {
               <button
                 onClick={() => setSearchOpen(true)}
                 className="md:hidden w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all"
-                title={t('header.search', 'Търси')}
+                title={searchLabel}
               >
                 <FiSearch size={16} className="text-slate-400" />
               </button>
 
               {/* Language */}
-              <LanguageSwitcher />
+              {mounted ? (
+                <LanguageSwitcher />
+              ) : (
+                <div
+                  className="h-10 w-[116px] rounded-xl border border-white/10 bg-white/[0.03]"
+                  aria-hidden="true"
+                />
+              )}
 
               {/* Wishlist */}
               <Link href="/wishlist" className="relative group">
@@ -230,7 +246,7 @@ const Header = () => {
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <div className="w-14 h-14 rounded-lg overflow-hidden bg-[#0a0a0f] flex-shrink-0 ring-1 ring-white/5 group-hover:ring-blue-500/30 transition-all">
-                        {p.image && <img src={p.image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />}
+                        {p.image && <Image src={p.image} alt={p.name ?? ''} width={56} height={56} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-white text-sm font-medium mb-1 truncate group-hover:text-blue-400 transition-colors">{p.name}</div>
@@ -356,4 +372,3 @@ const Header = () => {
 };
 
 export default Header;
-

@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { FiLock, FiEye, FiEyeOff, FiCheck } from 'react-icons/fi';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ResetPasswordPage() {
   return (
@@ -21,6 +22,7 @@ function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
+  const { t } = useLanguage();
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -32,15 +34,15 @@ function ResetPasswordContent() {
 
   useEffect(() => {
     if (!token) {
-      setError('Невалиден линк за нулиране на парола');
+      setError(t('auth.reset.invalidLink'));
     }
   }, [token]);
 
   const validatePassword = (pwd: string) => {
-    if (pwd.length < 8) return 'Паролата трябва да бъде поне 8 символа';
-    if (!/[A-Z]/.test(pwd)) return 'Паролата трябва да съдържа поне една главна буква';
-    if (!/[a-z]/.test(pwd)) return 'Паролата трябва да съдържа поне една малка буква';
-    if (!/[0-9]/.test(pwd)) return 'Паролата трябва да съдържа поне една цифра';
+    if (pwd.length < 8) return t('auth.reset.minLength');
+    if (!/[A-Z]/.test(pwd)) return t('auth.reset.needUppercase');
+    if (!/[a-z]/.test(pwd)) return t('auth.reset.needLowercase');
+    if (!/[0-9]/.test(pwd)) return t('auth.reset.needDigit');
     return null;
   };
 
@@ -56,12 +58,12 @@ function ResetPasswordContent() {
     }
 
     if (password !== confirmPassword) {
-      setError('Паролите не съвпадат');
+      setError(t('auth.reset.mismatch'));
       return;
     }
 
     if (!token) {
-      setError('Невалиден токен за нулиране');
+      setError(t('auth.reset.invalidToken'));
       return;
     }
 
@@ -82,10 +84,10 @@ function ResetPasswordContent() {
           router.push('/auth/signin');
         }, 3000);
       } else {
-        setError(data.error || 'Неуспешно нулиране на парола');
+        setError(data.error || t('auth.reset.failed'));
       }
     } catch (err) {
-      setError('Възникна грешка. Моля, опитайте отново.');
+      setError(t('auth.reset.error'));
     } finally {
       setLoading(false);
     }
@@ -99,12 +101,12 @@ function ResetPasswordContent() {
             <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
               <FiCheck className="text-green-400 text-3xl" />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-4">Паролата е променена успешно!</h1>
+            <h1 className="text-2xl font-bold text-white mb-4">{t('auth.reset.success')}</h1>
             <p className="text-text-secondary mb-6">
-              Вашата парола беше нулирана успешно. Пренасочване към вход...
+              {t('auth.reset.successDesc')}
             </p>
             <Link href="/auth/signin" className="btn-primary inline-block">
-              Влез сега
+              {t('auth.reset.signInNow')}
             </Link>
           </div>
         </div>
@@ -120,9 +122,9 @@ function ResetPasswordContent() {
             <div className="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <FiLock className="text-accent text-2xl" />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Нулиране на парола</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">{t('auth.reset.title')}</h1>
             <p className="text-text-secondary">
-              Въведете вашата нова парола
+              {t('auth.reset.subtitle')}
             </p>
           </div>
 
@@ -135,7 +137,7 @@ function ResetPasswordContent() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="password" className="block text-white font-medium mb-2">
-                Нова парола
+                {t('auth.reset.newPassword')}
               </label>
               <div className="relative">
                 <input
@@ -156,13 +158,13 @@ function ResetPasswordContent() {
                 </button>
               </div>
               <p className="text-xs text-text-secondary mt-2">
-                Минимум 8 символа, с поне една главна буква, малка буква и цифра
+                {t('auth.reset.requirements')}
               </p>
             </div>
 
             <div>
               <label htmlFor="confirmPassword" className="block text-white font-medium mb-2">
-                Потвърдете паролата
+                {t('auth.reset.confirmPassword')}
               </label>
               <div className="relative">
                 <input
@@ -189,7 +191,7 @@ function ResetPasswordContent() {
               disabled={loading || !token}
               className={`w-full btn-primary py-3 ${loading || !token ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {loading ? 'Нулиране...' : 'Нулирай паролата'}
+              {loading ? t('auth.reset.resetting') : t('auth.reset.resetButton')}
             </button>
           </form>
 
@@ -198,7 +200,7 @@ function ResetPasswordContent() {
               href="/auth/signin"
               className="text-accent hover:text-accent/80 transition-colors"
             >
-              Назад към вход
+              {t('auth.reset.backToLogin')}
             </Link>
           </div>
         </div>

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCartStore } from '@/store/cartStore';
+import { apiFetch } from '@/lib/client-api';
 
 export default function CartSync() {
   const { user, loading } = useAuth();
@@ -31,7 +32,7 @@ export default function CartSync() {
           const localItems = useCartStore.getState().items;
           
           // Fetch server cart
-          const response = await fetch('/api/cart');
+          const response = await apiFetch('/api/cart');
           if (response.ok) {
             const data = await response.json();
             const serverItems = data.items || [];
@@ -52,7 +53,7 @@ export default function CartSync() {
             
             // Save merged cart to server
             if (mergedItems.length > 0) {
-              await fetch('/api/cart', {
+              await apiFetch('/api/cart', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ items: mergedItems, merge: false }),
@@ -84,7 +85,7 @@ export default function CartSync() {
 
     const debounceTimer = setTimeout(async () => {
       try {
-        await fetch('/api/cart', {
+        await apiFetch('/api/cart', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ items, merge: false }),

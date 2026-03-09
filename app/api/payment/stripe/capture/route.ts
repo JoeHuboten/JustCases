@@ -1,180 +1,113 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { getUserFromRequest } from '@/lib/auth-utils';
+import { withApiGuard } from '@/lib/api-guard';
+import { strictRateLimit } from '@/lib/rate-limit';
+import { checkoutPaymentCaptureSchema } from '@/lib/validation';
+import { finalizeCheckoutSession } from '@/lib/checkout';
 import { prisma } from '@/lib/prisma';
+import { enqueueEmailJob } from '@/lib/email-jobs';
 
-// Check if Stripe is configured
-const STRIPE_CONFIGURED = process.env.STRIPE_SECRET_KEY && 
+const STRIPE_CONFIGURED = Boolean(
+  process.env.STRIPE_SECRET_KEY &&
   process.env.STRIPE_SECRET_KEY !== 'sk_test_...' &&
-  process.env.STRIPE_SECRET_KEY.startsWith('sk_');
+  process.env.STRIPE_SECRET_KEY.startsWith('sk_'),
+);
 
-const stripe = STRIPE_CONFIGURED 
+const stripe = STRIPE_CONFIGURED
   ? new Stripe(process.env.STRIPE_SECRET_KEY!, {
       apiVersion: '2025-12-15.clover' as const,
     })
   : null;
 
-export async function POST(request: NextRequest) {
-  try {
-    // Check if Stripe is configured
+export const POST = withApiGuard(
+  {
+    requireAuth: true,
+    requireVerifiedEmail: true,
+    csrf: true,
+    rateLimit: strictRateLimit,
+    bodySchema: checkoutPaymentCaptureSchema,
+  },
+  async (_request, { user, body }) => {
     if (!STRIPE_CONFIGURED || !stripe) {
-      return NextResponse.json({ 
-        error: 'Payment system not configured',
-        message: 'Stripe is not configured',
-      }, { status: 503 });
+      return NextResponse.json(
+        { error: 'Payment system not configured', message: 'Stripe is not configured' },
+        { status: 503 },
+      );
     }
 
-    const user = await getUserFromRequest(request);
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { paymentIntentId, items, discountCode, shippingAddress } = await request.json();
-
-    if (!paymentIntentId) {
-      return NextResponse.json({ error: 'Payment intent ID required' }, { status: 400 });
-    }
-
-    // Retrieve the payment intent to verify status
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-    const status = paymentIntent.status;
-
-    if (status !== 'succeeded') {
-      // For automatic capture, payment should already be succeeded
-      return NextResponse.json({ 
-        error: 'Payment not completed',
-        message: `Payment status: ${status}`,
-      }, { status: 400 });
-    }
-
-    // Calculate totals
-    const subtotal = items.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
-    let discount = 0;
-    let discountCodeRecord = null;
-
-    if (discountCode) {
-      discountCodeRecord = await prisma.discountCode.findFirst({
-        where: {
-          code: discountCode,
-          active: true,
-        },
-      });
-
-      if (discountCodeRecord) {
-        discount = (subtotal * discountCodeRecord.percentage) / 100;
-      }
-    }
-
-    const total = subtotal - discount;
-
-    // Prepare order data
-    const orderData: any = {
-      userId: user.id,
-      total,
-      subtotal,
-      discount,
-      deliveryFee: 0,
-      status: 'PROCESSING',
-      paymentType: 'CARD', // Apple Pay uses card payment type
-      paymentIntentId: paymentIntentId,
-      discountCodeId: discountCodeRecord?.id,
-      trackingNumber: `AP${Date.now()}`,
-      items: {
-        create: items.map((item: any) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          price: item.price,
-          color: item.color || null,
-          size: item.size || null,
-        })),
+    const existingOrder = await prisma.order.findFirst({
+      where: {
+        checkoutSessionId: body!.checkoutSessionId,
+        userId: user!.id,
       },
-    };
-
-    // Add shipping address if provided
-    if (shippingAddress && shippingAddress.firstName) {
-      const addressRecord = await prisma.address.create({
-        data: {
-          userId: user.id,
-          firstName: shippingAddress.firstName,
-          lastName: shippingAddress.lastName,
-          phone: shippingAddress.phone || '',
-          address1: shippingAddress.address,
-          city: shippingAddress.city,
-          state: '',
-          postalCode: shippingAddress.postalCode,
-          country: shippingAddress.country || 'България',
-          isDefault: false,
-        },
+      select: { id: true },
+    });
+    if (existingOrder) {
+      return NextResponse.json({
+        success: true,
+        orderId: existingOrder.id,
+        idempotent: true,
       });
-      orderData.shippingAddressId = addressRecord.id;
-      orderData.customerNotes = shippingAddress.notes || null;
     }
 
-    // Create order in database
-    const order = await prisma.order.create({
-      data: orderData,
+    const paymentIntent = await stripe.paymentIntents.retrieve(body!.providerPaymentId);
+    if (paymentIntent.status !== 'succeeded') {
+      return NextResponse.json(
+        { error: 'Payment not completed', message: `Payment status: ${paymentIntent.status}` },
+        { status: 400 },
+      );
+    }
+
+    if (paymentIntent.metadata.userId !== user!.id) {
+      return NextResponse.json({ error: 'Invalid payment metadata' }, { status: 403 });
+    }
+
+    if (paymentIntent.metadata.checkoutSessionId !== body!.checkoutSessionId) {
+      return NextResponse.json({ error: 'Checkout session mismatch' }, { status: 400 });
+    }
+
+    const finalized = await finalizeCheckoutSession({
+      userId: user!.id,
+      checkoutSessionId: body!.checkoutSessionId,
+      provider: 'CARD',
+      providerPaymentId: paymentIntent.id,
+      statusNote: 'Payment completed via Stripe. Order is being processed.',
+    });
+
+    const order = await prisma.order.findUnique({
+      where: { id: finalized.orderId },
       include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
+        items: { include: { product: true } },
+        user: true,
       },
     });
-
-    // Update product stock
-    for (const item of items) {
-      await prisma.product.update({
-        where: { id: item.productId },
-        data: {
-          stock: { decrement: item.quantity },
-        },
-      });
-
-      // Check if product should be marked as out of stock
-      const updatedProduct = await prisma.product.findUnique({
-        where: { id: item.productId },
-        select: { stock: true },
-      });
-
-      if (updatedProduct && updatedProduct.stock <= 0) {
-        await prisma.product.update({
-          where: { id: item.productId },
-          data: { inStock: false },
+    if (order?.user.email) {
+      try {
+        await enqueueEmailJob({
+          type: 'ORDER_CONFIRMATION',
+          to: order.user.email,
+          payload: {
+            orderId: order.id,
+            customerName: order.user.name || 'Customer',
+            total: order.total,
+            items: order.items.map((item) => ({
+              name: item.product.name,
+              quantity: item.quantity,
+              price: item.price,
+            })),
+            trackingNumber: order.trackingNumber || undefined,
+            language: 'bg',
+          },
         });
+      } catch {
+        // Email dispatch must not block checkout completion.
       }
     }
-
-    // Update discount code usage
-    if (discountCodeRecord) {
-      await prisma.discountCode.update({
-        where: { id: discountCodeRecord.id },
-        data: { currentUses: { increment: 1 } },
-      });
-    }
-
-    // Create initial status history
-    await prisma.orderStatusHistory.create({
-      data: {
-        orderId: order.id,
-        status: 'PROCESSING',
-        notes: 'Payment completed via Apple Pay. Order is being processed.',
-        createdBy: user.id,
-      },
-    });
 
     return NextResponse.json({
       success: true,
-      orderId: order.id,
+      orderId: finalized.orderId,
+      idempotent: finalized.idempotent,
     });
-  } catch (error: any) {
-    console.error('Stripe capture error:', error);
-    return NextResponse.json(
-      { 
-        error: 'Failed to process payment',
-        message: error.message || 'An unexpected error occurred',
-      },
-      { status: 500 }
-    );
-  }
-}
+  },
+);

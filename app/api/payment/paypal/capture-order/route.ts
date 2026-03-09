@@ -1,234 +1,158 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth-utils';
+import { NextResponse } from 'next/server';
+import { withApiGuard } from '@/lib/api-guard';
+import { strictRateLimit } from '@/lib/rate-limit';
+import { checkoutPaymentCaptureSchema } from '@/lib/validation';
+import { finalizeCheckoutSession } from '@/lib/checkout';
 import { prisma } from '@/lib/prisma';
-import { sendOrderConfirmationEmail } from '@/lib/email';
+import { enqueueEmailJob } from '@/lib/email-jobs';
 
-export async function POST(request: NextRequest) {
-  try {
-    const user = await getUserFromRequest(request);
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { orderId, items, shippingAddress, discountCode } = await request.json();
-
-    // Double-check stock availability before capturing payment
-    const productIds = items.map((item: any) => item.id);
-    const products = await prisma.product.findMany({
-      where: { id: { in: productIds } },
-      select: { id: true, name: true, stock: true, inStock: true },
-    });
-
-    const stockErrors: string[] = [];
-    for (const item of items) {
-      const product = products.find((p) => p.id === item.id);
-      if (!product) {
-        stockErrors.push(`Продуктът "${item.name}" не е наличен`);
-      } else if (!product.inStock) {
-        stockErrors.push(`"${product.name}" е изчерпан`);
-      } else if (product.stock !== null && product.stock < item.quantity) {
-        if (product.stock === 0) {
-          stockErrors.push(`"${product.name}" е изчерпан`);
-        } else {
-          stockErrors.push(`Само ${product.stock} бр. от "${product.name}" са налични`);
-        }
-      }
-    }
-
-    if (stockErrors.length > 0) {
-      return NextResponse.json({
-        error: 'Недостатъчна наличност',
-        message: 'Някои продукти вече не са налични. Моля, обновете количката си.',
-        stockErrors,
-      }, { status: 400 });
-    }
-
-    const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
-    const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET;
-    const PAYPAL_API = process.env.PAYPAL_MODE === 'live' 
-      ? 'https://api-m.paypal.com' 
+function getPaypalConfig() {
+  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+  const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+  const apiBase =
+    process.env.PAYPAL_MODE === 'live'
+      ? 'https://api-m.paypal.com'
       : 'https://api-m.sandbox.paypal.com';
 
-    // Get PayPal access token
-    const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64');
-    const tokenResponse = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
+  if (
+    !clientId ||
+    !clientSecret ||
+    clientId === 'your_paypal_client_id' ||
+    clientSecret === 'your_paypal_client_secret'
+  ) {
+    return null;
+  }
+
+  return { clientId, clientSecret, apiBase };
+}
+
+async function getPaypalAccessToken(config: { clientId: string; clientSecret: string; apiBase: string }) {
+  const auth = Buffer.from(`${config.clientId}:${config.clientSecret}`).toString('base64');
+  const tokenResponse = await fetch(`${config.apiBase}/v1/oauth2/token`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${auth}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: 'grant_type=client_credentials',
+    cache: 'no-store',
+  });
+  const tokenData = await tokenResponse.json();
+  if (!tokenResponse.ok || !tokenData.access_token) {
+    throw new Error(tokenData.message || 'Failed to get PayPal access token');
+  }
+  return tokenData.access_token as string;
+}
+
+export const POST = withApiGuard(
+  {
+    requireAuth: true,
+    requireVerifiedEmail: true,
+    csrf: true,
+    rateLimit: strictRateLimit,
+    bodySchema: checkoutPaymentCaptureSchema,
+  },
+  async (_request, { user, body }) => {
+    const existingOrder = await prisma.order.findFirst({
+      where: {
+        checkoutSessionId: body!.checkoutSessionId,
+        userId: user!.id,
       },
-      body: 'grant_type=client_credentials',
+      select: { id: true },
     });
-
-    const { access_token } = await tokenResponse.json();
-
-    // Capture the order
-    const captureResponse = await fetch(`${PAYPAL_API}/v2/checkout/orders/${orderId}/capture`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${access_token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const captureData = await captureResponse.json();
-
-    if (!captureResponse.ok || captureData.status !== 'COMPLETED') {
+    if (existingOrder) {
       return NextResponse.json({
-        error: 'Payment capture failed',
-        message: captureData.message || 'Payment was not completed',
-      }, { status: 400 });
-    }
-
-    // Calculate amounts
-    const subtotal = items.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
-    let discount = 0;
-
-    // Get discount code details
-    let discountCodeRecord = null;
-    if (discountCode) {
-      discountCodeRecord = await prisma.discountCode.findUnique({
-        where: { code: discountCode },
+        success: true,
+        orderId: existingOrder.id,
+        idempotent: true,
       });
-      if (discountCodeRecord && discountCodeRecord.active) {
-        discount = (subtotal * discountCodeRecord.percentage) / 100;
-      }
     }
 
-    const total = subtotal - discount;
-
-    // Prepare order data
-    const orderData: any = {
-      userId: user.id,
-      total,
-      subtotal,
-      discount,
-      deliveryFee: 0,
-      status: 'PROCESSING', // PayPal payment is complete, order is now processing
-      paymentType: 'PAYPAL',
-      paymentId: captureData.id,
-      discountCodeId: discountCodeRecord?.id,
-      trackingNumber: `PP${Date.now()}`,
-      items: {
-        create: items.map((item: any) => ({
-          productId: item.id,
-          quantity: item.quantity,
-          price: item.price,
-          color: item.color,
-          size: item.size,
-        })),
-      },
-    };
-
-    // Add shipping address if provided
-    if (shippingAddress && shippingAddress.firstName) {
-      // Create address record first
-      const addressRecord = await prisma.address.create({
-        data: {
-          userId: user.id,
-          firstName: shippingAddress.firstName,
-          lastName: shippingAddress.lastName,
-          phone: shippingAddress.phone || '',
-          address1: shippingAddress.address,
-          city: shippingAddress.city,
-          state: shippingAddress.state || '',
-          postalCode: shippingAddress.postalCode,
-          country: shippingAddress.country || 'България',
-          isDefault: true,
+    const paypalConfig = getPaypalConfig();
+    if (!paypalConfig) {
+      return NextResponse.json(
+        {
+          error: 'Payment system not configured',
+          message: 'PayPal credentials are not configured.',
+          configured: false,
         },
-      });
-      orderData.shippingAddressId = addressRecord.id;
-      orderData.customerNotes = shippingAddress.notes || null;
+        { status: 503 },
+      );
     }
 
-    // Create order in database
-    const dbOrder = await prisma.order.create({
-      data: orderData,
+    const accessToken = await getPaypalAccessToken(paypalConfig);
+    const captureResponse = await fetch(
+      `${paypalConfig.apiBase}/v2/checkout/orders/${body!.providerPaymentId}/capture`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store',
+      },
+    );
+    const captureData = await captureResponse.json();
+    if (!captureResponse.ok || captureData.status !== 'COMPLETED') {
+      return NextResponse.json(
+        { error: 'Payment capture failed', message: captureData.message || 'Payment was not completed' },
+        { status: 400 },
+      );
+    }
+
+    const customId = captureData?.purchase_units?.[0]?.custom_id;
+    if (customId !== body!.checkoutSessionId) {
+      return NextResponse.json({ error: 'Checkout session mismatch' }, { status: 400 });
+    }
+
+    const captureId =
+      captureData?.purchase_units?.[0]?.payments?.captures?.[0]?.id ||
+      captureData?.id ||
+      body!.providerPaymentId;
+
+    const finalized = await finalizeCheckoutSession({
+      userId: user!.id,
+      checkoutSessionId: body!.checkoutSessionId,
+      provider: 'PAYPAL',
+      providerPaymentId: String(captureId),
+      statusNote: 'Payment completed via PayPal. Order is being processed.',
+    });
+
+    const order = await prisma.order.findUnique({
+      where: { id: finalized.orderId },
       include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
+        items: { include: { product: true } },
+        user: true,
       },
     });
-
-    // Update product stock quantities
-    for (const item of items) {
-      await prisma.product.update({
-        where: { id: item.id },
-        data: {
-          stock: { decrement: item.quantity },
-          inStock: {
-            set: true, // Will be updated based on stock level
+    if (order?.user.email) {
+      try {
+        await enqueueEmailJob({
+          type: 'ORDER_CONFIRMATION',
+          to: order.user.email,
+          payload: {
+            orderId: order.id,
+            customerName: order.user.name || 'Customer',
+            total: order.total,
+            items: order.items.map((item) => ({
+              name: item.product.name,
+              quantity: item.quantity,
+              price: item.price,
+            })),
+            trackingNumber: order.trackingNumber || undefined,
+            language: 'bg',
           },
-        },
-      });
-
-      // Check if product should be marked as out of stock
-      const updatedProduct = await prisma.product.findUnique({
-        where: { id: item.id },
-        select: { stock: true },
-      });
-
-      if (updatedProduct && updatedProduct.stock <= 0) {
-        await prisma.product.update({
-          where: { id: item.id },
-          data: { inStock: false },
         });
+      } catch {
+        // Email dispatch must not block checkout completion.
       }
-    }
-
-    // Update discount code usage
-    if (discountCodeRecord) {
-      await prisma.discountCode.update({
-        where: { id: discountCodeRecord.id },
-        data: { currentUses: { increment: 1 } },
-      });
-    }
-
-    // Create initial status history
-    await prisma.orderStatusHistory.create({
-      data: {
-        orderId: dbOrder.id,
-        status: 'PROCESSING',
-        notes: 'Payment completed via PayPal. Order is being processed.',
-        createdBy: user.id,
-      },
-    });
-
-    // Send order confirmation email
-    try {
-      await sendOrderConfirmationEmail(user.email!, {
-        orderId: dbOrder.id,
-        customerName: user.name || 'Customer',
-        total: dbOrder.total,
-        items: dbOrder.items.map((item: any) => ({
-          name: item.product.name,
-          quantity: item.quantity,
-          price: item.price,
-        })),
-        trackingNumber: dbOrder.trackingNumber || undefined,
-        language: 'bg', // Default to Bulgarian, can be determined from user preferences
-      });
-    } catch (emailError) {
-      console.error('Failed to send order confirmation email:', emailError);
-      // Don't fail the order if email fails
     }
 
     return NextResponse.json({
       success: true,
-      orderId: dbOrder.id,
-      paypalOrderId: captureData.id,
+      orderId: finalized.orderId,
+      providerPaymentId: String(captureId),
+      idempotent: finalized.idempotent,
     });
-  } catch (error: any) {
-    console.error('PayPal capture error:', error);
-    return NextResponse.json(
-      { 
-        error: 'Failed to process payment',
-        message: error.message || 'An unexpected error occurred',
-      },
-      { status: 500 }
-    );
-  }
-}
+  },
+);

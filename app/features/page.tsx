@@ -3,8 +3,11 @@
 import { FiShield, FiZap, FiSmartphone, FiHeadphones, FiBattery, FiWifi } from 'react-icons/fi';
 import ScrollAnimation, { StaggerAnimation } from '@/components/ScrollAnimation';
 import Head from 'next/head';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function FeaturesPage() {
+  const { t } = useLanguage();
+
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -87,10 +90,10 @@ export default function FeaturesPage() {
         <div className="absolute bottom-20 left-10 w-72 h-72 bg-accent/10 rounded-full blur-3xl opacity-20" />
         <div className="container-custom relative">
           <ScrollAnimation animation="fadeIn" className="text-center">
-            <span className="text-eyebrow">Защо Just Cases</span>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 heading-display heading-glow">Функции на Just Cases</h1>
+            <span className="text-eyebrow">{t('features.eyebrow')}</span>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 heading-display heading-glow">{t('features.title')}</h1>
             <p className="text-lead max-w-3xl mx-auto">
-              Открийте защо нашите премиум мобилни аксесоари са изборът на хиляди клиенти по целия свят.
+              {t('features.subtitle')}
             </p>
           </ScrollAnimation>
         </div>
@@ -106,8 +109,8 @@ export default function FeaturesPage() {
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn">
             <div className="text-center mb-14">
-              <span className="text-eyebrow">Основни</span>
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 heading-display">Основни функции</h2>
+              <span className="text-eyebrow">{t('features.coreTitle')}</span>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 heading-display">{t('features.coreTitle')}</h2>
             </div>
           </ScrollAnimation>
           <StaggerAnimation animation="scaleUp" stagger={0.15} className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -115,10 +118,9 @@ export default function FeaturesPage() {
               <div className="bg-gradient-to-br from-accent to-accent-dark rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg shadow-accent/30">
                 <FiShield className="text-white text-2xl" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-accent transition-colors duration-300">Максимална защита</h3>
+              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-accent transition-colors duration-300">{t('features.core.protection')}</h3>
               <p className="text-slate-400 group-hover:text-slate-300 transition-colors duration-300">
-                Нашите калъфи и защитни стъкла осигуряват военен стандарт защита срещу падания, 
-                драскотини и ежедневно износване, като същевременно запазват елегантния дизайн.
+                {t('features.core.protectionDesc')}
               </p>
             </div>
 
@@ -126,10 +128,9 @@ export default function FeaturesPage() {
               <div className="bg-gradient-to-br from-accent to-accent-dark rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg shadow-accent/30">
                 <FiZap className="text-white text-2xl" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-accent transition-colors duration-300">Бързо зареждане</h3>
+              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-accent transition-colors duration-300">{t('features.core.charging')}</h3>
               <p className="text-slate-400 group-hover:text-slate-300 transition-colors duration-300">
-                Безжичните заряди и power bank-овете ни поддържат най-новите стандарти за бързо зареждане, 
-                включително Qi, MagSafe и USB-C Power Delivery.
+                {t('features.core.chargingDesc')}
               </p>
             </div>
 
@@ -137,10 +138,9 @@ export default function FeaturesPage() {
               <div className="bg-gradient-to-br from-accent to-accent-dark rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg shadow-accent/30">
                 <FiSmartphone className="text-white text-2xl" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-accent transition-colors duration-300">Универсална съвместимост</h3>
+              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-accent transition-colors duration-300">{t('features.core.compatibility')}</h3>
               <p className="text-slate-400 group-hover:text-slate-300 transition-colors duration-300">
-                Поддържаме всички основни марки и модели устройства - iPhone, Samsung, Google Pixel, 
-                OnePlus и много други, с точни размери и перфектно прилягане.
+                {t('features.core.compatibilityDesc')}
               </p>
             </div>
 
@@ -148,10 +148,9 @@ export default function FeaturesPage() {
               <div className="bg-gradient-to-br from-accent to-accent-dark rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg shadow-accent/30">
                 <FiHeadphones className="text-white text-2xl" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-accent transition-colors duration-300">Премиум звук</h3>
+              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-accent transition-colors duration-300">{t('features.core.sound')}</h3>
               <p className="text-slate-400 group-hover:text-slate-300 transition-colors duration-300">
-                Нашите слушалки и безжични зарядни станции осигуряват кристално чист звук и 
-                безпроблемно зареждане с най-високо качество на звука.
+                {t('features.core.soundDesc')}
               </p>
             </div>
 
@@ -159,10 +158,9 @@ export default function FeaturesPage() {
               <div className="bg-gradient-to-br from-accent to-accent-dark rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg shadow-accent/30">
                 <FiBattery className="text-white text-2xl" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-accent transition-colors duration-300">Дълготрайна батерия</h3>
+              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-accent transition-colors duration-300">{t('features.core.battery')}</h3>
               <p className="text-slate-400 group-hover:text-slate-300 transition-colors duration-300">
-                Power bank-овете ни имат висококачествени литиево-йонни батерии с дълъг живот, 
-                интелигентни защитни схеми и LED индикатори за нивото на заряд.
+                {t('features.core.batteryDesc')}
               </p>
             </div>
 
@@ -170,10 +168,9 @@ export default function FeaturesPage() {
               <div className="bg-gradient-to-br from-accent to-accent-dark rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg shadow-accent/30">
                 <FiWifi className="text-white text-2xl" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-accent transition-colors duration-300">Безжична технология</h3>
+              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-accent transition-colors duration-300">{t('features.core.wireless')}</h3>
               <p className="text-slate-400 group-hover:text-slate-300 transition-colors duration-300">
-                Всички наши безжични продукти използват най-новите Bluetooth и Qi стандарти за 
-                стабилна връзка и ефективно зареждане без кабели.
+                {t('features.core.wirelessDesc')}
               </p>
             </div>
           </StaggerAnimation>
@@ -193,16 +190,16 @@ export default function FeaturesPage() {
             <ScrollAnimation animation="slideRight">
               <div>
                 <span className="text-eyebrow">Иновации</span>
-                <h2 className="text-3xl md:text-4xl font-bold text-white mb-8 heading-display">Най-новите технологии</h2>
+                <h2 className="text-3xl md:text-4xl font-bold text-white mb-8 heading-display">{t('features.techTitle')}</h2>
                 <div className="space-y-6">
                   <div className="flex items-start space-x-4">
                     <div className="bg-accent rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 mt-1">
                       <span className="text-white text-sm font-bold">1</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-2">Магнитен MagSafe дизайн</h3>
+                      <h3 className="text-xl font-bold text-white mb-2">{t('features.tech.magsafe')}</h3>
                       <p className="text-gray-300">
-                        Перфектно прилягане с магнитни прикрепки за стабилно зареждане и аксесоари.
+                        {t('features.tech.magsafeDesc')}
                       </p>
                     </div>
                   </div>
@@ -211,9 +208,9 @@ export default function FeaturesPage() {
                       <span className="text-white text-sm font-bold">2</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-2">Активна защита</h3>
+                      <h3 className="text-xl font-bold text-white mb-2">{t('features.tech.activeDef')}</h3>
                       <p className="text-gray-300">
-                        Интелигентни сензори и защитни материали, които се адаптират към различни условия.
+                        {t('features.tech.activeDefDesc')}
                       </p>
                     </div>
                   </div>
@@ -222,9 +219,9 @@ export default function FeaturesPage() {
                       <span className="text-white text-sm font-bold">3</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-2">Екологично производство</h3>
+                      <h3 className="text-xl font-bold text-white mb-2">{t('features.tech.eco')}</h3>
                       <p className="text-gray-300">
-                        Използваме рециклирани материали и екологично чисти процеси в производството.
+                        {t('features.tech.ecoDesc')}
                       </p>
                     </div>
                   </div>
@@ -235,18 +232,18 @@ export default function FeaturesPage() {
               <div className="card-interactive p-8">
                 <div className="text-center">
                   <div className="text-6xl mb-4 filter drop-shadow-2xl">🔬</div>
-                  <h3 className="text-2xl font-bold text-white mb-4">Лабораторно тестване</h3>
+                  <h3 className="text-2xl font-bold text-white mb-4">{t('features.tech.labTesting')}</h3>
                   <p className="text-slate-400 mb-6">
                     Всеки продукт преминава през строги тестове за издръжливост, безопасност и производителност.
                   </p>
                   <div className="grid grid-cols-2 gap-4 text-center">
                     <div className="bg-accent/10 rounded-xl p-4 border border-accent/20">
                       <div className="text-2xl font-bold text-accent">1000+</div>
-                      <div className="text-sm text-slate-400">Тестови цикли</div>
+                      <div className="text-sm text-slate-400">{t('features.tech.testCycles')}</div>
                     </div>
                     <div className="bg-accent/10 rounded-xl p-4 border border-accent/20">
                       <div className="text-2xl font-bold text-accent">24/7</div>
-                      <div className="text-sm text-slate-400">Мониторинг</div>
+                      <div className="text-sm text-slate-400">{t('features.tech.monitoring')}</div>
                     </div>
                   </div>
                 </div>
@@ -267,7 +264,7 @@ export default function FeaturesPage() {
           <ScrollAnimation animation="fadeIn">
             <div className="text-center mb-14">
               <span className="text-eyebrow">Сертификации</span>
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 heading-display">Стандарти за качество</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 heading-display">{t('features.quality')}</h2>
             </div>
           </ScrollAnimation>
           <StaggerAnimation animation="fadeIn" stagger={0.1} className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -275,36 +272,36 @@ export default function FeaturesPage() {
               <div className="bg-gradient-to-br from-accent to-accent-dark rounded-2xl w-20 h-20 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-accent/30">
                 <span className="text-white text-2xl font-bold">CE</span>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">CE сертификация</h3>
+              <h3 className="text-lg font-bold text-white mb-2">{t('features.quality.ce')}</h3>
               <p className="text-slate-400 text-sm">
-                Съответствие с европейските стандарти за безопасност
+                {t('features.quality.ceDesc')}
               </p>
             </div>
             <div className="card-interactive p-6 text-center group">
               <div className="bg-gradient-to-br from-accent to-accent-dark rounded-2xl w-20 h-20 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-accent/30">
                 <span className="text-white text-2xl font-bold">FCC</span>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">FCC одобрение</h3>
+              <h3 className="text-lg font-bold text-white mb-2">{t('features.quality.fcc')}</h3>
               <p className="text-slate-400 text-sm">
-                Съответствие с американските стандарти за радиовълни
+                {t('features.quality.fccDesc')}
               </p>
             </div>
             <div className="card-interactive p-6 text-center group">
               <div className="bg-gradient-to-br from-accent to-accent-dark rounded-2xl w-20 h-20 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-accent/30">
                 <span className="text-white text-2xl font-bold">IP</span>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">IP68 защита</h3>
+              <h3 className="text-lg font-bold text-white mb-2">{t('features.quality.ip68')}</h3>
               <p className="text-slate-400 text-sm">
-                Пълна защита срещу прах и вода
+                {t('features.quality.ip68Desc')}
               </p>
             </div>
             <div className="card-interactive p-6 text-center group">
               <div className="bg-gradient-to-br from-accent to-accent-dark rounded-2xl w-20 h-20 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-accent/30">
                 <span className="text-white text-2xl font-bold">ISO</span>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">ISO 9001</h3>
+              <h3 className="text-lg font-bold text-white mb-2">{t('features.quality.iso')}</h3>
               <p className="text-slate-400 text-sm">
-                Международен стандарт за управление на качеството
+                {t('features.quality.isoDesc')}
               </p>
             </div>
           </StaggerAnimation>

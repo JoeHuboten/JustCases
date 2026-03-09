@@ -3,13 +3,16 @@ import { prisma } from '@/lib/database';
 import { hashPassword } from '@/lib/auth-utils';
 import { authRateLimit } from '@/lib/rate-limit';
 import { emailSchema, passwordSchema } from '@/lib/validation';
-import { sendEmailVerification } from '@/lib/email';
-import { createLogger, getRequestId } from '@/lib/logger';
+import { enqueueEmailJob } from '@/lib/email-jobs';
+import { createLogger, getRequestId, getSafeErrorDetails } from '@/lib/logger';
 import crypto from 'crypto';
+import { validateCsrf } from '@/lib/csrf';
 
 export async function POST(request: NextRequest) {
   const requestId = getRequestId(request.headers);
   const logger = createLogger('api:auth:signup').withRequestId(requestId);
+  const genericSignupMessage =
+    'If the account can be registered, check your email for verification instructions.';
   
   // Rate limiting - 5 attempts per 15 minutes
   const rateLimitResult = await authRateLimit(request);
@@ -18,6 +21,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: 'Too many signup attempts. Please try again later.', requestId },
       { status: 429, headers: { 'x-request-id': requestId } }
+    );
+  }
+
+  const csrfResult = validateCsrf(request);
+  if (!csrfResult.valid) {
+    return NextResponse.json(
+      { error: csrfResult.error || 'Invalid request', requestId },
+      { status: 403, headers: { 'x-request-id': requestId } }
     );
   }
 
@@ -54,9 +65,48 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingUser) {
+      if (!existingUser.emailVerified) {
+        try {
+          const verificationToken = crypto.randomBytes(32).toString('hex');
+          const hashedVerificationToken = crypto
+            .createHash('sha256')
+            .update(verificationToken)
+            .digest('hex');
+          const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+          await prisma.verificationToken.create({
+            data: {
+              identifier: email,
+              token: hashedVerificationToken,
+              expires: expiresAt,
+              type: 'EMAIL_VERIFICATION',
+            },
+          });
+
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+          const verificationUrl = `${appUrl}/auth/verify-email?token=${verificationToken}`;
+
+          await enqueueEmailJob({
+            type: 'EMAIL_VERIFICATION',
+            to: email,
+            payload: {
+              name: existingUser.name || 'there',
+              verificationUrl,
+            },
+          });
+        } catch {
+          // Enumeration-safe response: do not leak delivery outcome.
+        }
+      }
+
       return NextResponse.json(
-        { error: 'User already exists', requestId },
-        { status: 400, headers: { 'x-request-id': requestId } }
+        {
+          success: true,
+          message: genericSignupMessage,
+          requiresVerification: true,
+          requestId,
+        },
+        { status: 200, headers: { 'x-request-id': requestId } },
       );
     }
 
@@ -75,13 +125,17 @@ export async function POST(request: NextRequest) {
 
     // Generate verification token
     const verificationToken = crypto.randomBytes(32).toString('hex');
+    const hashedVerificationToken = crypto
+      .createHash('sha256')
+      .update(verificationToken)
+      .digest('hex');
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     // Store verification token
     await prisma.verificationToken.create({
       data: {
         identifier: email,
-        token: verificationToken,
+        token: hashedVerificationToken,
         expires: expiresAt,
         type: 'EMAIL_VERIFICATION',
       },
@@ -91,23 +145,29 @@ export async function POST(request: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const verificationUrl = `${appUrl}/auth/verify-email?token=${verificationToken}`;
 
-    // Send verification email
-    logger.info('Sending verification email', { email });
-    await sendEmailVerification(email, {
-      name: name || 'there',
-      verificationUrl,
-    });
+    try {
+      await enqueueEmailJob({
+        type: 'EMAIL_VERIFICATION',
+        to: email,
+        payload: {
+          name: name || 'there',
+          verificationUrl,
+        },
+      });
+    } catch {
+      logger.warn('Failed to queue verification email', { userId: user.id });
+    }
 
-    logger.info('User registered successfully', { userId: user.id, email });
+    logger.info('User registered successfully', { userId: user.id });
 
     return NextResponse.json({
       success: true,
-      message: 'Registration successful! Please check your email to verify your account.',
+      message: genericSignupMessage,
       requiresVerification: true,
       requestId,
     }, { headers: { 'x-request-id': requestId } });
   } catch (error) {
-    logger.error('Sign up error', { error });
+    logger.error('Sign up error', { error: getSafeErrorDetails(error) });
     return NextResponse.json(
       { error: 'Registration failed. Please try again.', requestId },
       { status: 500, headers: { 'x-request-id': requestId } }

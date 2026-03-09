@@ -2,6 +2,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function PaymentSuccessPage() {
   return (
@@ -18,6 +19,7 @@ export default function PaymentSuccessPage() {
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { t } = useLanguage();
   const orderId = searchParams.get('orderId');
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -69,10 +71,10 @@ function PaymentSuccessContent() {
 
           {/* Success Message */}
           <h1 className="text-3xl font-bold text-white mb-3">
-            Payment Successful!
+            {t('paymentSuccess.title')}
           </h1>
           <p className="text-gray-400 mb-8">
-            Thank you for your order. Your payment has been processed successfully.
+            {t('paymentSuccess.subtitle')}
           </p>
 
           {/* Order Details */}
@@ -82,29 +84,29 @@ function PaymentSuccessContent() {
                 <svg className="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
-                <h2 className="text-lg font-semibold text-white">Order Details</h2>
+                <h2 className="text-lg font-semibold text-white">{t('paymentSuccess.orderDetails')}</h2>
               </div>
               
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Order ID:</span>
+                  <span className="text-gray-400">{t('paymentSuccess.orderId')}</span>
                   <span className="text-white font-mono text-sm">{orderId}</span>
                 </div>
                 {order.trackingNumber && (
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Tracking Number:</span>
+                    <span className="text-gray-400">{t('paymentSuccess.trackingNumber')}</span>
                     <span className="text-white font-mono text-sm">{order.trackingNumber}</span>
                   </div>
                 )}
                 {order.paymentId && (
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Payment ID:</span>
+                    <span className="text-gray-400">{t('paymentSuccess.paymentId')}</span>
                     <span className="text-white font-mono text-sm">{order.paymentId}</span>
                   </div>
                 )}
                 <div className="flex justify-between pt-3 border-t border-gray-800">
-                  <span className="text-gray-400">Total Paid:</span>
-                  <span className="text-white font-bold text-lg">{order.total != null ? `${order.total.toFixed(2)} €` : 'N/A'}</span>
+                  <span className="text-gray-400">{t('paymentSuccess.totalPaid')}</span>
+                  <span className="text-white font-bold text-lg">{order.total != null ? `${order.total.toFixed(2)} €` : t('paymentSuccess.na')}</span>
                 </div>
               </div>
             </div>
@@ -113,7 +115,7 @@ function PaymentSuccessContent() {
           {/* Order Confirmation Message */}
           <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-8">
             <p className="text-blue-400 text-sm">
-              📧 A confirmation email has been sent to your email address with order details.
+              {t('paymentSuccess.emailSent')}
             </p>
           </div>
 
@@ -123,7 +125,7 @@ function PaymentSuccessContent() {
               href="/orders"
               className="btn-primary flex items-center justify-center gap-2"
             >
-              View My Orders
+              {t('paymentSuccess.viewOrders')}
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
@@ -132,22 +134,22 @@ function PaymentSuccessContent() {
               href="/shop"
               className="bg-gray-800 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
             >
-              Continue Shopping
+              {t('paymentSuccess.continueShopping')}
             </Link>
           </div>
         </div>
 
         {/* What's Next Section */}
         <div className="mt-8 bg-primary border border-gray-800 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">What happens next?</h3>
+          <h3 className="text-lg font-semibold text-white mb-4">{t('paymentSuccess.whatNext')}</h3>
           <div className="space-y-4">
             <div className="flex gap-4">
               <div className="flex-shrink-0 w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center text-accent font-bold">
                 1
               </div>
               <div>
-                <p className="text-white font-medium">Order Processing</p>
-                <p className="text-gray-400 text-sm">We'll process your order and prepare it for shipping.</p>
+                <p className="text-white font-medium">{t('paymentSuccess.step1')}</p>
+                <p className="text-gray-400 text-sm">{t('paymentSuccess.step1Desc')}</p>
               </div>
             </div>
             <div className="flex gap-4">
@@ -155,8 +157,8 @@ function PaymentSuccessContent() {
                 2
               </div>
               <div>
-                <p className="text-white font-medium">Shipping</p>
-                <p className="text-gray-400 text-sm">You'll receive a tracking number once your order ships.</p>
+                <p className="text-white font-medium">{t('paymentSuccess.step2')}</p>
+                <p className="text-gray-400 text-sm">{t('paymentSuccess.step2Desc')}</p>
               </div>
             </div>
             <div className="flex gap-4">
@@ -164,8 +166,8 @@ function PaymentSuccessContent() {
                 3
               </div>
               <div>
-                <p className="text-white font-medium">Delivery</p>
-                <p className="text-gray-400 text-sm">Your order will be delivered to your address.</p>
+                <p className="text-white font-medium">{t('paymentSuccess.step3')}</p>
+                <p className="text-gray-400 text-sm">{t('paymentSuccess.step3Desc')}</p>
               </div>
             </div>
           </div>

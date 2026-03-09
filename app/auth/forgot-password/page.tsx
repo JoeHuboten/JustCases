@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { FiMail, FiArrowLeft } from 'react-icons/fi';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ForgotPasswordPage() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -27,10 +29,10 @@ export default function ForgotPasswordPage() {
       if (response.ok) {
         setSuccess(true);
       } else {
-        setError(data.error || 'Failed to send reset email');
+        setError(data.error || t('auth.forgot.error'));
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError(t('auth.forgot.error'));
     } finally {
       setLoading(false);
     }
@@ -44,16 +46,16 @@ export default function ForgotPasswordPage() {
             <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
               <FiMail className="text-green-400 text-2xl" />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-4">Проверете имейла си</h1>
+            <h1 className="text-2xl font-bold text-white mb-4">{t('auth.forgot.success')}</h1>
             <p className="text-text-secondary mb-6">
-              Ако съществува акаунт с този имейл адрес, изпратихме инструкции за нулиране на паролата.
+              {t('auth.forgot.successMessage')}
             </p>
             <p className="text-sm text-text-secondary mb-6">
-              Моля, проверете вашата поща и следвайте инструкциите за нулиране на паролата.
+              {t('auth.forgot.successHint')}
             </p>
             <Link href="/auth/signin" className="btn-primary inline-flex items-center gap-2">
               <FiArrowLeft />
-              Назад към вход
+              {t('auth.forgot.backToLogin')}
             </Link>
           </div>
         </div>
@@ -69,9 +71,9 @@ export default function ForgotPasswordPage() {
             <div className="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <FiMail className="text-accent text-2xl" />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Забравена парола</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">{t('auth.forgot.title')}</h1>
             <p className="text-text-secondary">
-              Въведете вашия имейл адрес и ще ви изпратим инструкции за нулиране на паролата
+              {t('auth.forgot.subtitle')}
             </p>
           </div>
 
@@ -84,7 +86,7 @@ export default function ForgotPasswordPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-white font-medium mb-2">
-                Имейл адрес
+                {t('auth.forgot.email')}
               </label>
               <input
                 type="email"
@@ -93,7 +95,7 @@ export default function ForgotPasswordPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full px-4 py-3 bg-background border border-gray-700 rounded-lg text-white focus:outline-none focus:border-accent transition-colors"
-                placeholder="ваш.имейл@example.com"
+                placeholder={t('auth.forgot.emailPlaceholder')}
               />
             </div>
 
@@ -102,7 +104,7 @@ export default function ForgotPasswordPage() {
               disabled={loading}
               className={`w-full btn-primary py-3 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {loading ? 'Изпраща се...' : 'Изпрати линк за нулиране'}
+              {loading ? t('auth.forgot.loading') : t('auth.forgot.submit')}
             </button>
           </form>
 
@@ -112,15 +114,15 @@ export default function ForgotPasswordPage() {
               className="text-accent hover:text-accent/80 transition-colors inline-flex items-center gap-2"
             >
               <FiArrowLeft />
-              Назад към вход
+              {t('auth.forgot.backToLogin')}
             </Link>
           </div>
         </div>
 
         <p className="text-center text-text-secondary text-sm mt-6">
-          Нямате акаунт?{' '}
+          {t('auth.forgot.noAccount')}{' '}
           <Link href="/auth/signup" className="text-accent hover:underline">
-            Регистрирайте се
+            {t('auth.forgot.signUp')}
           </Link>
         </p>
       </div>

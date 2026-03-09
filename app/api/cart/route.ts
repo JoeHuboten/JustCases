@@ -3,6 +3,9 @@ import { getUserFromRequest } from '@/lib/auth-utils';
 import { prisma } from '@/lib/prisma';
 import { apiRateLimit } from '@/lib/rate-limit';
 import { validateCsrf } from '@/lib/csrf';
+import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+
+const logger = createLogger('api:cart');
 
 // GET - Retrieve user's saved cart
 export async function GET(request: NextRequest) {
@@ -53,9 +56,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ items });
   } catch (error) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error('Error fetching cart:', error);
-    }
+    logger.error('Error fetching cart', { error: getSafeErrorDetails(error) });
     return NextResponse.json({ items: [] });
   }
 }
@@ -97,46 +98,92 @@ export async function POST(request: NextRequest) {
       await prisma.cartItem.deleteMany({
         where: { userId: user.id },
       });
-    }
 
-    // Upsert each item
-    for (const item of items) {
-      const existingItem = await prisma.cartItem.findFirst({
-        where: {
-          userId: user.id,
-          productId: item.id,
-          color: item.color || null,
-          size: item.size || null,
-        },
-      });
-
-      if (existingItem) {
-        await prisma.cartItem.update({
-          where: { id: existingItem.id },
-          data: { 
-            quantity: merge 
-              ? existingItem.quantity + item.quantity 
-              : item.quantity 
-          },
-        });
-      } else {
-        await prisma.cartItem.create({
-          data: {
+      if (Array.isArray(items) && items.length > 0) {
+        await prisma.cartItem.createMany({
+          data: items.map((item: any) => ({
             userId: user.id,
             productId: item.id,
             quantity: item.quantity,
             color: item.color || null,
             size: item.size || null,
-          },
+          })),
+        });
+      }
+
+      return NextResponse.json({ success: true });
+    }
+
+    const typedItems = (items as Array<{ id: string; quantity: number; color?: string; size?: string }>).map(
+      (item) => ({
+        id: String(item.id),
+        quantity: Number(item.quantity),
+        color: item.color,
+        size: item.size,
+      }),
+    );
+    const productIds: string[] = Array.from(new Set(typedItems.map((item) => item.id)));
+    const existingItems = await prisma.cartItem.findMany({
+      where: {
+        userId: user.id,
+        productId: { in: productIds },
+      },
+      select: {
+        id: true,
+        productId: true,
+        color: true,
+        size: true,
+        quantity: true,
+      },
+    });
+
+    const existingMap = new Map(
+      existingItems.map((item) => [`${item.productId}:${item.color || ''}:${item.size || ''}`, item]),
+    );
+
+    const creates: Array<{
+      userId: string;
+      productId: string;
+      quantity: number;
+      color: string | null;
+      size: string | null;
+    }> = [];
+
+    const updates = [];
+    for (const item of typedItems) {
+      const key = `${item.id}:${item.color || ''}:${item.size || ''}`;
+      const existingItem = existingMap.get(key);
+      if (existingItem) {
+        updates.push(
+          prisma.cartItem.update({
+            where: { id: existingItem.id },
+            data: { quantity: existingItem.quantity + item.quantity },
+          }),
+        );
+      } else {
+        creates.push({
+          userId: user.id,
+          productId: item.id,
+          quantity: item.quantity,
+          color: item.color || null,
+          size: item.size || null,
         });
       }
     }
 
+    if (updates.length > 0) {
+      await prisma.$transaction(updates);
+    }
+
+    if (creates.length > 0) {
+      await prisma.cartItem.createMany({
+        data: creates,
+      });
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error('Error saving cart:', error);
-    }
+    logger.error('Error saving cart', { error: getSafeErrorDetails(error) });
     return NextResponse.json(
       { error: 'Failed to save cart' },
       { status: 500 }
@@ -180,13 +227,10 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error('Error clearing cart:', error);
-    }
+    logger.error('Error clearing cart', { error: getSafeErrorDetails(error) });
     return NextResponse.json(
       { error: 'Failed to clear cart' },
       { status: 500 }
     );
   }
 }
-

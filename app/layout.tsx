@@ -1,17 +1,6 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Outfit } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import { LanguageProvider } from "@/contexts/LanguageContext";
-import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
-import { AuthProvider } from "@/contexts/AuthContext";
-import AccessibilityPanel from "@/components/AccessibilityPanel";
-import KeyboardShortcuts from "@/components/KeyboardShortcuts";
-import PWAInstallPrompt from "@/components/PWAInstallPrompt";
-import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
-import { ToastProvider } from "@/components/Toast";
-import BackToTop from "@/components/BackToTop";
 
 const spaceGrotesk = Space_Grotesk({ 
   subsets: ["latin"],

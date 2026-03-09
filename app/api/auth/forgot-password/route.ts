@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { strictRateLimit } from '@/lib/rate-limit';
-import { sendPasswordResetEmail } from '@/lib/email';
+import { enqueueEmailJob } from '@/lib/email-jobs';
 import crypto from 'crypto';
+import { emailSchema } from '@/lib/validation';
+import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+
+const logger = createLogger('api:auth:forgot-password');
 
 export async function POST(request: NextRequest) {
   // Strict rate limiting for password reset requests
@@ -24,20 +28,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const emailValidation = emailSchema.safeParse(email);
+    if (!emailValidation.success) {
+      return NextResponse.json(
+        { error: 'Invalid email format' },
+        { status: 400 }
+      );
+    }
+
     // Find user by email
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
-    // Return error if user not found
+    // Enumeration-safe response for unknown accounts.
     if (!user) {
-      if (process.env.NODE_ENV !== 'production') {
-        // Password reset requested for non-existent email
-      }
-      return NextResponse.json(
-        { error: 'No account found with this email address.' },
-        { status: 404 }
-      );
+      return NextResponse.json({
+        success: true,
+        message: 'If an account exists with that email, a password reset link has been sent.',
+      });
     }
 
     // Generate reset token
@@ -51,29 +60,30 @@ export async function POST(request: NextRequest) {
         identifier: user.email!,
         token: hashedToken,
         expires,
+        type: 'PASSWORD_RESET',
       },
     });
 
-    // Send password reset email
+    // Queue password reset email
     try {
-      await sendPasswordResetEmail(user.email!, {
-        name: user.name || 'User',
-        resetToken,
-        language: 'bg',
+      await enqueueEmailJob({
+        type: 'PASSWORD_RESET',
+        to: user.email!,
+        payload: {
+          name: user.name || 'User',
+          resetToken,
+          language: 'bg',
+        },
       });
-    } catch (emailError) {
-      console.error('Failed to send password reset email:', emailError);
+    } catch {
       // Delete the token if email fails
       await prisma.verificationToken.deleteMany({
         where: {
           identifier: user.email!,
           token: hashedToken,
+          type: 'PASSWORD_RESET',
         },
       });
-      return NextResponse.json(
-        { error: 'Failed to send password reset email. Please try again.' },
-        { status: 500 }
-      );
     }
 
     return NextResponse.json({
@@ -81,7 +91,7 @@ export async function POST(request: NextRequest) {
       message: 'If an account exists with that email, a password reset link has been sent.',
     });
   } catch (error) {
-    console.error('Password reset request error:', error);
+    logger.error('Password reset request failed', { error: getSafeErrorDetails(error) });
     return NextResponse.json(
       { error: 'Failed to process password reset request' },
       { status: 500 }

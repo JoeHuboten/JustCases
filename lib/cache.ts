@@ -12,6 +12,30 @@ class SimpleCache {
   private cache = new Map<string, CacheEntry<unknown>>();
   private maxSize = 100;
 
+  private isRedisConfigured(): boolean {
+    return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+  }
+
+  private async callRedisCommand(command: unknown[]): Promise<unknown> {
+    const url = process.env.UPSTASH_REDIS_REST_URL;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+    if (!url || !token) throw new Error('Redis is not configured');
+
+    const res = await fetch(`${url}/pipeline`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify([command]),
+      cache: 'no-store',
+    });
+
+    if (!res.ok) throw new Error(`Redis request failed with ${res.status}`);
+    const data = await res.json();
+    return data?.[0]?.result;
+  }
+
   get<T>(key: string): T | null {
     const entry = this.cache.get(key) as CacheEntry<T> | undefined;
     
@@ -25,6 +49,26 @@ class SimpleCache {
     return entry.data;
   }
 
+  async getDistributed<T>(key: string): Promise<T | null> {
+    if (this.isRedisConfigured()) {
+      try {
+        const redisValue = await this.callRedisCommand(['GET', key]);
+        if (typeof redisValue === 'string') {
+          return JSON.parse(redisValue) as T;
+        }
+      } catch {
+        // Fallback to local cache.
+      }
+    }
+    return this.get<T>(key);
+  }
+
+  /**
+   * Store a value in the cache.
+   * @param key   Cache key
+   * @param data  Data to cache
+   * @param ttlSeconds  Time-to-live **in seconds** (default 60)
+   */
   set<T>(key: string, data: T, ttlSeconds: number = 60): void {
     // Evict oldest entries if cache is full
     if (this.cache.size >= this.maxSize) {
@@ -36,6 +80,17 @@ class SimpleCache {
       data,
       expiry: Date.now() + (ttlSeconds * 1000),
     });
+  }
+
+  async setDistributed<T>(key: string, data: T, ttlSeconds: number = 60): Promise<void> {
+    this.set(key, data, ttlSeconds);
+    if (this.isRedisConfigured()) {
+      try {
+        await this.callRedisCommand(['SETEX', key, ttlSeconds, JSON.stringify(data)]);
+      } catch {
+        // Best-effort remote cache write.
+      }
+    }
   }
 
   delete(key: string): void {

@@ -36,18 +36,18 @@ export default function WishlistPage() {
             className="flex items-center gap-2 text-text-secondary hover:text-white transition-colors"
           >
             <FiArrowLeft size={20} />
-            <span>Обратно към магазина</span>
+            <span>{t('wishlist.backToShop')}</span>
           </Link>
         </div>
 
         <ScrollAnimation animation="fadeIn">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">Списък с желания</h1>
+              <h1 className="text-4xl font-bold text-white mb-2">{t('wishlist.pageTitle')}</h1>
               <p className="text-text-secondary">
                 {items.length === 0 
-                  ? 'Няма продукти в списъка ви с желания' 
-                  : `${items.length} ${items.length === 1 ? 'продукт' : 'продукта'} в списъка с желания`
+                  ? t('wishlist.noProducts') 
+                  : `${items.length} ${items.length === 1 ? t('wishlist.countSuffixSingular') : t('wishlist.countSuffix')}`
                 }
               </p>
             </div>
@@ -64,15 +64,15 @@ export default function WishlistPage() {
                 <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
                   <FiHeart size={32} className="text-text-secondary" />
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-4">Списъкът ви с желания е празен</h2>
+                <h2 className="text-2xl font-bold text-white mb-4">{t('wishlist.emptyTitle')}</h2>
                 <p className="text-text-secondary mb-8 max-w-md mx-auto">
-                  Започнете да добавяте продукти в списъка си с желания, като кликнете върху сърцето на всеки продукт.
+                  {t('wishlist.emptyDesc')}
                 </p>
                 <Link
                   href="/shop"
                   className="btn-primary inline-block"
                 >
-                  Разгледайте продуктите
+                  {t('wishlist.browseProducts')}
                 </Link>
               </div>
             </ScrollAnimation>

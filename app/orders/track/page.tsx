@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FiPackage, FiTruck, FiCheckCircle, FiXCircle, FiClock, FiMapPin, FiPhone, FiMail } from 'react-icons/fi';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface OrderItem {
   id: string;
@@ -60,46 +61,37 @@ interface Order {
   statusHistory: StatusHistoryItem[];
 }
 
-const statusConfig: Record<string, { label: string; color: string; icon: any; description: string }> = {
+const statusConfig: Record<string, { color: string; icon: any }> = {
   PENDING: {
-    label: 'Pending',
     color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
     icon: FiClock,
-    description: 'Your order has been received and is awaiting confirmation.',
   },
   PROCESSING: {
-    label: 'Processing',
     color: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
     icon: FiPackage,
-    description: 'Your order is being prepared and packed.',
   },
   SHIPPED: {
-    label: 'Shipped',
     color: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
     icon: FiTruck,
-    description: 'Your order is on its way!',
   },
   DELIVERED: {
-    label: 'Delivered',
     color: 'bg-green-500/20 text-green-400 border-green-500/30',
     icon: FiCheckCircle,
-    description: 'Your order has been delivered successfully.',
   },
   CANCELLED: {
-    label: 'Cancelled',
     color: 'bg-red-500/20 text-red-400 border-red-500/30',
     icon: FiXCircle,
-    description: 'This order has been cancelled.',
   },
 };
 
 export default function OrderTrackingPage() {
+  const { t } = useLanguage();
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-background text-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto mb-4"></div>
-          <p className="text-text-secondary">Зареждане...</p>
+          <p className="text-text-secondary">{t('common.loading')}</p>
         </div>
       </div>
     }>
@@ -109,11 +101,28 @@ export default function OrderTrackingPage() {
 }
 
 function OrderTrackingContent() {
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [trackingInput, setTrackingInput] = useState('');
+
+  const statusLabels: Record<string, string> = {
+    PENDING: t('orderTrack.status.pending'),
+    PROCESSING: t('orderTrack.status.processing'),
+    SHIPPED: t('orderTrack.status.shipped'),
+    DELIVERED: t('orderTrack.status.delivered'),
+    CANCELLED: t('orderTrack.status.cancelled'),
+  };
+
+  const statusDescriptions: Record<string, string> = {
+    PENDING: t('orderTrack.status.pendingDesc'),
+    PROCESSING: t('orderTrack.status.processingDesc'),
+    SHIPPED: t('orderTrack.status.shippedDesc'),
+    DELIVERED: t('orderTrack.status.deliveredDesc'),
+    CANCELLED: t('orderTrack.status.cancelledDesc'),
+  };
 
   const orderId = searchParams.get('orderId');
   const trackingNumber = searchParams.get('trackingNumber');
@@ -177,7 +186,7 @@ function OrderTrackingContent() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center text-text-secondary">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto mb-4"></div>
-            Loading order details...
+            {t('orderTrack.loading')}
           </div>
         </div>
       </div>
@@ -190,35 +199,35 @@ function OrderTrackingContent() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <FiPackage size={64} className="text-accent mx-auto mb-4" />
-            <h1 className="text-3xl font-bold text-white mb-2">Track Your Order</h1>
-            <p className="text-text-secondary">Enter your tracking number to see the status of your order</p>
+            <h1 className="text-3xl font-bold text-white mb-2">{t('orderTrack.title')}</h1>
+            <p className="text-text-secondary">{t('orderTrack.subtitle')}</p>
           </div>
 
           <form onSubmit={handleTrackingSubmit} className="max-w-md mx-auto">
             <div className="bg-primary/30 p-6 rounded-xl border border-gray-700">
               <label htmlFor="tracking" className="block text-sm font-medium text-text-secondary mb-2">
-                Tracking Number
+                {t('orderTrack.trackingNumber')}
               </label>
               <input
                 type="text"
                 id="tracking"
                 value={trackingInput}
                 onChange={(e) => setTrackingInput(e.target.value)}
-                placeholder="Enter tracking number"
+                placeholder={t('orderTrack.placeholder')}
                 className="w-full px-4 py-3 bg-background border border-gray-700 rounded-lg text-white focus:outline-none focus:border-accent mb-4"
               />
               <button
                 type="submit"
                 className="w-full btn-primary"
               >
-                Track Order
+                {t('orderTrack.trackButton')}
               </button>
             </div>
           </form>
 
           <div className="mt-8 text-center">
             <Link href="/orders" className="text-accent hover:underline">
-              View all my orders →
+              {t('orderTrack.viewAllOrders')}
             </Link>
           </div>
         </div>
@@ -232,10 +241,10 @@ function OrderTrackingContent() {
         <div className="max-w-4xl mx-auto">
           <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-center">
             <FiXCircle size={48} className="text-red-400 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-white mb-2">Order Not Found</h2>
+            <h2 className="text-xl font-bold text-white mb-2">{t('orderTrack.notFound')}</h2>
             <p className="text-text-secondary mb-4">{error}</p>
             <Link href="/orders/track" className="btn-primary inline-block">
-              Try Again
+              {t('orderTrack.tryAgain')}
             </Link>
           </div>
         </div>
@@ -260,10 +269,10 @@ function OrderTrackingContent() {
         {/* Header */}
         <div className="mb-8">
           <Link href="/orders" className="text-accent hover:underline mb-4 inline-block">
-            ← Back to My Orders
+            {t('orderTrack.backToOrders')}
           </Link>
-          <h1 className="text-3xl font-bold text-white mb-2">Order Tracking</h1>
-          <p className="text-text-secondary">Order #{order.id.slice(0, 8)}</p>
+          <h1 className="text-3xl font-bold text-white mb-2">{t('orderTrack.orderTracking')}</h1>
+          <p className="text-text-secondary">{t('orderTrack.orderPrefix')}{order.id.slice(0, 8)}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -276,8 +285,8 @@ function OrderTrackingContent() {
                   <StatusIcon size={32} />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-white">{currentStatus.label}</h2>
-                  <p className="text-text-secondary">{currentStatus.description}</p>
+                  <h2 className="text-2xl font-bold text-white">{statusLabels[order.status] || order.status}</h2>
+                  <p className="text-text-secondary">{statusDescriptions[order.status] || ''}</p>
                 </div>
               </div>
 
@@ -302,7 +311,7 @@ function OrderTrackingContent() {
                               <StepIcon size={20} />
                             </div>
                             <span className={`text-xs text-center ${isCompleted ? 'text-white' : 'text-gray-500'}`}>
-                              {stepConfig.label}
+                              {statusLabels[step] || step}
                             </span>
                           </div>
                           {index < statusSteps.length - 1 && (
@@ -322,24 +331,24 @@ function OrderTrackingContent() {
                 <div className="mt-6 pt-6 border-t border-gray-700">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-text-secondary text-sm">Tracking Number</label>
+                      <label className="text-text-secondary text-sm">{t('orderTrack.trackingNumber')}</label>
                       <p className="text-white font-mono">{order.trackingNumber}</p>
                     </div>
                     {order.courierService && (
                       <div>
-                        <label className="text-text-secondary text-sm">Courier Service</label>
+                        <label className="text-text-secondary text-sm">{t('orderTrack.courierService')}</label>
                         <p className="text-white">{order.courierService}</p>
                       </div>
                     )}
                     {order.estimatedDelivery && (
                       <div>
-                        <label className="text-text-secondary text-sm">Estimated Delivery</label>
+                        <label className="text-text-secondary text-sm">{t('orderTrack.estimatedDelivery')}</label>
                         <p className="text-white">{formatDate(order.estimatedDelivery)}</p>
                       </div>
                     )}
                     {order.actualDelivery && (
                       <div>
-                        <label className="text-text-secondary text-sm">Delivered On</label>
+                        <label className="text-text-secondary text-sm">{t('orderTrack.deliveredOn')}</label>
                         <p className="text-green-400">{formatDate(order.actualDelivery)}</p>
                       </div>
                     )}
@@ -350,7 +359,7 @@ function OrderTrackingContent() {
 
             {/* Status History */}
             <div className="bg-primary/30 border border-gray-700 rounded-xl p-6">
-              <h3 className="text-xl font-bold text-white mb-4">Order History</h3>
+              <h3 className="text-xl font-bold text-white mb-4">{t('orderTrack.orderHistory')}</h3>
               <div className="space-y-4">
                 {order.statusHistory.map((history, index) => {
                   const historyStatus = statusConfig[history.status] || statusConfig.PENDING;
@@ -365,7 +374,7 @@ function OrderTrackingContent() {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
-                          <h4 className="text-white font-medium">{historyStatus.label}</h4>
+                          <h4 className="text-white font-medium">{statusLabels[history.status] || history.status}</h4>
                           <span className="text-text-secondary text-sm">{formatDate(history.createdAt)}</span>
                         </div>
                         {history.notes && (
@@ -380,7 +389,7 @@ function OrderTrackingContent() {
 
             {/* Order Items */}
             <div className="bg-primary/30 border border-gray-700 rounded-xl p-6">
-              <h3 className="text-xl font-bold text-white mb-4">Order Items</h3>
+              <h3 className="text-xl font-bold text-white mb-4">{t('orderTrack.orderItems')}</h3>
               <div className="space-y-4">
                 {order.items.map((item) => (
                   <div key={item.id} className="flex gap-4">
@@ -398,12 +407,12 @@ function OrderTrackingContent() {
                         {item.product.name}
                       </Link>
                       <div className="text-text-secondary text-sm mt-1">
-                        {item.color && <span>Color: {item.color}</span>}
+                        {item.color && <span>{t('orderTrack.color')} {item.color}</span>}
                         {item.color && item.size && <span className="mx-2">•</span>}
-                        {item.size && <span>Size: {item.size}</span>}
+                        {item.size && <span>{t('orderTrack.size')} {item.size}</span>}
                       </div>
                       <div className="text-text-secondary text-sm">
-                        Quantity: {item.quantity} × {formatPrice(item.price)}
+                        {t('orderTrack.quantity')} {item.quantity} × {formatPrice(item.price)}
                       </div>
                     </div>
                     <div className="text-white font-medium">
@@ -419,30 +428,30 @@ function OrderTrackingContent() {
           <div className="space-y-6">
             {/* Order Summary */}
             <div className="bg-primary/30 border border-gray-700 rounded-xl p-6">
-              <h3 className="text-xl font-bold text-white mb-4">Order Summary</h3>
+              <h3 className="text-xl font-bold text-white mb-4">{t('orderTrack.orderSummary')}</h3>
               <div className="space-y-3">
                 <div className="flex justify-between text-text-secondary">
-                  <span>Subtotal</span>
+                  <span>{t('orderTrack.subtotal')}</span>
                   <span>{formatPrice(order.subtotal)}</span>
                 </div>
                 {order.discount > 0 && (
                   <div className="flex justify-between text-green-400">
-                    <span>Discount</span>
+                    <span>{t('orderTrack.discount')}</span>
                     <span>-{formatPrice(order.discount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-text-secondary">
-                  <span>Delivery</span>
-                  <span>{order.deliveryFee === 0 ? 'Free' : formatPrice(order.deliveryFee)}</span>
+                  <span>{t('orderTrack.deliveryFee')}</span>
+                  <span>{order.deliveryFee === 0 ? t('orderTrack.free') : formatPrice(order.deliveryFee)}</span>
                 </div>
                 <div className="border-t border-gray-700 pt-3 flex justify-between text-white font-bold text-lg">
-                  <span>Total</span>
+                  <span>{t('orderTrack.total')}</span>
                   <span>{formatPrice(order.total)}</span>
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t border-gray-700 text-text-secondary text-sm">
-                <p>Payment Method: {order.paymentType}</p>
-                <p>Order Date: {formatDate(order.createdAt)}</p>
+                <p>{t('orderTrack.paymentMethod')} {order.paymentType}</p>
+                <p>{t('orderTrack.orderDate')} {formatDate(order.createdAt)}</p>
               </div>
             </div>
 
@@ -451,7 +460,7 @@ function OrderTrackingContent() {
               <div className="bg-primary/30 border border-gray-700 rounded-xl p-6">
                 <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                   <FiMapPin className="text-accent" />
-                  Shipping Address
+                  {t('orderTrack.shippingAddress')}
                 </h3>
                 <div className="text-text-secondary space-y-1">
                   <p className="text-white">{order.shippingAddress.firstName} {order.shippingAddress.lastName}</p>
@@ -472,15 +481,15 @@ function OrderTrackingContent() {
             {/* Customer Notes */}
             {order.customerNotes && (
               <div className="bg-primary/30 border border-gray-700 rounded-xl p-6">
-                <h3 className="text-xl font-bold text-white mb-2">Your Notes</h3>
+                <h3 className="text-xl font-bold text-white mb-2">{t('orderTrack.notes')}</h3>
                 <p className="text-text-secondary">{order.customerNotes}</p>
               </div>
             )}
 
             {/* Support */}
             <div className="bg-accent/10 border border-accent/30 rounded-xl p-6">
-              <h3 className="text-white font-bold mb-2">Need Help?</h3>
-              <p className="text-text-secondary text-sm mb-4">Contact our support team if you have any questions about your order.</p>
+              <h3 className="text-white font-bold mb-2">{t('orderTrack.needHelp')}</h3>
+              <p className="text-text-secondary text-sm mb-4">{t('orderTrack.needHelpDesc')}</p>
               <div className="space-y-2">
                 <a href="mailto:support@justcases.bg" className="flex items-center gap-2 text-accent hover:underline text-sm">
                   <FiMail size={16} />

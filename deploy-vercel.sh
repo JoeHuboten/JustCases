@@ -9,6 +9,15 @@ echo "🚀 JustCases Vercel Deployment"
 echo "=============================="
 echo ""
 
+generate_secret() {
+  if command -v openssl >/dev/null 2>&1; then
+    openssl rand -base64 48 | tr -d '\n'
+    return
+  fi
+
+  node -e "console.log(require('crypto').randomBytes(48).toString('base64'))"
+}
+
 # Check if user is logged into Vercel
 echo "Step 1: Login to Vercel"
 echo "----------------------"
@@ -25,8 +34,11 @@ echo "---------------------------------"
 echo "Setting up production environment variables..."
 
 # Set the generated secrets
-vercel env add JWT_SECRET production <<< "fjMf3bn2EZ4yKDYeDDIizoUtsHFgR6jatU7+2RYkPhc="
-vercel env add NEXTAUTH_SECRET production <<< "VW2Z+OF+spMSd/kWuC8Agddf0PnkS6D5pICbYYxSPo0="
+JWT_SECRET_VALUE="$(generate_secret)"
+NEXTAUTH_SECRET_VALUE="$(generate_secret)"
+
+vercel env add JWT_SECRET production <<< "$JWT_SECRET_VALUE"
+vercel env add NEXTAUTH_SECRET production <<< "$NEXTAUTH_SECRET_VALUE"
 
 echo ""
 echo "⚠️  IMPORTANT: You need to add these manually in Vercel Dashboard:"

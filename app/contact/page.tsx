@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { FiMail, FiPhone, FiMapPin, FiClock, FiSend } from 'react-icons/fi';
 import ScrollAnimation, { StaggerAnimation } from '@/components/ScrollAnimation';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { apiFetch } from '@/lib/client-api';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -14,6 +16,7 @@ export default function ContactPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +25,7 @@ export default function ContactPage() {
     setSuccess(false);
 
     try {
-      const response = await fetch('/api/contact', {
+      const response = await apiFetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -33,7 +36,7 @@ export default function ContactPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to send message');
+        throw new Error(data.error || t('contact.form.errorDefault'));
       }
 
       setSuccess(true);
@@ -42,7 +45,7 @@ export default function ContactPage() {
       // Auto-hide success message after 5 seconds
       setTimeout(() => setSuccess(false), 5000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send message. Please try again.');
+      setError(err instanceof Error ? err.message : t('contact.form.errorDefault'));
     } finally {
       setLoading(false);
     }
@@ -61,9 +64,9 @@ export default function ContactPage() {
       <section className="bg-gradient-to-r from-[#0a0a0f] to-blue-900/20 py-20">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn" className="text-center">
-            <h1 className="text-5xl font-heading font-bold text-white mb-6">Свържете се с нас</h1>
+            <h1 className="text-5xl font-heading font-bold text-white mb-6">{t('contact.title')}</h1>
             <p className="text-xl text-white/60 max-w-3xl mx-auto font-body">
-              Имате въпрос или се нуждаете от помощ? Тук сме, за да ви помогнем. Свържете се с нашия приятелски екип.
+              {t('contact.subtitle')}
             </p>
           </ScrollAnimation>
         </div>
@@ -76,14 +79,14 @@ export default function ContactPage() {
             {/* Contact Information */}
             <ScrollAnimation animation="slideRight">
               <div>
-                <h2 className="text-3xl font-heading font-bold text-white mb-8">Свържете се с нас</h2>
+                <h2 className="text-3xl font-heading font-bold text-white mb-8">{t('contact.info.title')}</h2>
                 <StaggerAnimation animation="fadeIn" stagger={0.1} className="space-y-6">
                   <div className="flex items-start space-x-4">
                     <div className="bg-blue-500 rounded-full p-3">
                       <FiMail className="text-white text-xl" />
                     </div>
                     <div>
-                      <h3 className="text-white font-heading font-semibold mb-1">Имейл</h3>
+                      <h3 className="text-white font-heading font-semibold mb-1">{t('contact.info.email')}</h3>
                       <p className="text-white/60 font-body">support@justcases.com</p>
                       <p className="text-white/60 font-body">info@justcases.com</p>
                     </div>
@@ -94,7 +97,7 @@ export default function ContactPage() {
                       <FiPhone className="text-white text-xl" />
                     </div>
                     <div>
-                      <h3 className="text-white font-heading font-semibold mb-1">Телефон</h3>
+                      <h3 className="text-white font-heading font-semibold mb-1">{t('contact.info.phone')}</h3>
                       <p className="text-white/60 font-body">+359 888 123 456</p>
                       <p className="text-white/60 font-body">+359 888 987 654</p>
                     </div>
@@ -105,11 +108,11 @@ export default function ContactPage() {
                       <FiMapPin className="text-white text-xl" />
                     </div>
                     <div>
-                      <h3 className="text-white font-heading font-semibold mb-1">Адрес</h3>
+                      <h3 className="text-white font-heading font-semibold mb-1">{t('contact.info.address')}</h3>
                       <p className="text-white/60 font-body">
-                        бул. Витоша 123<br />
-                        Център<br />
-                        София 1000
+                        {t('contact.info.addressLine1')}<br />
+                        {t('contact.info.addressLine2')}<br />
+                        {t('contact.info.addressLine3')}
                       </p>
                     </div>
                   </div>
@@ -119,10 +122,10 @@ export default function ContactPage() {
                       <FiClock className="text-white text-xl" />
                     </div>
                     <div>
-                      <h3 className="text-white font-heading font-semibold mb-1">Работно време</h3>
-                      <p className="text-white/60 font-body">Понеделник - Петък: 9:00 - 18:00</p>
-                      <p className="text-white/60 font-body">Събота: 10:00 - 16:00</p>
-                      <p className="text-white/60 font-body">Неделя: Затворено</p>
+                      <h3 className="text-white font-heading font-semibold mb-1">{t('contact.info.workingHours')}</h3>
+                      <p className="text-white/60 font-body">{t('contact.info.weekdays')}</p>
+                      <p className="text-white/60 font-body">{t('contact.info.saturday')}</p>
+                      <p className="text-white/60 font-body">{t('contact.info.sunday')}</p>
                     </div>
                   </div>
                 </StaggerAnimation>
@@ -130,25 +133,25 @@ export default function ContactPage() {
                 {/* FAQ Section */}
                 <div className="mt-12">
                   <ScrollAnimation animation="fadeIn">
-                    <h3 className="text-2xl font-heading font-bold text-white mb-6">Често задавани въпроси</h3>
+                    <h3 className="text-2xl font-heading font-bold text-white mb-6">{t('contact.faq.title')}</h3>
                   </ScrollAnimation>
                   <StaggerAnimation animation="slideUp" stagger={0.1} className="space-y-4">
                     <div className="bg-white/[0.02] border border-white/10 p-4 rounded-lg">
-                      <h4 className="text-white font-heading font-semibold mb-2">Колко време отнема доставката?</h4>
+                      <h4 className="text-white font-heading font-semibold mb-2">{t('contact.faq.q1')}</h4>
                       <p className="text-white/60 text-sm font-body">
-                        Стандартната доставка отнема 3-5 работни дни. Експресната доставка е налична за 1-2 работни дни.
+                        {t('contact.faq.a1')}
                       </p>
                     </div>
                     <div className="bg-white/[0.02] border border-white/10 p-4 rounded-lg">
-                      <h4 className="text-white font-heading font-semibold mb-2">Каква е вашата политика за връщане?</h4>
+                      <h4 className="text-white font-heading font-semibold mb-2">{t('contact.faq.q2')}</h4>
                       <p className="text-white/60 text-sm font-body">
-                        Предлагаме 30-дневна политика за връщане за всички неизползвани артикули в оригинална опаковка.
+                        {t('contact.faq.a2')}
                       </p>
                     </div>
                     <div className="bg-white/[0.02] border border-white/10 p-4 rounded-lg">
-                      <h4 className="text-white font-heading font-semibold mb-2">Предлагате ли международна доставка?</h4>
+                      <h4 className="text-white font-heading font-semibold mb-2">{t('contact.faq.q3')}</h4>
                       <p className="text-white/60 text-sm font-body">
-                        Да, доставяме в над 50 държави по целия свят. Разходите за доставка варират според местоположението.
+                        {t('contact.faq.a3')}
                       </p>
                     </div>
                   </StaggerAnimation>
@@ -159,12 +162,12 @@ export default function ContactPage() {
             {/* Contact Form */}
             <ScrollAnimation animation="slideLeft">
               <div>
-                <h2 className="text-3xl font-heading font-bold text-white mb-8">Изпратете ни съобщение</h2>
+                <h2 className="text-3xl font-heading font-bold text-white mb-8">{t('contact.form.title')}</h2>
                 
                 {/* Success Message */}
                 {success && (
                   <div className="mb-6 bg-green-500/10 border border-green-500 text-green-400 px-4 py-3 rounded-lg font-body">
-                    ✓ Благодарим за съобщението! Ще се свържем с вас скоро.
+                    {t('contact.form.success')}
                   </div>
                 )}
 
@@ -178,7 +181,7 @@ export default function ContactPage() {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
                     <label htmlFor="name" className="block text-white font-heading font-semibold mb-2">
-                      Пълно име
+                      {t('contact.form.name')}
                     </label>
                     <input
                       type="text"
@@ -188,13 +191,13 @@ export default function ContactPage() {
                       onChange={handleChange}
                       required
                       className="w-full bg-white/[0.03] text-white px-4 py-3 rounded-lg border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 font-body"
-                      placeholder="Вашето пълно име"
+                      placeholder={t('contact.form.namePlaceholder')}
                     />
                   </div>
                   
                   <div>
                     <label htmlFor="email" className="block text-white font-heading font-semibold mb-2">
-                      Имейл адрес
+                      {t('contact.form.email')}
                     </label>
                     <input
                       type="email"
@@ -204,13 +207,13 @@ export default function ContactPage() {
                       onChange={handleChange}
                       required
                       className="w-full bg-white/[0.03] text-white px-4 py-3 rounded-lg border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 font-body"
-                      placeholder="ваш.имейл@example.com"
+                      placeholder={t('contact.form.emailPlaceholder')}
                     />
                   </div>
                   
                   <div>
                     <label htmlFor="subject" className="block text-white font-heading font-semibold mb-2">
-                      Тема
+                      {t('contact.form.subject')}
                     </label>
                     <input
                       type="text"
@@ -220,13 +223,13 @@ export default function ContactPage() {
                       onChange={handleChange}
                       required
                       className="w-full bg-white/[0.03] text-white px-4 py-3 rounded-lg border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 font-body"
-                      placeholder="За какво става дума?"
+                      placeholder={t('contact.form.subjectPlaceholder')}
                     />
                   </div>
                   
                   <div>
                     <label htmlFor="message" className="block text-white font-heading font-semibold mb-2">
-                      Съобщение
+                      {t('contact.form.message')}
                     </label>
                     <textarea
                       id="message"
@@ -236,7 +239,7 @@ export default function ContactPage() {
                       required
                       rows={6}
                       className="w-full bg-white/[0.03] text-white px-4 py-3 rounded-lg border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 resize-none font-body"
-                      placeholder="Кажете ни как можем да ви помогнем..."
+                      placeholder={t('contact.form.messagePlaceholder')}
                     />
                   </div>
                   
@@ -248,12 +251,12 @@ export default function ContactPage() {
                     {loading ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        <span>Изпращане...</span>
+                        <span>{t('contact.form.sending')}</span>
                       </>
                     ) : (
                       <>
                         <FiSend />
-                        <span>Изпрати съобщение</span>
+                        <span>{t('contact.form.send')}</span>
                       </>
                     )}
                   </button>
@@ -268,22 +271,21 @@ export default function ContactPage() {
       <section className="bg-white/[0.02] py-16">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn">
-            <h2 className="text-3xl font-heading font-bold text-white text-center mb-8">Намерете ни</h2>
+            <h2 className="text-3xl font-heading font-bold text-white text-center mb-8">{t('contact.map.title')}</h2>
           </ScrollAnimation>
           <ScrollAnimation animation="scaleUp" delay={0.3}>
             <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-8 text-center">
               <div className="text-6xl mb-4">🗺️</div>
-              <h3 className="text-2xl font-heading font-bold text-white mb-4">Посетете нашия магазин</h3>
+              <h3 className="text-2xl font-heading font-bold text-white mb-4">{t('contact.map.visitStore')}</h3>
               <p className="text-white/60 mb-6 font-body">
-                Елате да ни посетите в нашия флагмански магазин в центъра на София. 
-                Опитайте нашите продукти лично и получете експертни съвети от нашия екип.
+                {t('contact.map.visitStoreText')}
               </p>
               <div className="bg-white/[0.03] border border-white/10 rounded-lg p-6 max-w-md mx-auto">
-                <p className="text-white font-heading font-semibold mb-2">Just Cases Флагмански магазин</p>
+                <p className="text-white font-heading font-semibold mb-2">{t('contact.map.flagshipStore')}</p>
                 <p className="text-white/60 text-sm font-body">
-                  бул. Витоша 123<br />
-                  Център<br />
-                  София 1000
+                  {t('contact.info.addressLine1')}<br />
+                  {t('contact.info.addressLine2')}<br />
+                  {t('contact.info.addressLine3')}
                 </p>
               </div>
             </div>

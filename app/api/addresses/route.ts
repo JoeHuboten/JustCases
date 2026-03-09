@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth-utils';
+import { apiRateLimit, strictRateLimit } from '@/lib/rate-limit';
+import { validateCsrf } from '@/lib/csrf';
+import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+
+const logger = createLogger('api:addresses');
 
 // GET - Fetch all addresses for authenticated user
 export async function GET(request: NextRequest) {
+  const rateLimitResult = await apiRateLimit(request);
+  if (!rateLimitResult.success) {
+    return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+  }
+
   try {
     const user = await getUserFromRequest(request);
     if (!user) {
@@ -17,13 +27,23 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(addresses);
   } catch (error) {
-    console.error('Error fetching addresses:', error);
+    logger.error('Error fetching addresses', { error: getSafeErrorDetails(error) });
     return NextResponse.json({ error: 'Failed to fetch addresses' }, { status: 500 });
   }
 }
 
 // POST - Create a new address
 export async function POST(request: NextRequest) {
+  const rateLimitResult = await strictRateLimit(request);
+  if (!rateLimitResult.success) {
+    return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+  }
+
+  const csrfResult = validateCsrf(request);
+  if (!csrfResult.valid) {
+    return NextResponse.json({ error: csrfResult.error || 'Invalid request' }, { status: 403 });
+  }
+
   try {
     const user = await getUserFromRequest(request);
     if (!user) {
@@ -68,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(address, { status: 201 });
   } catch (error) {
-    console.error('Error creating address:', error);
+    logger.error('Error creating address', { error: getSafeErrorDetails(error) });
     return NextResponse.json({ error: 'Failed to create address' }, { status: 500 });
   }
 }

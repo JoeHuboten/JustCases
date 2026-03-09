@@ -2,8 +2,30 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth-utils';
 import bcrypt from 'bcryptjs';
+import { strictRateLimit } from '@/lib/rate-limit';
+import { validateCsrf } from '@/lib/csrf';
+import { passwordSchema } from '@/lib/validation';
+import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+
+const logger = createLogger('api:auth:change-password');
 
 export async function POST(request: NextRequest) {
+  const rateLimitResult = await strictRateLimit(request);
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429 }
+    );
+  }
+
+  const csrfResult = validateCsrf(request);
+  if (!csrfResult.valid) {
+    return NextResponse.json(
+      { error: csrfResult.error || 'Invalid request' },
+      { status: 403 }
+    );
+  }
+
   try {
     const user = await getUserFromRequest(request);
     if (!user) {
@@ -23,8 +45,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'New passwords do not match' }, { status: 400 });
     }
 
-    // Validate password strength
-    if (newPassword.length < 8) {
+    const passwordValidation = passwordSchema.safeParse(newPassword);
+    if (!passwordValidation.success) {
       return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
     }
 
@@ -48,12 +70,15 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(newPassword, 12);
     await prisma.user.update({
       where: { id: user.id },
-      data: { password: hashedPassword },
+      data: {
+        password: hashedPassword,
+        tokenVersion: { increment: 1 },
+      },
     });
 
     return NextResponse.json({ success: true, message: 'Password updated successfully' });
   } catch (error) {
-    console.error('Error changing password:', error);
+    logger.error('Password change failed', { error: getSafeErrorDetails(error) });
     return NextResponse.json({ error: 'Failed to change password' }, { status: 500 });
   }
 }

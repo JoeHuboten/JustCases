@@ -11,6 +11,33 @@ const adminRoutes = ['/admin'];
 // Routes that should redirect to home if already authenticated
 const authRoutes = ['/auth/signin', '/auth/signup'];
 
+function getAllowedOrigins(): string[] {
+  const explicit = (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (appUrl) explicit.push(appUrl);
+  return Array.from(new Set(explicit));
+}
+
+function applyCorsHeaders(request: NextRequest, response: NextResponse) {
+  const origin = request.headers.get('origin');
+  const allowedOrigins = getAllowedOrigins();
+
+  if (origin && allowedOrigins.includes(origin)) {
+    response.headers.set('Access-Control-Allow-Origin', origin);
+    response.headers.set('Access-Control-Allow-Credentials', 'true');
+    response.headers.set('Vary', 'Origin');
+  }
+
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  response.headers.set(
+    'Access-Control-Allow-Headers',
+    'Content-Type, Authorization, x-csrf-token, x-request-id',
+  );
+}
+
 async function verifyToken(token: string): Promise<{ userId: string; role: string } | null> {
   try {
     const secret = process.env.JWT_SECRET;
@@ -34,6 +61,13 @@ async function verifyToken(token: string): Promise<{ userId: string; role: strin
 // Default export function for Next.js 16 proxy
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // API CORS preflight handling
+  if (pathname.startsWith('/api/') && request.method === 'OPTIONS') {
+    const preflight = new NextResponse(null, { status: 204 });
+    applyCorsHeaders(request, preflight);
+    return preflight;
+  }
   
   // Get auth token from cookies
   const token = request.cookies.get('auth-token')?.value;
@@ -74,8 +108,20 @@ export default async function proxy(request: NextRequest) {
     }
   }
   
+  const nonce = crypto.randomUUID().replace(/-/g, '');
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-nonce', nonce);
+
   // Create response with security headers
-  const response = NextResponse.next();
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
+  if (pathname.startsWith('/api/')) {
+    applyCorsHeaders(request, response);
+  }
   
   // Security Headers
   const headers = response.headers;
@@ -99,10 +145,10 @@ export default async function proxy(request: NextRequest) {
   );
 
   // Content Security Policy
-  const csp = [
+  const cspDirectives = [
     "default-src 'self'",
-    // Allow PayPal and Stripe scripts
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.paypal.com https://www.sandbox.paypal.com https://*.paypal.com https://js.stripe.com",
+    // Use request nonce for first-party scripts and allow trusted payment providers.
+    `script-src 'self' 'nonce-${nonce}' https://www.paypal.com https://www.sandbox.paypal.com https://*.paypal.com https://js.stripe.com`,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
     "img-src 'self' data: blob: https: http:",
@@ -114,8 +160,13 @@ export default async function proxy(request: NextRequest) {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
-    "upgrade-insecure-requests",
-  ].join('; ');
+  ];
+
+  if (process.env.NODE_ENV === 'production') {
+    cspDirectives.push('upgrade-insecure-requests');
+  }
+
+  const csp = cspDirectives.join('; ');
 
   headers.set('Content-Security-Policy', csp);
 
@@ -141,6 +192,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public files (images, etc.)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

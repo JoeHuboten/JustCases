@@ -4,9 +4,6 @@ import Image from 'next/image';
 import { getCategoryBySlug, getProductsByCategory } from '@/lib/database';
 import ProductCard from '@/components/ProductCard';
 
-// Force dynamic rendering (no static generation at build time)
-export const dynamic = 'force-dynamic';
-
 interface CategoryPageProps {
   params: Promise<{
     category: string;

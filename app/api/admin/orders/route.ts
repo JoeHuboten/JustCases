@@ -1,17 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma, getPaginationParams } from '@/lib/prisma';
-import { requireAdmin } from '@/lib/auth-utils';
+import { withApiGuard } from '@/lib/api-guard';
+import { apiRateLimit } from '@/lib/rate-limit';
 import { Prisma } from '@prisma/client';
-import { createLogger, getRequestId } from '@/lib/logger';
+import { createLogger, getRequestId, getSafeErrorDetails } from '@/lib/logger';
 
 // GET - Fetch orders with pagination
-export const GET = requireAdmin(async (request: NextRequest) => {
+export const GET = withApiGuard(
+  {
+    requireAdmin: true,
+    rateLimit: apiRateLimit,
+  },
+  async (request: NextRequest) => {
   const requestId = getRequestId(request.headers);
   const logger = createLogger('api:admin:orders').withRequestId(requestId);
   const startTime = Date.now();
-  
-  logger.debug('GET /api/admin/orders', { 
-    query: Object.fromEntries(request.nextUrl.searchParams) 
+
+  logger.debug('GET /api/admin/orders', {
+    query: {
+      page: request.nextUrl.searchParams.get('page') || '1',
+      limit: request.nextUrl.searchParams.get('limit') || '20',
+      status: request.nextUrl.searchParams.get('status') || null,
+      hasSearch: Boolean(request.nextUrl.searchParams.get('search')?.trim()),
+    },
   });
 
   try {
@@ -89,11 +100,11 @@ export const GET = requireAdmin(async (request: NextRequest) => {
     }, { headers: { 'x-request-id': requestId } });
   } catch (error) {
     const duration = Date.now() - startTime;
-    logger.error('Error fetching orders', { error, duration: `${duration}ms` });
+    logger.error('Error fetching orders', { error: getSafeErrorDetails(error), duration: `${duration}ms` });
     return NextResponse.json(
       { error: 'Failed to fetch orders', requestId },
       { status: 500, headers: { 'x-request-id': requestId } }
     );
   }
-});
-
+  },
+);

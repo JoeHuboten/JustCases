@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/auth-utils';
 import { apiRateLimit } from '@/lib/rate-limit';
+import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+
+const logger = createLogger('api:auth:me');
 
 export async function GET(request: NextRequest) {
   // Rate limiting
@@ -13,7 +16,6 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const token = request.cookies.get('auth-token')?.value;
     const user = await getUserFromRequest(request);
 
     if (!user) {
@@ -23,9 +25,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ user });
+    return NextResponse.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        emailVerified: user.emailVerified,
+      },
+    });
   } catch (error) {
-    console.error('Auth check error:', error);
+    logger.error('Auth check failed', { error: getSafeErrorDetails(error) });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

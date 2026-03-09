@@ -78,10 +78,10 @@ DATABASE_URL
 → Copy from POSTGRES_PRISMA_URL (automatically created from database)
 
 JWT_SECRET
-→ fjMf3bn2EZ4yKDYeDDIizoUtsHFgR6jatU7+2RYkPhc=
+→ Generate a new secret (example: `openssl rand -base64 48`)
 
 NEXTAUTH_SECRET
-→ VW2Z+OF+spMSd/kWuC8Agddf0PnkS6D5pICbYYxSPo0=
+→ Generate a new secret (example: `openssl rand -base64 48`)
 
 NEXTAUTH_URL
 → https://justcases.vercel.app (your actual Vercel domain)
@@ -231,19 +231,15 @@ vercel remove
 
 ---
 
-## Your Generated Secrets
+## Secret Generation
 
-**JWT_SECRET:**
-```
-fjMf3bn2EZ4yKDYeDDIizoUtsHFgR6jatU7+2RYkPhc=
-```
+Generate fresh secrets per environment:
 
-**NEXTAUTH_SECRET:**
-```
-VW2Z+OF+spMSd/kWuC8Agddf0PnkS6D5pICbYYxSPo0=
+```bash
+openssl rand -base64 48
 ```
 
-⚠️ **Keep these secrets safe! Don't commit them to Git.**
+⚠️ **Never commit generated secret values to Git. Rotate immediately if exposed.**
 
 ---
 

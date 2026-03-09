@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database';
 import { getUserFromRequest } from '@/lib/auth-utils';
+import { apiRateLimit } from '@/lib/rate-limit';
+import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+
+const logger = createLogger('api:orders:track');
 
 export async function GET(request: NextRequest) {
+  const rateLimitResult = await apiRateLimit(request);
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429 },
+    );
+  }
+
   try {
     const user = await getUserFromRequest(request);
     
@@ -86,7 +98,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ order });
   } catch (error) {
-    console.error('Order tracking error:', error);
+    logger.error('Order tracking error', { error: getSafeErrorDetails(error) });
     return NextResponse.json(
       { error: 'Failed to fetch order' },
       { status: 500 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { apiFetch } from '@/lib/client-api';
 
 export interface User {
   id: string;
@@ -78,11 +79,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string, rememberMe: boolean = false) => {
     try {
-      const response = await fetch('/api/auth/signin', {
+      const response = await apiFetch('/api/auth/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, rememberMe }),
-        credentials: 'include',
       });
 
       const data = await response.json();
@@ -103,11 +103,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, name: string) => {
     try {
-      const response = await fetch('/api/auth/signup', {
+      const response = await apiFetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, name }),
-        credentials: 'include',
       });
 
       const data = await response.json();
@@ -132,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
-      await fetch('/api/auth/signout', { method: 'POST' });
+      await apiFetch('/api/auth/signout', { method: 'POST' });
       setUser(null);
     } catch (error) {
       console.error('Error signing out:', error);

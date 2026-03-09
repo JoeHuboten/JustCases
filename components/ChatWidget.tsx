@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { FiMessageCircle, FiX, FiSend, FiUser, FiHeadphones, FiMinimize2 } from 'react-icons/fi';
 import { useToast } from '@/components/Toast';
+import { apiFetch } from '@/lib/client-api';
 
 interface Message {
   id: string;
@@ -283,7 +284,7 @@ export function ChatWindow() {
     const chatHistory = messages.map(m => `[${m.sender}]: ${m.text}`).join('\n');
     
     try {
-      const response = await fetch('/api/contact', {
+      const response = await apiFetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

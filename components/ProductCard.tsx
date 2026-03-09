@@ -65,10 +65,10 @@ const ProductCard = ({
         image,
         quantity: 1,
       });
-      showToast(`${name} добавен в количката`, 'cart');
+      showToast(`${name} ${t('productCard.addedToCart')}`, 'cart');
     } catch (error) {
       console.error('Error adding to cart:', error);
-      showToast('Грешка при добавяне', 'error');
+      showToast(t('productCard.errorAdding'), 'error');
     } finally {
       setIsAddingToCart(false);
     }
@@ -82,7 +82,7 @@ const ProductCard = ({
     try {
       if (inWishlist) {
         await removeFromWishlist(id);
-        showToast('Премахнат от любими', 'wishlist');
+        showToast(t('productCard.removedFromWishlist'), 'wishlist');
       } else {
         await addToWishlist({
           id,
@@ -94,7 +94,7 @@ const ProductCard = ({
           image,
           category: category || { name: '', slug: '' }
         });
-        showToast('Добавен в любими', 'wishlist');
+        showToast(t('productCard.addedToWishlist'), 'wishlist');
       }
     } catch (error) {
       console.error('Error toggling wishlist:', error);
@@ -121,7 +121,7 @@ const ProductCard = ({
         <div className="relative aspect-square bg-gradient-to-br from-white/[0.03] to-white/[0.01] overflow-hidden">
           <Image
             src={image || '/placeholder.svg'}
-            alt={`${name} - Премиум мобилен аксесоар от Just Cases`}
+            alt={`${name} - ${t('productCard.imageAlt')}`}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
@@ -145,7 +145,7 @@ const ProductCard = ({
           <button
             onClick={handleWishlistToggle}
             disabled={isWishlistLoading}
-            aria-label={inWishlist ? `Премахни ${name} от любими` : `Добави ${name} в любими`}
+            aria-label={inWishlist ? `${t('productCard.removeFromWishlist')} ${name}` : `${t('productCard.addToWishlist')} ${name}`}
             className={`absolute top-3 sm:top-4 right-3 sm:right-4 w-10 h-10 sm:w-10 sm:h-10 min-w-[40px] min-h-[40px] rounded-xl flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 disabled:opacity-50 z-20 cursor-pointer transition-all duration-500 ease-out sm:hover:scale-110 backdrop-blur-md sm:transform sm:hover:-translate-y-1 ${
               inWishlist
                 ? 'bg-red-500/90 text-white shadow-lg shadow-red-500/30'
@@ -159,7 +159,7 @@ const ProductCard = ({
           {onQuickView && (
             <button
               onClick={handleQuickView}
-              aria-label={`Бърз преглед на ${name}`}
+              aria-label={`${t('productCard.quickView')} ${name}`}
               className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl flex items-center justify-center bg-black/40 sm:bg-white/10 text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 z-20 cursor-pointer transition-all duration-500 ease-out sm:hover:scale-110 backdrop-blur-md sm:hover:bg-white/20 sm:transform sm:hover:-translate-y-1"
             >
               <FiEye size={16} />
@@ -170,7 +170,7 @@ const ProductCard = ({
           <button
             onClick={handleAddToCart}
             disabled={isAddingToCart}
-            aria-label={`Добави ${name} в количката`}
+            aria-label={`${t('productCard.addToCart')} ${name}`}
             className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-600 text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 disabled:opacity-50 z-20 cursor-pointer transition-all duration-500 ease-out sm:hover:scale-110 shadow-lg shadow-blue-500/30 backdrop-blur-md sm:transform sm:hover:-translate-y-1"
           >
             <FiShoppingCart size={16} />

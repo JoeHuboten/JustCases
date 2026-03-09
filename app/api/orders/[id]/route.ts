@@ -2,11 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/auth-utils';
 import { prisma } from '@/lib/prisma';
 import { apiRateLimit } from '@/lib/rate-limit';
+import { createLogger, getSafeErrorDetails } from '@/lib/logger';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const logger = createLogger('api:orders:id');
+
   // Rate limiting
   const rateLimitResult = await apiRateLimit(request);
   if (!rateLimitResult.success) {
@@ -74,8 +77,8 @@ export async function GET(
     }
 
     return NextResponse.json(order);
-  } catch (error: any) {
-    console.error('Error fetching order:', error);
+  } catch (error: unknown) {
+    logger.error('Failed to fetch order', { error: getSafeErrorDetails(error) });
     return NextResponse.json(
       { error: 'Failed to fetch order' },
       { status: 500 }

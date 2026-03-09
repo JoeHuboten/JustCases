@@ -12,8 +12,8 @@ services:
         fromEnvVar: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
       - key: NEXT_PUBLIC_PAYPAL_CLIENT_ID
         fromEnvVar: NEXT_PUBLIC_PAYPAL_CLIENT_ID
-      - key: NEXT_PUBLIC_SITE_URL
-        fromEnvVar: NEXT_PUBLIC_SITE_URL
+      - key: NEXT_PUBLIC_APP_URL
+        fromEnvVar: NEXT_PUBLIC_APP_URL
     envVars:
       - key: DATABASE_URL
         sync: false
@@ -31,5 +31,7 @@ services:
         value: sandbox
       - key: NODE_ENV
         value: production
-      - key: NEXT_PUBLIC_SITE_URL
+      - key: NEXT_PUBLIC_APP_URL
         sync: false
+      - key: RATE_LIMIT_FAIL_CLOSED
+        value: "true"

@@ -13,6 +13,7 @@ import {
   TabsTrigger,
 } from '@/components/animate-ui/components/animate/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { apiFetch } from '@/lib/client-api';
 
 interface Address {
   id: string;
@@ -103,7 +104,7 @@ export default function AccountPage() {
   // Fetch addresses
   const fetchAddresses = useCallback(async () => {
     try {
-      const res = await fetch('/api/addresses');
+      const res = await apiFetch('/api/addresses');
       if (res.ok) {
         const data = await res.json();
         setAddresses(data);
@@ -118,7 +119,7 @@ export default function AccountPage() {
   // Fetch payment methods
   const fetchPaymentMethods = useCallback(async () => {
     try {
-      const res = await fetch('/api/payment-methods');
+      const res = await apiFetch('/api/payment-methods');
       if (res.ok) {
         const data = await res.json();
         setPaymentMethods(data);
@@ -188,7 +189,7 @@ export default function AccountPage() {
         : '/api/addresses';
       const method = editingAddress ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(addressForm)
@@ -212,7 +213,7 @@ export default function AccountPage() {
     if (!confirm(t('account.address.deleteConfirm', 'Сигурни ли сте, че искате да изтриете този адрес?'))) return;
 
     try {
-      const res = await fetch(`/api/addresses/${id}`, { method: 'DELETE' });
+      const res = await apiFetch(`/api/addresses/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setAddresses(addresses.filter(a => a.id !== id));
       }
@@ -223,7 +224,7 @@ export default function AccountPage() {
 
   const handleSetDefaultAddress = async (id: string) => {
     try {
-      const res = await fetch(`/api/addresses/${id}`, { 
+      const res = await apiFetch(`/api/addresses/${id}`, { 
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isDefault: true })
@@ -260,7 +261,7 @@ export default function AccountPage() {
     }
 
     try {
-      const res = await fetch('/api/payment-methods', {
+      const res = await apiFetch('/api/payment-methods', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -290,7 +291,7 @@ export default function AccountPage() {
     if (!confirm(t('account.payment.deleteConfirm', 'Сигурни ли сте, че искате да изтриете този метод за плащане?'))) return;
 
     try {
-      const res = await fetch(`/api/payment-methods/${id}`, { method: 'DELETE' });
+      const res = await apiFetch(`/api/payment-methods/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setPaymentMethods(paymentMethods.filter(p => p.id !== id));
       }
@@ -301,7 +302,7 @@ export default function AccountPage() {
 
   const handleSetDefaultPayment = async (id: string) => {
     try {
-      const res = await fetch(`/api/payment-methods/${id}`, { 
+      const res = await apiFetch(`/api/payment-methods/${id}`, { 
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isDefault: true })
@@ -334,7 +335,7 @@ export default function AccountPage() {
     }
 
     try {
-      const res = await fetch('/api/auth/change-password', {
+      const res = await apiFetch('/api/auth/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

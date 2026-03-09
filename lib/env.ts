@@ -26,6 +26,15 @@ const envSchema = z.object({
 
   // App URL
   NEXT_PUBLIC_APP_URL: z.string().url().optional().default('http://localhost:3000'),
+  ALLOWED_ORIGINS: z.string().optional(),
+  NEWSLETTER_UNSUBSCRIBE_SECRET: z.string().min(16).optional(),
+
+  // Redis (Upstash REST)
+  UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
+  RATE_LIMIT_FAIL_CLOSED: z.enum(['true', 'false']).optional(),
+  JOB_WORKER_SECRET: z.string().min(16).optional(),
+  HEALTHCHECK_SECRET: z.string().min(16).optional(),
 
   // Stripe (optional)
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
@@ -70,6 +79,12 @@ function validateEnv() {
   }
   if (env.EMAIL_PROVIDER === 'nodemailer' && (!env.SMTP_HOST || !env.SMTP_USER)) {
     console.warn('⚠️ EMAIL_PROVIDER is "nodemailer" but SMTP settings are incomplete');
+  }
+  if (env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN && !env.JOB_WORKER_SECRET) {
+    console.warn('⚠️ Redis is configured but JOB_WORKER_SECRET is missing (email queue worker endpoint will be locked)');
+  }
+  if (env.RATE_LIMIT_FAIL_CLOSED === 'true' && (!env.UPSTASH_REDIS_REST_URL || !env.UPSTASH_REDIS_REST_TOKEN)) {
+    console.warn('⚠️ RATE_LIMIT_FAIL_CLOSED is enabled without Redis; it has no effect until Redis is configured');
   }
 
   return env;

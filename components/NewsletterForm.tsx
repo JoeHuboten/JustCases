@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { FiMail, FiArrowRight, FiCheck, FiAlertCircle } from 'react-icons/fi';
+import { apiFetch } from '@/lib/client-api';
 
 export default function NewsletterForm() {
   const [email, setEmail] = useState('');
@@ -20,7 +21,7 @@ export default function NewsletterForm() {
     setStatus('loading');
     
     try {
-      const response = await fetch('/api/newsletter', {
+      const response = await apiFetch('/api/newsletter', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

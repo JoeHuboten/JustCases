@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma, categorySelectFields } from '@/lib/prisma';
 import { apiRateLimit } from '@/lib/rate-limit';
 import { apiCache, cacheKeys, cacheTTL } from '@/lib/cache';
+import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+
+const logger = createLogger('api:categories');
 
 export async function GET(request: NextRequest) {
   // Rate limiting
@@ -17,7 +20,7 @@ export async function GET(request: NextRequest) {
     const cacheKey = cacheKeys.categories();
     
     // Try cache first
-    const cached = apiCache.get<unknown[]>(cacheKey);
+    const cached = await apiCache.getDistributed<unknown[]>(cacheKey);
     if (cached) {
       return NextResponse.json(cached);
     }
@@ -28,11 +31,11 @@ export async function GET(request: NextRequest) {
     });
 
     // Cache for 10 minutes
-    apiCache.set(cacheKey, categories, cacheTTL.categories);
+    await apiCache.setDistributed(cacheKey, categories, cacheTTL.categories);
 
     return NextResponse.json(categories);
   } catch (error) {
-    console.error('Error fetching categories:', error);
+    logger.error('Error fetching categories', { error: getSafeErrorDetails(error) });
     return NextResponse.json({ error: 'Failed to fetch categories' }, { status: 500 });
   }
 }

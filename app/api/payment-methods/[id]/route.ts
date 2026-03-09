@@ -1,12 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth-utils';
+import { apiRateLimit, strictRateLimit } from '@/lib/rate-limit';
+import { validateCsrf } from '@/lib/csrf';
+import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+
+const logger = createLogger('api:payment-methods:id');
 
 // GET - Fetch a specific payment method
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const rateLimitResult = await apiRateLimit(request);
+  if (!rateLimitResult.success) {
+    return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+  }
+
   try {
     const user = await getUserFromRequest(request);
     if (!user) {
@@ -25,7 +35,7 @@ export async function GET(
 
     return NextResponse.json(paymentMethod);
   } catch (error) {
-    console.error('Error fetching payment method:', error);
+    logger.error('Error fetching payment method', { error: getSafeErrorDetails(error) });
     return NextResponse.json({ error: 'Failed to fetch payment method' }, { status: 500 });
   }
 }
@@ -35,6 +45,16 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const rateLimitResult = await strictRateLimit(request);
+  if (!rateLimitResult.success) {
+    return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+  }
+
+  const csrfResult = validateCsrf(request);
+  if (!csrfResult.valid) {
+    return NextResponse.json({ error: csrfResult.error || 'Invalid request' }, { status: 403 });
+  }
+
   try {
     const user = await getUserFromRequest(request);
     if (!user) {
@@ -73,7 +93,7 @@ export async function PUT(
 
     return NextResponse.json(paymentMethod);
   } catch (error) {
-    console.error('Error updating payment method:', error);
+    logger.error('Error updating payment method', { error: getSafeErrorDetails(error) });
     return NextResponse.json({ error: 'Failed to update payment method' }, { status: 500 });
   }
 }
@@ -83,6 +103,16 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const rateLimitResult = await strictRateLimit(request);
+  if (!rateLimitResult.success) {
+    return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+  }
+
+  const csrfResult = validateCsrf(request);
+  if (!csrfResult.valid) {
+    return NextResponse.json({ error: csrfResult.error || 'Invalid request' }, { status: 403 });
+  }
+
   try {
     const user = await getUserFromRequest(request);
     if (!user) {
@@ -118,7 +148,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting payment method:', error);
+    logger.error('Error deleting payment method', { error: getSafeErrorDetails(error) });
     return NextResponse.json({ error: 'Failed to delete payment method' }, { status: 500 });
   }
 }
@@ -128,6 +158,16 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const rateLimitResult = await strictRateLimit(request);
+  if (!rateLimitResult.success) {
+    return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+  }
+
+  const csrfResult = validateCsrf(request);
+  if (!csrfResult.valid) {
+    return NextResponse.json({ error: csrfResult.error || 'Invalid request' }, { status: 403 });
+  }
+
   try {
     const user = await getUserFromRequest(request);
     if (!user) {
@@ -159,7 +199,7 @@ export async function PATCH(
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error('Error setting default payment method:', error);
+    logger.error('Error setting default payment method', { error: getSafeErrorDetails(error) });
     return NextResponse.json({ error: 'Failed to set default payment method' }, { status: 500 });
   }
 }

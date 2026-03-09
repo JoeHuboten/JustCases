@@ -3,112 +3,114 @@
 import { FiCreditCard, FiShield, FiDollarSign, FiCheckCircle, FiAlertCircle, FiRefreshCw } from 'react-icons/fi';
 import ScrollAnimation, { StaggerAnimation } from '@/components/ScrollAnimation';
 import { useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function PaymentsPage() {
+  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState('methods');
 
   const faqData = {
     methods: [
       {
-        question: "Какви методи за плащане приемате?",
-        answer: "Приемаме кредитни карти (Visa, Mastercard), PayPal, Apple Pay и Google Pay. Всички плащания се обработват безопасно чрез Stripe."
+        question: t('payments.faq.methods.q1'),
+        answer: t('payments.faq.methods.a1')
       },
       {
-        question: "Безопасно ли е плащането?",
-        answer: "Да, всички плащания се обработват чрез Stripe, което е световен лидер в онлайн плащанията. Ние не съхраняваме данните за вашите карти."
+        question: t('payments.faq.methods.q2'),
+        answer: t('payments.faq.methods.a2')
       },
       {
-        question: "Мога ли да платя с дебитна карта?",
-        answer: "Да, можете да използвате дебитни карти, които поддържат онлайн плащания. Картата трябва да има логото на Visa или Mastercard."
+        question: t('payments.faq.methods.q3'),
+        answer: t('payments.faq.methods.a3')
       },
       {
-        question: "Работи ли Apple Pay и Google Pay?",
-        answer: "Да, и двата метода са налични за мобилни устройства. Те са по-бързи и по-безопасни от традиционните плащания с карта."
+        question: t('payments.faq.methods.q4'),
+        answer: t('payments.faq.methods.a4')
       }
     ],
     security: [
       {
-        question: "Как защитавате данните за плащане?",
-        answer: "Използваме SSL криптиране и Stripe за обработка на плащанията. Ние не съхраняваме номера на карти или CVV кодове на нашите сървъри."
+        question: t('payments.faq.security.q1'),
+        answer: t('payments.faq.security.a1')
       },
       {
-        question: "Какво е Stripe?",
-        answer: "Stripe е световен лидер в онлайн плащанията, използван от милиони компании. Той е сертифициран за PCI DSS Level 1 - най-високия стандарт за безопасност."
+        question: t('payments.faq.security.q2'),
+        answer: t('payments.faq.security.a2')
       },
       {
-        question: "Мога ли да доверя данните си на Stripe?",
-        answer: "Да, Stripe е използван от компании като Amazon, Google и Microsoft. Той е сертифициран и редовно аудитиран за безопасност."
+        question: t('payments.faq.security.q3'),
+        answer: t('payments.faq.security.a3')
       },
       {
-        question: "Какво се случва с данните ми след плащане?",
-        answer: "След плащане Stripe ни изпраща само потвърждение за успешното плащане. Всички чувствителни данни остават в защитената среда на Stripe."
+        question: t('payments.faq.security.q4'),
+        answer: t('payments.faq.security.a4')
       }
     ],
     issues: [
       {
-        question: "Какво да правя, ако плащането не минава?",
-        answer: "Проверете дали картата има достатъчно средства, дали данните са въведени правилно, и дали картата поддържа онлайн плащания. Опитайте с друг метод за плащане."
+        question: t('payments.faq.issues.q1'),
+        answer: t('payments.faq.issues.a1')
       },
       {
-        question: "Защо получавам грешка 'Картата е отхвърлена'?",
-        answer: "Това може да се дължи на недостатъчни средства, ограничения от банката, или проблеми с картата. Свържете се с банката си или опитайте с друга карта."
+        question: t('payments.faq.issues.q2'),
+        answer: t('payments.faq.issues.a2')
       },
       {
-        question: "Какво да правя, ако съм платил два пъти?",
-        answer: "Ако случайно сте платили два пъти, веднага се свържете с нас на support@justcases.bg. Ще върнем двойното плащане в рамките на 5-7 работни дни."
+        question: t('payments.faq.issues.q3'),
+        answer: t('payments.faq.issues.a3')
       },
       {
-        question: "Мога ли да платя на части?",
-        answer: "В момента не предлагаме плащане на части. Всички плащания се изискват наведнъж при поръчката."
+        question: t('payments.faq.issues.q4'),
+        answer: t('payments.faq.issues.a4')
       }
     ],
     refunds: [
       {
-        question: "Как да върна парите си?",
-        answer: "За да върнете парите, първо върнете продукта според нашата политика за връщане. След получаване на върнатия продукт, парите се възстановяват автоматично."
+        question: t('payments.faq.refunds.q1'),
+        answer: t('payments.faq.refunds.a1')
       },
       {
-        question: "Колко време отнема възстановяването?",
-        answer: "Възстановяването се извършва в рамките на 5-7 работни дни след получаване на върнатия продукт. За кредитни карти може да отнеме до 10 работни дни."
+        question: t('payments.faq.refunds.q2'),
+        answer: t('payments.faq.refunds.a2')
       },
       {
-        question: "По какъв начин се връщат парите?",
-        answer: "Парите се връщат по същия начин на плащане - ако сте платили с карта, парите се връщат на същата карта. При PayPal плащания, парите се връщат в PayPal акаунта."
+        question: t('payments.faq.refunds.q3'),
+        answer: t('payments.faq.refunds.a3')
       },
       {
-        question: "Има ли такси за връщане?",
-        answer: "Няма такси за връщане от наша страна. Ако банката ви налага такси за обработка на възстановяване, те са за ваша сметка."
+        question: t('payments.faq.refunds.q4'),
+        answer: t('payments.faq.refunds.a4')
       }
     ]
   };
 
   const paymentMethods = [
     {
-      name: 'Кредитни карти',
+      name: t('payments.method.cards'),
       icon: FiCreditCard,
       description: 'Visa, Mastercard',
-      features: ['Безопасно', 'Бързо', 'Широко приемано'],
+      features: [t('payments.method.safe'), t('payments.method.fast'), t('payments.method.widelyAccepted')],
       color: 'text-blue-500'
     },
     {
       name: 'PayPal',
       icon: FiShield,
-      description: 'Онлайн портфейл',
-      features: ['Защитено', 'Лесно', 'Без регистрация'],
+      description: t('payments.method.wallet'),
+      features: [t('payments.method.protected'), t('payments.method.easy'), t('payments.method.noRegistration')],
       color: 'text-blue-600'
     },
     {
       name: 'Apple Pay',
       icon: FiDollarSign,
-      description: 'Мобилно плащане',
-      features: ['Безжично', 'Биометрично', 'Бързо'],
+      description: t('payments.method.mobile'),
+      features: [t('payments.method.wireless'), t('payments.method.biometric'), t('payments.method.fast')],
       color: 'text-gray-800'
     },
     {
       name: 'Google Pay',
       icon: FiCheckCircle,
-      description: 'Мобилно плащане',
-      features: ['Безжично', 'Биометрично', 'Бързо'],
+      description: t('payments.method.mobile'),
+      features: [t('payments.method.wireless'), t('payments.method.biometric'), t('payments.method.fast')],
       color: 'text-green-500'
     }
   ];
@@ -119,9 +121,9 @@ export default function PaymentsPage() {
       <section className="bg-gradient-to-r from-[#0a0a0f] to-blue-900/20 py-20">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn" className="text-center">
-            <h1 className="text-5xl font-bold text-white mb-6">Плащания - Често задавани въпроси</h1>
+            <h1 className="text-5xl font-bold text-white mb-6">{t('payments.title')}</h1>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Научете всичко за нашите методи за плащане, безопасността и как да решавате проблеми с плащанията.
+              {t('payments.subtitle')}
             </p>
           </ScrollAnimation>
         </div>
@@ -131,7 +133,7 @@ export default function PaymentsPage() {
       <section className="py-16">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn">
-            <h2 className="text-4xl font-bold text-white text-center mb-12">Методи за плащане</h2>
+            <h2 className="text-4xl font-bold text-white text-center mb-12">{t('payments.methods')}</h2>
           </ScrollAnimation>
           <StaggerAnimation animation="scaleUp" stagger={0.2} className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {paymentMethods.map((method, index) => (
@@ -159,16 +161,16 @@ export default function PaymentsPage() {
       <section className="bg-background-secondary py-16">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn">
-            <h2 className="text-4xl font-bold text-white text-center mb-12">Безопасност на плащанията</h2>
+            <h2 className="text-4xl font-bold text-white text-center mb-12">{t('payments.security')}</h2>
           </ScrollAnimation>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-primary rounded-2xl p-8 text-center">
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <FiShield className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-4">SSL криптиране</h3>
+              <h3 className="text-xl font-bold text-white mb-4">{t('payments.security.ssl')}</h3>
               <p className="text-gray-300">
-                Всички данни се предават чрез защитена връзка с 256-битово криптиране
+                {t('payments.security.sslDesc')}
               </p>
             </div>
 
@@ -176,9 +178,9 @@ export default function PaymentsPage() {
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <FiCheckCircle className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-4">PCI DSS сертификация</h3>
+              <h3 className="text-xl font-bold text-white mb-4">{t('payments.security.pci')}</h3>
               <p className="text-gray-300">
-                Stripe е сертифициран за най-високия стандарт за безопасност на плащанията
+                {t('payments.security.pciDesc')}
               </p>
             </div>
 
@@ -186,9 +188,9 @@ export default function PaymentsPage() {
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <FiAlertCircle className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-4">Мониторинг 24/7</h3>
+              <h3 className="text-xl font-bold text-white mb-4">{t('payments.security.monitoring')}</h3>
               <p className="text-gray-300">
-                Постоянен мониторинг за подозрителна активност и измами
+                {t('payments.security.monitoringDesc')}
               </p>
             </div>
           </div>
@@ -199,7 +201,7 @@ export default function PaymentsPage() {
       <section className="py-16">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn">
-            <h2 className="text-4xl font-bold text-white text-center mb-12">Често задавани въпроси</h2>
+            <h2 className="text-4xl font-bold text-white text-center mb-12">{t('payments.faq.title')}</h2>
           </ScrollAnimation>
           
           {/* FAQ Categories */}
@@ -212,7 +214,7 @@ export default function PaymentsPage() {
                   : 'bg-primary text-gray-300 hover:text-white'
               }`}
             >
-              Методи за плащане
+              {t('payments.faq.methods')}
             </button>
             <button
               onClick={() => setSelectedCategory('security')}
@@ -222,7 +224,7 @@ export default function PaymentsPage() {
                   : 'bg-primary text-gray-300 hover:text-white'
               }`}
             >
-              Безопасност
+              {t('payments.faq.security')}
             </button>
             <button
               onClick={() => setSelectedCategory('issues')}
@@ -232,7 +234,7 @@ export default function PaymentsPage() {
                   : 'bg-primary text-gray-300 hover:text-white'
               }`}
             >
-              Проблеми
+              {t('payments.faq.issues')}
             </button>
             <button
               onClick={() => setSelectedCategory('refunds')}
@@ -242,7 +244,7 @@ export default function PaymentsPage() {
                   : 'bg-primary text-gray-300 hover:text-white'
               }`}
             >
-              Възстановяване
+              {t('payments.faq.refunds')}
             </button>
           </div>
 
@@ -262,43 +264,43 @@ export default function PaymentsPage() {
       <section className="bg-background-secondary py-16">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn">
-            <h2 className="text-4xl font-bold text-white text-center mb-12">Процес на плащане</h2>
+            <h2 className="text-4xl font-bold text-white text-center mb-12">{t('payments.process')}</h2>
           </ScrollAnimation>
           <div className="grid md:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <span className="text-white text-xl font-bold">1</span>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Изберете плащане</h3>
+              <h3 className="text-lg font-bold text-white mb-2">{t('payments.process.step1')}</h3>
               <p className="text-gray-300 text-sm">
-                Изберете предпочитания метод за плащане от наличните опции
+                {t('payments.process.step1Desc')}
               </p>
             </div>
             <div className="text-center">
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <span className="text-white text-xl font-bold">2</span>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Въведете данни</h3>
+              <h3 className="text-lg font-bold text-white mb-2">{t('payments.process.step2')}</h3>
               <p className="text-gray-300 text-sm">
-                Въведете данните за плащане в защитената форма
+                {t('payments.process.step2Desc')}
               </p>
             </div>
             <div className="text-center">
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <span className="text-white text-xl font-bold">3</span>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Потвърдете</h3>
+              <h3 className="text-lg font-bold text-white mb-2">{t('payments.process.step3')}</h3>
               <p className="text-gray-300 text-sm">
-                Потвърдете плащането и изчакайте обработката
+                {t('payments.process.step3Desc')}
               </p>
             </div>
             <div className="text-center">
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <span className="text-white text-xl font-bold">4</span>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Получете потвърждение</h3>
+              <h3 className="text-lg font-bold text-white mb-2">{t('payments.process.step4')}</h3>
               <p className="text-gray-300 text-sm">
-                Получете потвърждение за успешното плащане по имейл
+                {t('payments.process.step4Desc')}
               </p>
             </div>
           </div>
@@ -309,22 +311,22 @@ export default function PaymentsPage() {
       <section className="py-16">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn">
-            <h2 className="text-4xl font-bold text-white text-center mb-12">Бързи действия</h2>
+            <h2 className="text-4xl font-bold text-white text-center mb-12">{t('payments.quickActions')}</h2>
           </ScrollAnimation>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-primary rounded-2xl p-8 text-center">
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <FiCreditCard className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-4">Направете поръчка</h3>
+              <h3 className="text-xl font-bold text-white mb-4">{t('payments.placeOrder')}</h3>
               <p className="text-gray-300 mb-6">
-                Разгледайте продуктите и направете поръчка с безопасно плащане
+                {t('payments.placeOrderDesc')}
               </p>
               <a 
                 href="/shop"
                 className="bg-accent text-white px-6 py-3 rounded-lg hover:bg-accent-light transition-colors font-medium"
               >
-                Пазарувайте
+                {t('payments.shop')}
               </a>
             </div>
 
@@ -332,15 +334,15 @@ export default function PaymentsPage() {
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <FiRefreshCw className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-4">Проследете плащането</h3>
+              <h3 className="text-xl font-bold text-white mb-4">{t('payments.trackPayment')}</h3>
               <p className="text-gray-300 mb-6">
-                Влезте в акаунта си за да видите статуса на плащанията
+                {t('payments.trackPaymentDesc')}
               </p>
               <a 
                 href="/orders"
                 className="bg-accent text-white px-6 py-3 rounded-lg hover:bg-accent-light transition-colors font-medium"
               >
-                Моите поръчки
+                {t('payments.myOrders')}
               </a>
             </div>
 
@@ -348,15 +350,15 @@ export default function PaymentsPage() {
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <FiShield className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-4">Нужда от помощ?</h3>
+              <h3 className="text-xl font-bold text-white mb-4">{t('payments.needHelp')}</h3>
               <p className="text-gray-300 mb-6">
-                Свържете се с нас за въпроси относно плащанията
+                {t('payments.needHelpDesc')}
               </p>
               <a 
                 href="/support"
                 className="bg-accent text-white px-6 py-3 rounded-lg hover:bg-accent-light transition-colors font-medium"
               >
-                Поддръжка
+                {t('payments.support')}
               </a>
             </div>
           </div>

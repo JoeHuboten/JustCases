@@ -1,76 +1,88 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAdmin } from '@/lib/auth-utils';
-import { orderStatusSchema } from '@/lib/validation';
+import { withApiGuard } from '@/lib/api-guard';
+import { strictRateLimit } from '@/lib/rate-limit';
+import { adminOrderUpdateSchema } from '@/lib/validation';
+import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+import { z } from 'zod';
+
+const logger = createLogger('api:admin:orders:id');
 
 // PUT - Update order status
-export const PUT = requireAdmin(async (
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) => {
-  try {
-    const { id } = await params;
-    const body = await request.json();
-    const { status, trackingNumber, notes } = body;
+export const PUT = withApiGuard<z.infer<typeof adminOrderUpdateSchema>, { params: Promise<{ id: string }> }>(
+  {
+    requireAdmin: true,
+    csrf: true,
+    rateLimit: strictRateLimit,
+    bodySchema: adminOrderUpdateSchema,
+  },
+  async (_request: NextRequest, context) => {
+    try {
+      const { id } = await context.params;
+      const body = context.body!;
 
-    const order = await prisma.order.update({
-      where: { id },
-      data: {
-        ...(status && { status }),
-        ...(trackingNumber !== undefined && { trackingNumber }),
-        ...(notes !== undefined && { notes }),
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
+      const order = await prisma.order.update({
+        where: { id },
+        data: {
+          ...(body.status !== undefined && { status: body.status }),
+          ...(body.trackingNumber !== undefined && { trackingNumber: body.trackingNumber }),
+          ...(body.notes !== undefined && { notes: body.notes }),
         },
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                image: true,
-                slug: true,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          items: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  image: true,
+                  slug: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      });
 
-    return NextResponse.json({ order });
-  } catch (error) {
-    console.error('Error updating order:', error);
-    return NextResponse.json(
-      { error: 'Failed to update order' },
-      { status: 500 }
-    );
-  }
-});
+      return NextResponse.json({ order });
+    } catch (error) {
+      logger.error('Failed to update order', { error: getSafeErrorDetails(error) });
+      return NextResponse.json(
+        { error: 'Failed to update order' },
+        { status: 500 },
+      );
+    }
+  },
+);
 
 // DELETE - Delete order
-export const DELETE = requireAdmin(async (
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) => {
-  try {
-    const { id } = await params;
-    await prisma.order.delete({
-      where: { id },
-    });
+export const DELETE = withApiGuard<unknown, { params: Promise<{ id: string }> }>(
+  {
+    requireAdmin: true,
+    csrf: true,
+    rateLimit: strictRateLimit,
+  },
+  async (_request: NextRequest, context) => {
+    try {
+      const { id } = await context.params;
+      await prisma.order.delete({
+        where: { id },
+      });
 
-    return NextResponse.json({ message: 'Order deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting order:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete order' },
-      { status: 500 }
-    );
-  }
-});
-
+      return NextResponse.json({ message: 'Order deleted successfully' });
+    } catch (error) {
+      logger.error('Failed to delete order', { error: getSafeErrorDetails(error) });
+      return NextResponse.json(
+        { error: 'Failed to delete order' },
+        { status: 500 },
+      );
+    }
+  },
+);

@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { strictRateLimit } from '@/lib/rate-limit';
 
 // AI Chat endpoint for intelligent customer support
 export async function POST(req: NextRequest) {
+  const rateLimitResult = await strictRateLimit(req);
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429 }
+    );
+  }
+
   try {
     const { message, chatHistory = [], userName = 'Customer' } = await req.json();
 
@@ -12,12 +21,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (message.length > 1500) {
+      return NextResponse.json(
+        { error: 'Message is too long' },
+        { status: 400 }
+      );
+    }
+
     // Check if Gemini API key is configured
     const apiKey = process.env.GEMINI_API_KEY;
-    console.log('API Key present:', !!apiKey, 'Length:', apiKey?.length);
     
     if (!apiKey) {
-      console.error('No API key configured');
       // Fallback to rule-based responses if no API key
       return NextResponse.json({
         reply: generateFallbackResponse(message, userName),
@@ -72,9 +86,10 @@ Language: Match the user's language (Bulgarian/English)
 NOW RESPOND TO THE USER - Make it unique, natural, and directly answer what they asked. NO TEMPLATES!`;
 
     // Build conversation history for Gemini
-    const conversationHistory = chatHistory.map((msg: any) => ({
+    const safeHistory = Array.isArray(chatHistory) ? chatHistory.slice(-10) : [];
+    const conversationHistory = safeHistory.map((msg: any) => ({
       role: msg.sender === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.text }]
+      parts: [{ text: String(msg.text || '').slice(0, 1500) }]
     }));
 
     // Add current user message
@@ -85,8 +100,6 @@ NOW RESPOND TO THE USER - Make it unique, natural, and directly answer what they
 
     // Call Google Gemini API
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent?key=${apiKey}`;
-    console.log('Calling Gemini API...');
-    console.log('Message:', message);
     
     const requestBody = {
       systemInstruction: {
@@ -119,8 +132,6 @@ NOW RESPOND TO THE USER - Make it unique, natural, and directly answer what they
       ]
     };
     
-    console.log('Request body contents length:', JSON.stringify(requestBody.contents).length);
-    
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
@@ -129,11 +140,8 @@ NOW RESPOND TO THE USER - Make it unique, natural, and directly answer what they
       body: JSON.stringify(requestBody),
     });
 
-    console.log('Response status:', response.status, response.statusText);
-
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
       return NextResponse.json({
         reply: generateFallbackResponse(message, userName),
         isAI: false
@@ -142,12 +150,8 @@ NOW RESPOND TO THE USER - Make it unique, natural, and directly answer what they
 
     const data = await response.json();
     
-    // Log detailed response for debugging
-    console.log('Gemini response:', JSON.stringify(data, null, 2));
-    
     // Check if response was blocked by safety filters
     if (data.candidates?.[0]?.finishReason === 'SAFETY') {
-      console.warn('Response blocked by safety filters');
       const aiReply = "Извинявам се, но не мога да отговоря на този въпрос. Мога да ви помогна с информация за продукти, поръчки и доставка. Имате ли друг въпрос?";
       return NextResponse.json({
         reply: aiReply,
@@ -163,7 +167,6 @@ NOW RESPOND TO THE USER - Make it unique, natural, and directly answer what they
     });
 
   } catch (error) {
-    console.error('Chat AI Error:', error);
     return NextResponse.json({
       reply: 'Извинявам се, имам временни технически проблеми. Моля, опитайте отново след малко.',
       isAI: false

@@ -1,13 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database';
 import { z } from 'zod';
-import { sendNewsletterWelcomeEmail } from '@/lib/email';
+import { enqueueEmailJob } from '@/lib/email-jobs';
 import { apiRateLimit } from '@/lib/rate-limit';
 import { validateCsrf } from '@/lib/csrf';
+import { verifyNewsletterUnsubscribeToken } from '@/lib/newsletter-token';
+import { createLogger, getSafeErrorDetails } from '@/lib/logger';
 
 const newsletterSchema = z.object({
   email: z.string().email('Невалиден имейл адрес'),
 });
+
+const logger = createLogger('api:newsletter');
+
+const GENERIC_SUBSCRIBE_RESPONSE = {
+  success: true,
+  message: 'If this email can receive updates, the subscription request has been processed.',
+};
+
+const GENERIC_UNSUBSCRIBE_RESPONSE = {
+  success: true,
+  message: 'If this request is valid, your unsubscription has been processed.',
+};
+
+async function processUnsubscribeToken(token: string | null): Promise<void> {
+  if (!token) return;
+  const verification = verifyNewsletterUnsubscribeToken(token);
+  if (!verification.valid || !verification.email) return;
+
+  await prisma.newsletterSubscription.updateMany({
+    where: { email: verification.email, active: true },
+    data: { active: false },
+  });
+}
 
 export async function POST(request: NextRequest) {
   // Rate limiting
@@ -40,7 +65,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const { email } = result.data;
+    const email = result.data.email.trim().toLowerCase();
     
     // Check if already subscribed
     const existingSubscription = await prisma.newsletterSubscription.findUnique({
@@ -48,27 +73,24 @@ export async function POST(request: NextRequest) {
     });
     
     if (existingSubscription) {
-      if (existingSubscription.active) {
-        return NextResponse.json(
-          { message: 'Вече сте абонирани за нашия бюлетин!' },
-          { status: 200 }
-        );
-      } else {
+      if (!existingSubscription.active) {
         // Reactivate subscription
         await prisma.newsletterSubscription.update({
           where: { email },
           data: { active: true, subscribedAt: new Date() },
         });
         
-        // Send welcome email again
-        sendNewsletterWelcomeEmail(email, { email, language: 'bg' })
-          .catch(err => console.error('Failed to send welcome email:', err));
-        
-        return NextResponse.json(
-          { message: 'Успешно се абонирахте отново!' },
-          { status: 200 }
-        );
+        try {
+          await enqueueEmailJob({
+            type: 'NEWSLETTER_WELCOME',
+            to: email,
+            payload: { email, language: 'bg' },
+          });
+        } catch {
+          // Subscription should succeed even if the queue is temporarily unavailable.
+        }
       }
+      return NextResponse.json(GENERIC_SUBSCRIBE_RESPONSE, { status: 200 });
     }
     
     // Create new subscription
@@ -76,18 +98,19 @@ export async function POST(request: NextRequest) {
       data: { email },
     });
     
-    // Send welcome email (don't await to avoid slowing down the response)
-    sendNewsletterWelcomeEmail(email, { email, language: 'bg' })
-      .catch(err => console.error('Failed to send welcome email:', err));
-    
-    return NextResponse.json(
-      { message: 'Благодарим за абонамента!' },
-      { status: 201 }
-    );
-  } catch (error) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error('Newsletter subscription error:', error);
+    try {
+      await enqueueEmailJob({
+        type: 'NEWSLETTER_WELCOME',
+        to: email,
+        payload: { email, language: 'bg' },
+      });
+    } catch {
+      // Subscription should succeed even if the queue is temporarily unavailable.
     }
+    
+    return NextResponse.json(GENERIC_SUBSCRIBE_RESPONSE, { status: 200 });
+  } catch (error) {
+    logger.error('Newsletter subscription failed', { error: getSafeErrorDetails(error) });
     return NextResponse.json(
       { error: 'Възникна грешка. Моля, опитайте отново.' },
       { status: 500 }
@@ -108,40 +131,42 @@ export async function DELETE(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const email = searchParams.get('email');
-    
-    if (!email) {
-      return NextResponse.json(
-        { error: 'Email is required' },
-        { status: 400 }
-      );
-    }
-    
-    const subscription = await prisma.newsletterSubscription.findUnique({
-      where: { email },
-    });
-    
-    if (!subscription) {
-      return NextResponse.json(
-        { error: 'Subscription not found' },
-        { status: 404 }
-      );
-    }
-    
-    await prisma.newsletterSubscription.update({
-      where: { email },
-      data: { active: false },
-    });
-    
-    return NextResponse.json(
-      { message: 'Успешно се отписахте от бюлетина.' },
-      { status: 200 }
-    );
+    const token = searchParams.get('token');
+
+    await processUnsubscribeToken(token);
+
+    return NextResponse.json(GENERIC_UNSUBSCRIBE_RESPONSE, { status: 200 });
   } catch (error) {
-    console.error('Newsletter unsubscribe error:', error);
+    logger.error('Newsletter unsubscribe failed', { error: getSafeErrorDetails(error) });
     return NextResponse.json(
       { error: 'Възникна грешка. Моля, опитайте отново.' },
       { status: 500 }
+    );
+  }
+}
+
+// One-click unsubscribe support from email links.
+export async function GET(request: NextRequest) {
+  const rateLimitResult = await apiRateLimit(request);
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429 },
+    );
+  }
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const token = searchParams.get('token');
+
+    await processUnsubscribeToken(token);
+
+    return NextResponse.json(GENERIC_UNSUBSCRIBE_RESPONSE, { status: 200 });
+  } catch (error) {
+    logger.error('Newsletter one-click unsubscribe failed', { error: getSafeErrorDetails(error) });
+    return NextResponse.json(
+      { error: 'Възникна грешка. Моля, опитайте отново.' },
+      { status: 500 },
     );
   }
 }

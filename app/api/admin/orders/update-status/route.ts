@@ -1,138 +1,136 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database';
-import { requireAdmin } from '@/lib/auth-utils';
-import { orderStatusSchema } from '@/lib/validation';
+import { withApiGuard } from '@/lib/api-guard';
+import { adminOrderStatusUpdateSchema } from '@/lib/validation';
 import { sendOrderStatusUpdateEmail } from '@/lib/email';
+import { apiRateLimit, strictRateLimit } from '@/lib/rate-limit';
+import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+import { z } from 'zod';
 
-export const POST = requireAdmin(async (request: NextRequest, context: any) => {
-  try {
-    const body = await request.json();
-    const { orderId, status, notes, trackingNumber, courierService, estimatedDelivery } = body;
+const logger = createLogger('api:admin:orders:update-status');
 
-    if (!orderId || !status) {
-      return NextResponse.json(
-        { error: 'Order ID and status are required' },
-        { status: 400 }
-      );
-    }
+export const POST = withApiGuard<z.infer<typeof adminOrderStatusUpdateSchema>>(
+  {
+    requireAdmin: true,
+    csrf: true,
+    rateLimit: strictRateLimit,
+    bodySchema: adminOrderStatusUpdateSchema,
+  },
+  async (_request: NextRequest, context) => {
+    try {
+      const body = context.body!;
+      const user = context.user!;
+      const { orderId, status, notes, trackingNumber, courierService, estimatedDelivery } = body;
 
-    // Validate status
-    const statusValidation = orderStatusSchema.safeParse(status);
-    if (!statusValidation.success) {
-      return NextResponse.json(
-        { error: 'Invalid order status' },
-        { status: 400 }
-      );
-    }
+      const updateData: Record<string, unknown> = {
+        status,
+        updatedAt: new Date(),
+      };
 
-    // Update order
-    const updateData: any = {
-      status,
-      updatedAt: new Date(),
-    };
-
-    if (trackingNumber !== undefined) {
-      updateData.trackingNumber = trackingNumber;
-    }
-    if (courierService !== undefined) {
-      updateData.courierService = courierService;
-    }
-    if (estimatedDelivery !== undefined) {
-      updateData.estimatedDelivery = estimatedDelivery;
-    }
-
-    // If status is DELIVERED, set actualDelivery
-    if (status === 'DELIVERED') {
-      updateData.actualDelivery = new Date();
-    }
-
-    // If status is CANCELLED, set cancelledAt
-    if (status === 'CANCELLED') {
-      updateData.cancelledAt = new Date();
-      if (notes) {
-        updateData.cancelReason = notes;
+      if (trackingNumber !== undefined) {
+        updateData.trackingNumber = trackingNumber;
       }
-    }
+      if (courierService !== undefined) {
+        updateData.courierService = courierService;
+      }
+      if (estimatedDelivery !== undefined) {
+        updateData.estimatedDelivery = estimatedDelivery ? new Date(estimatedDelivery) : null;
+      }
 
-    const order = await prisma.order.update({
-      where: { id: orderId },
-      data: updateData,
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
+      if (status === 'DELIVERED') {
+        updateData.actualDelivery = new Date();
+      }
+
+      if (status === 'CANCELLED') {
+        updateData.cancelledAt = new Date();
+        if (notes) {
+          updateData.cancelReason = notes;
+        }
+      }
+
+      const order = await prisma.order.update({
+        where: { id: orderId },
+        data: updateData,
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    // Create status history entry
-    await prisma.orderStatusHistory.create({
-      data: {
-        orderId,
-        status,
-        notes,
-        createdBy: context.user.id,
-      },
-    });
-
-    // Send email notification to customer
-    try {
-      if (order.user.email) {
-        await sendOrderStatusUpdateEmail(order.user.email, {
-          orderId: order.id,
-          customerName: order.user.name || 'Customer',
+      await prisma.orderStatusHistory.create({
+        data: {
+          orderId,
           status,
-          trackingNumber: order.trackingNumber || undefined,
-          courierService: order.courierService || undefined,
-          estimatedDelivery: order.estimatedDelivery?.toISOString(),
-          language: 'bg',
-        });
+          notes: notes || null,
+          createdBy: user.id,
+        },
+      });
+
+      try {
+        if (order.user.email) {
+          await sendOrderStatusUpdateEmail(order.user.email, {
+            orderId: order.id,
+            customerName: order.user.name || 'Customer',
+            status,
+            trackingNumber: order.trackingNumber || undefined,
+            courierService: order.courierService || undefined,
+            estimatedDelivery: order.estimatedDelivery?.toISOString(),
+            language: 'bg',
+          });
+        }
+      } catch (emailError) {
+        logger.warn('Failed to send status update email', { error: getSafeErrorDetails(emailError) });
       }
-    } catch (emailError) {
-      console.error('Failed to send status update email:', emailError);
-      // Don't fail the status update if email fails
-    }
 
-    return NextResponse.json({
-      success: true,
-      order,
-      message: `Order status updated to ${status}`,
-    });
-  } catch (error) {
-    console.error('Order status update error:', error);
-    return NextResponse.json(
-      { error: 'Failed to update order status' },
-      { status: 500 }
-    );
-  }
-});
-
-export const GET = requireAdmin(async (request: NextRequest) => {
-  try {
-    const { searchParams } = new URL(request.url);
-    const orderId = searchParams.get('orderId');
-
-    if (!orderId) {
+      return NextResponse.json({
+        success: true,
+        order,
+        message: `Order status updated to ${status}`,
+      });
+    } catch (error) {
+      logger.error('Failed to update order status', { error: getSafeErrorDetails(error) });
       return NextResponse.json(
-        { error: 'Order ID required' },
-        { status: 400 }
+        { error: 'Failed to update order status' },
+        { status: 500 },
       );
     }
+  },
+);
 
-    const statusHistory = await prisma.orderStatusHistory.findMany({
-      where: { orderId },
-      orderBy: { createdAt: 'desc' },
-    });
+export const GET = withApiGuard(
+  {
+    requireAdmin: true,
+    rateLimit: apiRateLimit,
+  },
+  async (request: NextRequest) => {
+    try {
+      const { searchParams } = new URL(request.url);
+      const orderId = searchParams.get('orderId');
 
-    return NextResponse.json({ statusHistory });
-  } catch (error) {
-    console.error('Status history fetch error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch status history' },
-      { status: 500 }
-    );
-  }
-});
+      if (!orderId) {
+        return NextResponse.json(
+          { error: 'Order ID required' },
+          { status: 400 },
+        );
+      }
+
+      const statusHistory = await prisma.orderStatusHistory.findMany({
+        where: { orderId },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return NextResponse.json({ statusHistory });
+    } catch (error) {
+      logger.error('Failed to fetch status history', { error: getSafeErrorDetails(error) });
+      return NextResponse.json(
+        { error: 'Failed to fetch status history' },
+        { status: 500 },
+      );
+    }
+  },
+);

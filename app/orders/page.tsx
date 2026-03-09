@@ -5,6 +5,7 @@ import { FiPackage, FiTruck, FiCheckCircle, FiXCircle, FiCreditCard, FiChevronRi
 import Link from 'next/link';
 import Image from 'next/image';
 import { OrderListSkeleton } from '@/components/SkeletonLoaders';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Order {
   id: string;
@@ -43,6 +44,7 @@ interface Order {
 }
 
 export default function OrdersPage() {
+  const { t } = useLanguage();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -55,7 +57,7 @@ export default function OrdersPage() {
 
         if (response.ok) {
           const data = await response.json();
-          setOrders(data || []);
+          setOrders(data.items || []);
         }
       } catch (error) {
         console.error('Error fetching orders:', error);
@@ -87,15 +89,15 @@ export default function OrdersPage() {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'PENDING':
-        return 'Pending';
+        return t('orders.status.pending');
       case 'PROCESSING':
-        return 'Processing';
+        return t('orders.status.processing');
       case 'SHIPPED':
-        return 'Shipped';
+        return t('orders.status.shipped');
       case 'DELIVERED':
-        return 'Delivered';
+        return t('orders.status.delivered');
       case 'CANCELLED':
-        return 'Cancelled';
+        return t('orders.status.cancelled');
       default:
         return status;
     }
@@ -136,25 +138,25 @@ export default function OrdersPage() {
     <div className="min-h-screen bg-[#0a0a0f]">
       <div className="container-custom py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-white">My Orders</h1>
+          <h1 className="text-3xl font-bold text-white">{t('orders.title')}</h1>
           <Link
             href="/shop"
             className="bg-accent text-white px-6 py-2 rounded-lg hover:bg-accent-light transition"
           >
-            Continue Shopping
+            {t('orders.continueShopping')}
           </Link>
         </div>
 
         {orders.length === 0 ? (
           <div className="text-center py-16">
             <FiPackage className="mx-auto h-24 w-24 text-text-secondary mb-6" />
-            <h2 className="text-2xl font-bold text-white mb-4">No orders yet</h2>
-            <p className="text-text-secondary mb-8">You haven't placed any orders yet.</p>
+            <h2 className="text-2xl font-bold text-white mb-4">{t('orders.noOrders')}</h2>
+            <p className="text-text-secondary mb-8">{t('orders.noOrdersDesc')}</p>
             <Link
               href="/shop"
               className="inline-flex items-center px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent-light transition"
             >
-              Start Shopping
+              {t('orders.startShopping')}
             </Link>
           </div>
         ) : (
@@ -168,10 +170,10 @@ export default function OrdersPage() {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-white font-semibold text-lg">
-                      Order #{order.id.slice(-8).toUpperCase()}
+                      {t('orders.orderPrefix')}{order.id.slice(-8).toUpperCase()}
                     </h3>
                     <p className="text-text-secondary text-sm">
-                      Placed on {new Date(order.createdAt).toLocaleDateString('bg-BG')}
+                      {t('orders.placedOn')} {new Date(order.createdAt).toLocaleDateString('bg-BG')}
                     </p>
                   </div>
                   <div className="text-right flex items-center gap-4">
@@ -206,7 +208,7 @@ export default function OrdersPage() {
                             {item.product.name}
                           </h4>
                           <div className="flex items-center space-x-2 text-xs text-text-secondary">
-                            <span>Qty: {item.quantity}</span>
+                            <span>{t('orders.qty')} {item.quantity}</span>
                             {item.color && <span>• {item.color}</span>}
                             {item.size && <span>• {item.size}</span>}
                           </div>
@@ -218,7 +220,7 @@ export default function OrdersPage() {
                     ))}
                     {order.items.length > 3 && (
                       <div className="text-text-secondary text-sm self-center">
-                        +{order.items.length - 3} more items
+                        +{order.items.length - 3} {t('orders.moreItems')}
                       </div>
                     )}
                   </div>
@@ -227,10 +229,10 @@ export default function OrdersPage() {
                 <div className="border-t border-gray-700 pt-4 mt-4">
                   <div className="flex justify-between items-center">
                     <div className="flex gap-4 text-sm text-text-secondary">
-                      <span>Subtotal: {(order.subtotal ?? 0).toFixed(2)} €</span>
-                      <span>Delivery: {order.deliveryFee === 0 ? 'Free' : `${(order.deliveryFee ?? 0).toFixed(2)} €`}</span>
+                      <span>{t('orders.subtotal')} {(order.subtotal ?? 0).toFixed(2)} €</span>
+                      <span>{t('orders.delivery')} {order.deliveryFee === 0 ? t('orders.free') : `${(order.deliveryFee ?? 0).toFixed(2)} €`}</span>
                     </div>
-                    <span className="text-accent text-sm font-medium">View Details →</span>
+                    <span className="text-accent text-sm font-medium">{t('orders.viewDetails')}</span>
                   </div>
                 </div>
               </Link>

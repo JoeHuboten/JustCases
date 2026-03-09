@@ -3,6 +3,9 @@ import { prisma, productSelectFields } from '@/lib/prisma';
 import { apiRateLimit } from '@/lib/rate-limit';
 import { sanitizeInput } from '@/lib/validation';
 import { apiCache, cacheKeys } from '@/lib/cache';
+import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+
+const logger = createLogger('api:products:search');
 
 /**
  * Server-side product search endpoint
@@ -55,7 +58,7 @@ export async function GET(request: NextRequest) {
 
     // Build cache key for search
     const cacheKey = cacheKeys.search(`${sanitizedQuery}-${categoryId || ''}-${limit}-${offset}`);
-    const cached = apiCache.get<{ products: unknown[]; total: number; limit: number; offset: number; hasMore: boolean }>(cacheKey);
+    const cached = await apiCache.getDistributed<{ products: unknown[]; total: number; limit: number; offset: number; hasMore: boolean }>(cacheKey);
     if (cached && cached.total === total) {
       return NextResponse.json(cached);
     }
@@ -89,12 +92,12 @@ export async function GET(request: NextRequest) {
       hasMore: offset + products.length < total,
     };
 
-    // Cache search results for 1 minute
-    apiCache.set(cacheKey, result, 60 * 1000);
+    // Cache search results for 30 seconds (TTL in seconds, see cacheTTL.search)
+    await apiCache.setDistributed(cacheKey, result, 30);
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Error searching products:', error);
+    logger.error('Error searching products', { error: getSafeErrorDetails(error) });
     return NextResponse.json(
       { error: 'Search failed. Please try again.' },
       { status: 500 }

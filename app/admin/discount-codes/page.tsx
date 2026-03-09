@@ -86,20 +86,32 @@ export default function AdminDiscountCodesPage() {
   const handleDelete = async (id: string) => {
     if (!confirm(t('admin.discount.confirmDelete', 'Сигурни ли сте, че искате да изтриете този код за отстъпка?'))) return;
 
+    // Optimistic removal
+    const prevCodes = codes;
+    setCodes((prev) => prev.filter((c) => c.id !== id));
+
     try {
       const response = await fetch(`/api/admin/discount-codes/${id}`, {
         method: 'DELETE',
       });
 
-      if (response.ok) {
-        await fetchCodes();
+      if (!response.ok) {
+        // Rollback on failure
+        setCodes(prevCodes);
       }
     } catch (error) {
       console.error('Error deleting discount code:', error);
+      setCodes(prevCodes);
     }
   };
 
   const handleToggleActive = async (code: DiscountCode) => {
+    // Optimistic toggle
+    const prevCodes = codes;
+    setCodes((prev) =>
+      prev.map((c) => (c.id === code.id ? { ...c, active: !c.active } : c)),
+    );
+
     try {
       const response = await fetch(`/api/admin/discount-codes/${code.id}`, {
         method: 'PUT',
@@ -107,11 +119,12 @@ export default function AdminDiscountCodesPage() {
         body: JSON.stringify({ ...code, active: !code.active }),
       });
 
-      if (response.ok) {
-        await fetchCodes();
+      if (!response.ok) {
+        setCodes(prevCodes);
       }
     } catch (error) {
       console.error('Error toggling discount code:', error);
+      setCodes(prevCodes);
     }
   };
 

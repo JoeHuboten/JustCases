@@ -3,78 +3,35 @@
 import { FiTruck, FiMapPin, FiClock, FiPackage, FiEdit, FiTrash2, FiPlus } from 'react-icons/fi';
 import ScrollAnimation, { StaggerAnimation } from '@/components/ScrollAnimation';
 import { useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function DeliveriesPage() {
+  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState('tracking');
 
   const faqData = {
     tracking: [
-      {
-        question: "Как да проследя поръчката си?",
-        answer: "След изпращане на поръчката ще получите имейл с номер за проследяване. Можете да използвате този номер в секцията 'Моите поръчки' или директно в сайта на куриерската компания."
-      },
-      {
-        question: "Колко време отнема доставката?",
-        answer: "Стандартната доставка отнема 3-5 работни дни, експресната 1-2 работни дни, а доставката в деня е налична само за София. Сроковете започват да се броят от деня на изпращане."
-      },
-      {
-        question: "Получавам ли уведомления за статуса на доставката?",
-        answer: "Да, получавате SMS и имейл уведомления при всяка промяна в статуса на поръчката - при изпращане, при предаване на куриера и при доставка."
-      },
-      {
-        question: "Мога ли да променя адреса за доставка след изпращане?",
-        answer: "Можете да промените адреса само ако пратката все още не е изпратена. Свържете се с нас веднага на support@justcases.bg за помощ."
-      }
+      { question: t('deliveries.faq.tracking.q1'), answer: t('deliveries.faq.tracking.a1') },
+      { question: t('deliveries.faq.tracking.q2'), answer: t('deliveries.faq.tracking.a2') },
+      { question: t('deliveries.faq.tracking.q3'), answer: t('deliveries.faq.tracking.a3') },
+      { question: t('deliveries.faq.tracking.q4'), answer: t('deliveries.faq.tracking.a4') },
     ],
     addresses: [
-      {
-        question: "Как да добавя нов адрес за доставка?",
-        answer: "В секцията 'Моите адреси' в акаунта си кликнете 'Добави нов адрес'. Въведете пълния адрес, включително пощенски код и телефон за контакт."
-      },
-      {
-        question: "Колко адреса мога да имам?",
-        answer: "Можете да имате до 10 различни адреса за доставка. Това ви позволява да избирате най-удобния адрес за всяка поръчка."
-      },
-      {
-        question: "Мога ли да редактирам запазените адреси?",
-        answer: "Да, можете да редактирате или изтривате запазените адреси в секцията 'Моите адреси'. Промените се запазват веднага."
-      },
-      {
-        question: "Как да избера адрес по подразбиране?",
-        answer: "В списъка с адреси можете да маркирате един като 'Адрес по подразбиране'. Този адрес ще се избира автоматично при нови поръчки."
-      }
+      { question: t('deliveries.faq.addresses.q1'), answer: t('deliveries.faq.addresses.a1') },
+      { question: t('deliveries.faq.addresses.q2'), answer: t('deliveries.faq.addresses.a2') },
+      { question: t('deliveries.faq.addresses.q3'), answer: t('deliveries.faq.addresses.a3') },
+      { question: t('deliveries.faq.addresses.q4'), answer: t('deliveries.faq.addresses.a4') },
     ],
     issues: [
-      {
-        question: "Какво да правя, ако не получа пратката в очаквания срок?",
-        answer: "Първо проверете статуса на пратката с номера за проследяване. Ако има забавяне, свържете се с нас на support@justcases.bg с номера на поръчката."
-      },
-      {
-        question: "Какво да правя, ако пратката е повредена?",
-        answer: "Веднага снимайте пратката и съдържанието и се свържете с нас. Ще ви изпратим нова пратка без допълнителни разходи."
-      },
-      {
-        question: "Мога ли да откажа доставката?",
-        answer: "Можете да откажете доставката, ако се свържете с нас преди изпращане на пратката. След изпращане, пратката ще се върне автоматично."
-      },
-      {
-        question: "Какво да правя, ако не съм вкъщи при доставка?",
-        answer: "Куриерът ще остави бележка с инструкции. Можете да се свържете с куриерската компания за преадресиране или повторна доставка."
-      }
+      { question: t('deliveries.faq.issues.q1'), answer: t('deliveries.faq.issues.a1') },
+      { question: t('deliveries.faq.issues.q2'), answer: t('deliveries.faq.issues.a2') },
+      { question: t('deliveries.faq.issues.q3'), answer: t('deliveries.faq.issues.a3') },
+      { question: t('deliveries.faq.issues.q4'), answer: t('deliveries.faq.issues.a4') },
     ],
     international: [
-      {
-        question: "Доставяте ли извън България?",
-        answer: "В момента доставяме само в България. Работим върху разширяване на услугите за доставка в други държави."
-      },
-      {
-        question: "Има ли планове за международна доставка?",
-        answer: "Да, планираме да започнем доставки в съседните държави през 2025 година. Следете нашите новини за актуализации."
-      },
-      {
-        question: "Мога ли да поръчам за приятел в България?",
-        answer: "Да, можете да поръчате за всеки адрес в България. Просто въведете адреса на получателя при поръчката."
-      }
+      { question: t('deliveries.faq.international.q1'), answer: t('deliveries.faq.international.a1') },
+      { question: t('deliveries.faq.international.q2'), answer: t('deliveries.faq.international.a2') },
+      { question: t('deliveries.faq.international.q3'), answer: t('deliveries.faq.international.a3') },
     ]
   };
 
@@ -84,9 +41,9 @@ export default function DeliveriesPage() {
       <section className="bg-gradient-to-r from-[#0a0a0f] to-blue-900/20 py-20">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn" className="text-center">
-            <h1 className="text-5xl font-bold text-white mb-6">Управление на доставки</h1>
+            <h1 className="text-5xl font-bold text-white mb-6">{t('deliveries.title')}</h1>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Научете как да управлявате адресите си, проследявате поръчките и решавате проблеми с доставката.
+              {t('deliveries.subtitle')}
             </p>
           </ScrollAnimation>
         </div>
@@ -96,16 +53,16 @@ export default function DeliveriesPage() {
       <section className="py-16">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn">
-            <h2 className="text-4xl font-bold text-white text-center mb-12">Възможности за управление</h2>
+            <h2 className="text-4xl font-bold text-white text-center mb-12">{t('deliveries.capabilities')}</h2>
           </ScrollAnimation>
           <StaggerAnimation animation="scaleUp" stagger={0.2} className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="bg-primary rounded-2xl p-8 text-center">
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <FiTruck className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-4">Проследяване</h3>
+              <h3 className="text-xl font-bold text-white mb-4">{t('deliveries.tracking')}</h3>
               <p className="text-gray-300">
-                Проследявайте статуса на всички ваши поръчки в реално време
+                {t('deliveries.trackingDesc')}
               </p>
             </div>
 
@@ -113,9 +70,9 @@ export default function DeliveriesPage() {
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <FiMapPin className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-4">Адреси</h3>
+              <h3 className="text-xl font-bold text-white mb-4">{t('deliveries.addresses')}</h3>
               <p className="text-gray-300">
-                Управлявайте множество адреси за доставка и фактуриране
+                {t('deliveries.addressesDesc')}
               </p>
             </div>
 
@@ -123,9 +80,9 @@ export default function DeliveriesPage() {
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <FiClock className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-4">Уведомления</h3>
+              <h3 className="text-xl font-bold text-white mb-4">{t('deliveries.notifications')}</h3>
               <p className="text-gray-300">
-                Получавайте SMS и имейл уведомления за статуса на доставката
+                {t('deliveries.notificationsDesc')}
               </p>
             </div>
 
@@ -133,9 +90,9 @@ export default function DeliveriesPage() {
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <FiPackage className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-4">История</h3>
+              <h3 className="text-xl font-bold text-white mb-4">{t('deliveries.history')}</h3>
               <p className="text-gray-300">
-                Вижте историята на всички ваши доставки и поръчки
+                {t('deliveries.historyDesc')}
               </p>
             </div>
           </StaggerAnimation>
@@ -146,7 +103,7 @@ export default function DeliveriesPage() {
       <section className="bg-background-secondary py-16">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn">
-            <h2 className="text-4xl font-bold text-white text-center mb-12">Често задавани въпроси</h2>
+            <h2 className="text-4xl font-bold text-white text-center mb-12">{t('deliveries.faq.title')}</h2>
           </ScrollAnimation>
           
           {/* FAQ Categories */}
@@ -159,7 +116,7 @@ export default function DeliveriesPage() {
                   : 'bg-primary text-gray-300 hover:text-white'
               }`}
             >
-              Проследяване
+              {t('deliveries.faq.tracking')}
             </button>
             <button
               onClick={() => setSelectedCategory('addresses')}
@@ -169,7 +126,7 @@ export default function DeliveriesPage() {
                   : 'bg-primary text-gray-300 hover:text-white'
               }`}
             >
-              Адреси
+              {t('deliveries.faq.addresses')}
             </button>
             <button
               onClick={() => setSelectedCategory('issues')}
@@ -179,7 +136,7 @@ export default function DeliveriesPage() {
                   : 'bg-primary text-gray-300 hover:text-white'
               }`}
             >
-              Проблеми
+              {t('deliveries.faq.issues')}
             </button>
             <button
               onClick={() => setSelectedCategory('international')}
@@ -189,7 +146,7 @@ export default function DeliveriesPage() {
                   : 'bg-primary text-gray-300 hover:text-white'
               }`}
             >
-              Международни
+              {t('deliveries.faq.international')}
             </button>
           </div>
 
@@ -209,26 +166,26 @@ export default function DeliveriesPage() {
       <section className="py-16">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn">
-            <h2 className="text-4xl font-bold text-white text-center mb-12">Опции за доставка</h2>
+            <h2 className="text-4xl font-bold text-white text-center mb-12">{t('deliveries.options')}</h2>
           </ScrollAnimation>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-primary rounded-2xl p-8 text-center">
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <FiTruck className="text-white text-2xl" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4">Стандартна доставка</h3>
-              <div className="text-3xl font-bold text-accent mb-4">Безплатно</div>
+              <h3 className="text-2xl font-bold text-white mb-4">{t('deliveries.standard.title')}</h3>
+              <div className="text-3xl font-bold text-accent mb-4">{t('deliveries.standard.price')}</div>
               <p className="text-gray-300 mb-4">
-                За поръчки над 50 €.
+                {t('deliveries.standard.desc')}
               </p>
               <div className="space-y-2 text-gray-300">
                 <div className="flex items-center justify-center gap-2">
                   <FiClock size={16} />
-                  <span>3-5 работни дни</span>
+                  <span>{t('deliveries.standard.time')}</span>
                 </div>
                 <div className="flex items-center justify-center gap-2">
                   <FiMapPin size={16} />
-                  <span>Цяла България</span>
+                  <span>{t('deliveries.standard.area')}</span>
                 </div>
               </div>
             </div>
@@ -237,23 +194,23 @@ export default function DeliveriesPage() {
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <FiPackage className="text-white text-2xl" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4">Експресна доставка</h3>
-              <div className="text-3xl font-bold text-accent mb-4">8.90 €.</div>
+              <h3 className="text-2xl font-bold text-white mb-4">{t('deliveries.express.title')}</h3>
+              <div className="text-3xl font-bold text-accent mb-4">{t('deliveries.express.price')}</div>
               <p className="text-gray-300 mb-4">
-                За всички поръчки
+                {t('deliveries.express.desc')}
               </p>
               <div className="space-y-2 text-gray-300">
                 <div className="flex items-center justify-center gap-2">
                   <FiClock size={16} />
-                  <span>1-2 работни дни</span>
+                  <span>{t('deliveries.express.time')}</span>
                 </div>
                 <div className="flex items-center justify-center gap-2">
                   <FiMapPin size={16} />
-                  <span>Цяла България</span>
+                  <span>{t('deliveries.express.area')}</span>
                 </div>
               </div>
               <div className="mt-4 bg-accent/20 text-accent px-3 py-1 rounded-full text-sm font-medium">
-                Най-популярно
+                {t('deliveries.express.popular')}
               </div>
             </div>
 
@@ -261,19 +218,19 @@ export default function DeliveriesPage() {
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <FiClock className="text-white text-2xl" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4">Доставка в деня</h3>
-              <div className="text-3xl font-bold text-accent mb-4">15.90 €.</div>
+              <h3 className="text-2xl font-bold text-white mb-4">{t('deliveries.sameDay.title')}</h3>
+              <div className="text-3xl font-bold text-accent mb-4">{t('deliveries.sameDay.price')}</div>
               <p className="text-gray-300 mb-4">
-                Само за София
+                {t('deliveries.sameDay.desc')}
               </p>
               <div className="space-y-2 text-gray-300">
                 <div className="flex items-center justify-center gap-2">
                   <FiClock size={16} />
-                  <span>В същия ден</span>
+                  <span>{t('deliveries.sameDay.time')}</span>
                 </div>
                 <div className="flex items-center justify-center gap-2">
                   <FiMapPin size={16} />
-                  <span>Само София</span>
+                  <span>{t('deliveries.sameDay.area')}</span>
                 </div>
               </div>
             </div>
@@ -285,22 +242,22 @@ export default function DeliveriesPage() {
       <section className="bg-background-secondary py-16">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn">
-            <h2 className="text-4xl font-bold text-white text-center mb-12">Бързи действия</h2>
+            <h2 className="text-4xl font-bold text-white text-center mb-12">{t('deliveries.quickActions')}</h2>
           </ScrollAnimation>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-primary rounded-2xl p-8 text-center">
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <FiTruck className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-4">Проследете поръчка</h3>
+              <h3 className="text-xl font-bold text-white mb-4">{t('deliveries.trackOrder')}</h3>
               <p className="text-gray-300 mb-6">
-                Влезте в акаунта си за да видите статуса на всички поръчки
+                {t('deliveries.trackOrderDesc')}
               </p>
               <a 
                 href="/orders"
                 className="bg-accent text-white px-6 py-3 rounded-lg hover:bg-accent-light transition-colors font-medium"
               >
-                Моите поръчки
+                {t('deliveries.myOrders')}
               </a>
             </div>
 
@@ -308,15 +265,15 @@ export default function DeliveriesPage() {
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <FiPlus className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-4">Добавете адрес</h3>
+              <h3 className="text-xl font-bold text-white mb-4">{t('deliveries.addAddress')}</h3>
               <p className="text-gray-300 mb-6">
-                Можете да добавите адрес за доставка директно при поръчка
+                {t('deliveries.addAddressDesc')}
               </p>
               <a 
                 href="/shop"
                 className="bg-accent text-white px-6 py-3 rounded-lg hover:bg-accent-light transition-colors font-medium"
               >
-                Продължи с пазаруване
+                {t('deliveries.continueShopping')}
               </a>
             </div>
 
@@ -324,15 +281,15 @@ export default function DeliveriesPage() {
               <div className="bg-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <FiPackage className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-4">Нужда от помощ?</h3>
+              <h3 className="text-xl font-bold text-white mb-4">{t('deliveries.needHelp')}</h3>
               <p className="text-gray-300 mb-6">
-                Свържете се с нас за въпроси относно доставката
+                {t('deliveries.needHelpDesc')}
               </p>
               <a 
                 href="/support"
                 className="bg-accent text-white px-6 py-3 rounded-lg hover:bg-accent-light transition-colors font-medium"
               >
-                Поддръжка
+                {t('deliveries.support')}
               </a>
             </div>
           </div>

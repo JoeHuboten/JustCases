@@ -1,38 +1,14 @@
 'use client';
+
 import { useState, useEffect } from 'react';
-import {
-  Elements,
-  CardElement,
-  useStripe,
-  useElements,
-} from '@stripe/react-stripe-js';
-import getStripe from '@/lib/stripe-client';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { FiCreditCard, FiLock } from 'react-icons/fi';
+import getStripe from '@/lib/stripe-client';
+import { apiFetch } from '@/lib/client-api';
 
 interface StripeCardPaymentProps {
   amount: number;
-  items: Array<{
-    name: string;
-    price: number;
-    quantity: number;
-    image: string;
-    color?: string;
-    size?: string;
-    productId: string;
-    variantId?: string;
-  }>;
-  shippingAddress: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    address: string;
-    city: string;
-    postalCode: string;
-    country: string;
-    notes: string;
-  };
-  discountCode?: string;
+  checkoutSessionId: string | null;
   onSuccess: (orderId: string) => void;
   onError: (error: string) => void;
 }
@@ -43,27 +19,15 @@ const cardElementOptions = {
       fontSize: '16px',
       color: '#ffffff',
       fontFamily: 'system-ui, -apple-system, sans-serif',
-      '::placeholder': {
-        color: 'rgba(255, 255, 255, 0.4)',
-      },
+      '::placeholder': { color: 'rgba(255, 255, 255, 0.4)' },
       iconColor: '#60a5fa',
     },
-    invalid: {
-      color: '#ef4444',
-      iconColor: '#ef4444',
-    },
+    invalid: { color: '#ef4444', iconColor: '#ef4444' },
   },
   hidePostalCode: true,
 };
 
-function StripeCardPaymentInner({
-  amount,
-  items,
-  shippingAddress,
-  discountCode,
-  onSuccess,
-  onError,
-}: StripeCardPaymentProps) {
+function StripeCardPaymentInner({ amount, checkoutSessionId, onSuccess, onError }: StripeCardPaymentProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -71,93 +35,69 @@ function StripeCardPaymentInner({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!stripe || !elements) {
+    if (!stripe || !elements) return;
+    if (!checkoutSessionId) {
+      onError('Checkout session is missing. Please return to shipping step.');
       return;
     }
 
     const cardElement = elements.getElement(CardElement);
-    if (!cardElement) {
-      return;
-    }
+    if (!cardElement) return;
 
     setIsProcessing(true);
     setCardError(null);
 
     try {
-      // Create payment intent on the server
-      const intentResponse = await fetch('/api/payment/stripe/create-intent', {
+      const intentResponse = await apiFetch('/api/payment/stripe/create-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items,
-          discountCode,
-          shippingAddress,
-          paymentMethodType: 'card',
-        }),
+        body: JSON.stringify({ checkoutSessionId }),
       });
-
       const intentData = await intentResponse.json();
-
       if (!intentResponse.ok) {
-        throw new Error(intentData.message || 'Грешка при създаване на плащане');
+        throw new Error(intentData.message || intentData.error || 'Failed to create payment intent');
       }
 
-      // Confirm the payment with the card element
       const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
         intentData.clientSecret,
         {
-          payment_method: {
-            card: cardElement,
-            billing_details: {
-              name: `${shippingAddress.firstName} ${shippingAddress.lastName}`,
-              email: shippingAddress.email,
-              phone: shippingAddress.phone,
-              address: {
-                line1: shippingAddress.address,
-                city: shippingAddress.city,
-                postal_code: shippingAddress.postalCode,
-                country: 'BG',
-              },
-            },
-          },
-        }
+          payment_method: { card: cardElement },
+        },
       );
 
       if (confirmError) {
-        throw new Error(confirmError.message || 'Плащането не е успешно');
+        throw new Error(confirmError.message || 'Payment confirmation failed');
       }
 
-      if (paymentIntent?.status === 'succeeded') {
-        // Capture the payment and create order
-        const captureResponse = await fetch('/api/payment/stripe/capture', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            paymentIntentId: intentData.paymentIntentId,
-            items,
-            discountCode,
-            shippingAddress,
-          }),
-        });
-
-        const captureData = await captureResponse.json();
-
-        if (!captureResponse.ok) {
-          throw new Error(captureData.message || 'Грешка при обработка на поръчката');
-        }
-
-        onSuccess(captureData.orderId);
-      } else {
-        throw new Error('Плащането не е завършено');
+      const providerPaymentId = paymentIntent?.id || intentData.paymentIntentId;
+      if (!providerPaymentId) {
+        throw new Error('Missing payment intent identifier');
       }
+
+      const captureResponse = await apiFetch('/api/payment/stripe/capture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          checkoutSessionId,
+          providerPaymentId,
+        }),
+      });
+      const captureData = await captureResponse.json();
+      if (!captureResponse.ok) {
+        throw new Error(captureData.message || captureData.error || 'Failed to finalize order');
+      }
+
+      onSuccess(captureData.orderId);
     } catch (err: any) {
-      setCardError(err.message || 'Неизвестна грешка');
-      onError(err.message || 'Неизвестна грешка');
+      const message = err?.message || 'Unknown payment error';
+      setCardError(message);
+      onError(message);
     } finally {
       setIsProcessing(false);
     }
   };
+
+  const disabled = !stripe || isProcessing || !checkoutSessionId;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -177,7 +117,7 @@ function StripeCardPaymentInner({
 
       <button
         type="submit"
-        disabled={!stripe || isProcessing}
+        disabled={disabled}
         className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-500/50 text-white font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2"
       >
         {isProcessing ? (
@@ -207,9 +147,7 @@ export default function StripeCardPayment(props: StripeCardPaymentProps) {
 
   useEffect(() => {
     const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-    if (!key) {
-      return;
-    }
+    if (!key) return;
     const s = getStripe();
     if (s) {
       setStripePromise(s);
@@ -217,9 +155,7 @@ export default function StripeCardPayment(props: StripeCardPaymentProps) {
     }
   }, []);
 
-  if (!isReady || !stripePromise) {
-    return null;
-  }
+  if (!isReady || !stripePromise) return null;
 
   return (
     <Elements stripe={stripePromise}>

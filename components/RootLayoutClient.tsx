@@ -1,18 +1,22 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
 import { AuthProvider } from "@/contexts/AuthContext";
-import AccessibilityPanel from "@/components/AccessibilityPanel";
-import KeyboardShortcuts from "@/components/KeyboardShortcuts";
-import PWAInstallPrompt from "@/components/PWAInstallPrompt";
-import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import CartSync from "@/components/CartSync";
 import { ToastProvider } from "@/components/Toast";
-import BackToTop from "@/components/BackToTop";
+
+// Lazy-load utilities that are not needed for first paint.
+// These components register listeners or show UI only on interaction/scroll.
+const AccessibilityPanel = dynamic(() => import("@/components/AccessibilityPanel"), { ssr: false });
+const KeyboardShortcuts = dynamic(() => import("@/components/KeyboardShortcuts"), { ssr: false });
+const PWAInstallPrompt = dynamic(() => import("@/components/PWAInstallPrompt"), { ssr: false });
+const ServiceWorkerRegistration = dynamic(() => import("@/components/ServiceWorkerRegistration"), { ssr: false });
+const BackToTop = dynamic(() => import("@/components/BackToTop"), { ssr: false });
 
 export default function RootLayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

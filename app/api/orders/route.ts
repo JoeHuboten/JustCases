@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/auth-utils';
 import { prisma } from '@/lib/prisma';
 import { apiRateLimit } from '@/lib/rate-limit';
-import { createLogger, getRequestId } from '@/lib/logger';
+import { createLogger, getRequestId, getSafeErrorDetails } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   const requestId = getRequestId(request.headers);
@@ -31,29 +31,76 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    logger.debug('Fetching orders for user', { userId: user.id });
+    const { searchParams } = new URL(request.url);
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '50', 10)));
+    const skip = (page - 1) * limit;
 
-    const orders = await prisma.order.findMany({
-      where: { userId: user.id },
-      include: {
-        items: {
-          include: {
-            product: true,
+    logger.debug('Fetching orders', { page, limit });
+
+    const [orders, total] = await Promise.all([
+      prisma.order.findMany({
+        where: { userId: user.id },
+        select: {
+          id: true,
+          total: true,
+          subtotal: true,
+          deliveryFee: true,
+          discount: true,
+          status: true,
+          trackingNumber: true,
+          courierService: true,
+          estimatedDelivery: true,
+          createdAt: true,
+          items: {
+            select: {
+              id: true,
+              quantity: true,
+              price: true,
+              color: true,
+              size: true,
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  image: true,
+                  slug: true,
+                  category: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+        orderBy: {
+          createdAt: 'desc',
+        },
+        skip,
+        take: limit,
+      }),
+      prisma.order.count({ where: { userId: user.id } }),
+    ]);
 
     const duration = Date.now() - startTime;
-    logger.info(`Found ${orders.length} orders`, { userId: user.id, duration: `${duration}ms` });
+    logger.info(`Found ${orders.length} orders`, { page, total, duration: `${duration}ms` });
 
-    return NextResponse.json(orders, { headers: { 'x-request-id': requestId } });
+    return NextResponse.json(
+      {
+        items: orders,
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+      { headers: { 'x-request-id': requestId } },
+    );
   } catch (error: unknown) {
     const duration = Date.now() - startTime;
-    logger.error('Error fetching orders', { error, duration: `${duration}ms` });
+    logger.error('Error fetching orders', { error: getSafeErrorDetails(error), duration: `${duration}ms` });
     return NextResponse.json(
       { error: 'Failed to fetch orders', requestId },
       { status: 500, headers: { 'x-request-id': requestId } }

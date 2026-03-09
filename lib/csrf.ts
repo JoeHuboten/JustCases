@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 
-const CSRF_SECRET = process.env.JWT_SECRET || 'csrf-secret-key';
+function getCsrfSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (secret) return secret;
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET must be configured in production for CSRF protection');
+  }
+  return 'dev-only-csrf-secret-do-not-use-in-production';
+}
 const CSRF_TOKEN_HEADER = 'x-csrf-token';
 const CSRF_COOKIE_NAME = 'csrf-token';
 
@@ -11,7 +18,7 @@ const CSRF_COOKIE_NAME = 'csrf-token';
 export function generateCsrfToken(): string {
   const token = crypto.randomBytes(32).toString('hex');
   const signature = crypto
-    .createHmac('sha256', CSRF_SECRET)
+    .createHmac('sha256', getCsrfSecret())
     .update(token)
     .digest('hex');
   return `${token}.${signature}`;
@@ -25,9 +32,13 @@ export function verifyCsrfToken(token: string): boolean {
   
   const [tokenValue, signature] = token.split('.');
   const expectedSignature = crypto
-    .createHmac('sha256', CSRF_SECRET)
+    .createHmac('sha256', getCsrfSecret())
     .update(tokenValue)
     .digest('hex');
+
+  if (signature.length !== expectedSignature.length) {
+    return false;
+  }
   
   return crypto.timingSafeEqual(
     Buffer.from(signature),

@@ -6,7 +6,7 @@
 
 ## 1. Project Overview
 
-JustCases is a modern e-commerce platform focused on premium mobile accessories. It combines a performant Next.js 15 (App Router) front end, PostgreSQL database, Prisma ORM, and a rich component library to deliver a PWA-ready shopping experience with accessibility, internationalisation, cart management, authentication, and payment integrations.
+JustCases is a modern e-commerce platform focused on premium mobile accessories. It combines a performant Next.js 16 (App Router) front end, PostgreSQL database, Prisma ORM, and a rich component library to deliver a PWA-ready shopping experience with accessibility, internationalisation, cart management, authentication, and payment integrations.
 
 **Key capabilities**
 - Dark-themed responsive UI optimised for mobile and desktop.
@@ -24,7 +24,7 @@ JustCases is a modern e-commerce platform focused on premium mobile accessories.
 | Requirement | Why it is needed |
 |-------------|------------------|
 | Windows 10/11, macOS 13+, or modern Linux | Supported development/host environments |
-| Node.js 18 or higher | Next.js 15 and dependencies rely on Node 18 runtime |
+| Node.js 18 or higher | Next.js 16 and dependencies rely on Node 18 runtime |
 | npm 9+ (bundled with Node) | Package manager used for scripts and dependencies |
 | PostgreSQL 15+ | Primary relational database (local or containerised) |
 | Docker 24+ *(optional)* | Simplifies consistent environment setup via docker-compose |
@@ -38,7 +38,7 @@ JustCases is a modern e-commerce platform focused on premium mobile accessories.
 
 | Layer | Tool / Library | Why it is used |
 |-------|----------------|----------------|
-| Framework | **Next.js 15 (App Router)** | Server-side rendering, file-based routing, metadata API, image optimisation, PWA support, and modern React 19 features. |
+| Framework | **Next.js 16 (App Router)** | Server-side rendering, file-based routing, metadata API, image optimisation, PWA support, and modern React 19 features. |
 | Language | **TypeScript** | Type safety and better developer tooling for React, Prisma, and Node APIs. |
 | UI | **React 19** | Component-based rendering, Suspense, concurrent rendering. |
 | Styling | **Tailwind CSS 4** | Utility-first styling with responsive variants and theming. |

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { strictRateLimit } from '@/lib/rate-limit';
+import { apiRateLimit, strictRateLimit } from '@/lib/rate-limit';
 import { contactFormSchema, sanitizeInput } from '@/lib/validation';
 import { validateCsrf } from '@/lib/csrf';
-import { requireAdmin } from '@/lib/auth-utils';
-import { createLogger, getRequestId } from '@/lib/logger';
+import { createLogger, getRequestId, getSafeErrorDetails } from '@/lib/logger';
+import { withApiGuard } from '@/lib/api-guard';
 
 export async function POST(request: NextRequest) {
   const requestId = getRequestId(request.headers);
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     const duration = Date.now() - startTime;
-    logger.error('Error submitting contact form', { error, duration: `${duration}ms` });
+    logger.error('Error submitting contact form', { error: getSafeErrorDetails(error), duration: `${duration}ms` });
     return NextResponse.json(
       { error: 'Failed to submit message. Please try again.', requestId },
       { status: 500, headers: { 'x-request-id': requestId } }
@@ -85,20 +85,27 @@ export async function POST(request: NextRequest) {
 }
 
 // GET endpoint to retrieve contact messages (admin only)
-export const GET = requireAdmin(async (request: NextRequest) => {
-  try {
-    const messages = await prisma.contactMessage.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+export const GET = withApiGuard(
+  {
+    requireAdmin: true,
+    rateLimit: apiRateLimit,
+  },
+  async () => {
+    try {
+      const messages = await prisma.contactMessage.findMany({
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
 
-    return NextResponse.json(messages);
-  } catch (error) {
-    console.error('Error fetching contact messages:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch messages' },
-      { status: 500 }
-    );
-  }
-});
+      return NextResponse.json(messages);
+    } catch (error) {
+      const logger = createLogger('api:contact:admin-list');
+      logger.error('Error fetching contact messages', { error: getSafeErrorDetails(error) });
+      return NextResponse.json(
+        { error: 'Failed to fetch messages' },
+        { status: 500 },
+      );
+    }
+  },
+);

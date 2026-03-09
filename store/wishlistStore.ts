@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { apiFetch } from '@/lib/client-api';
 
 interface WishlistItem {
   id: string;
@@ -37,7 +38,7 @@ export const useWishlistStore = create<WishlistStore>()(
 
       addItem: async (item: WishlistItem) => {
         const { items } = get();
-        
+
         // Check if item already exists
         if (items.some(wishlistItem => wishlistItem.id === item.id)) {
           return;
@@ -46,38 +47,33 @@ export const useWishlistStore = create<WishlistStore>()(
         // Optimistically add to local state
         set({ items: [...items, item] });
 
-        // Try to sync with server
         try {
-          const response = await fetch('/api/wishlist', {
+          const response = await apiFetch('/api/wishlist', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ productId: item.id }),
-            credentials: 'include',
           });
-          
+
           if (response.ok) {
             set({ isSynced: true });
           }
-        } catch (error) {
-          // Keep local state even if server sync fails
-          console.warn('Failed to sync wishlist with server:', error);
+        } catch {
+          // Keep local state even if server sync fails – no console noise
         }
       },
 
       removeItem: async (productId: string) => {
         const { items } = get();
-        
+
         // Optimistically remove from local state
         set({ items: items.filter(item => item.id !== productId) });
 
-        // Try to sync with server
         try {
-          await fetch(`/api/wishlist?productId=${productId}`, {
+          await apiFetch(`/api/wishlist?productId=${productId}`, {
             method: 'DELETE',
-            credentials: 'include',
           });
-        } catch (error) {
-          console.warn('Failed to sync wishlist removal with server:', error);
+        } catch {
+          // Keep local state even if server sync fails
         }
       },
 
@@ -95,18 +91,16 @@ export const useWishlistStore = create<WishlistStore>()(
         if (isLoading) return;
 
         set({ isLoading: true });
-        
+
         try {
-          const response = await fetch('/api/wishlist', {
-            credentials: 'include',
-          });
-          
+          const response = await apiFetch('/api/wishlist');
+
           if (response.ok) {
             const data = await response.json();
             set({ items: data.items || [], isSynced: true });
           }
-        } catch (error) {
-          console.warn('Failed to sync wishlist from server:', error);
+        } catch {
+          // Silently fail – local state is the source of truth for guests
         } finally {
           set({ isLoading: false });
         }

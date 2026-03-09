@@ -1,4 +1,7 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+@source "../app/**/*.{js,ts,jsx,tsx,mdx}";
+@source "../components/**/*.{js,ts,jsx,tsx,mdx}";
+@source "../contexts/**/*.{js,ts,jsx,tsx,mdx}";
 
 @plugin "tailwindcss-animate";
 
@@ -1297,4 +1300,3 @@ h1, h2, h3, h4, h5, h6 {
     color-scheme: dark;
   }
 }
-

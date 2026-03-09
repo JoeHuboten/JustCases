@@ -2,11 +2,13 @@
 import { useState, useEffect } from 'react';
 import { useCartStore } from '@/store/cartStore';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter } from 'next/navigation';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import Image from 'next/image';
 import { FiUser, FiMapPin, FiPhone, FiMail, FiFileText, FiTruck, FiShield, FiCheckCircle, FiCreditCard } from 'react-icons/fi';
 import dynamic from 'next/dynamic';
+import { apiFetch } from '@/lib/client-api';
 
 // Dynamically import payment components to avoid SSR issues
 const ApplePayButton = dynamic(() => import('@/components/ApplePayButton'), { 
@@ -98,6 +100,7 @@ const InputField = ({
 
 export default function CheckoutPage() {
   const { user, loading: authLoading } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
   const { items, getSubtotal, getDiscount, getTotal, discountCode, clearCart } = useCartStore();
   const [error, setError] = useState('');
@@ -105,6 +108,7 @@ export default function CheckoutPage() {
   const [step, setStep] = useState<'shipping' | 'payment'>('shipping');
   const [isValidating, setIsValidating] = useState(false);
   const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '';
+  const isPayPalEnabled = Boolean(PAYPAL_CLIENT_ID && PAYPAL_CLIENT_ID !== 'your_paypal_client_id');
 
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     firstName: '',
@@ -122,6 +126,8 @@ export default function CheckoutPage() {
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
   const [loadingSavedAddresses, setLoadingSavedAddresses] = useState(false);
   const [selectedSavedAddressId, setSelectedSavedAddressId] = useState('');
+  const [checkoutSessionId, setCheckoutSessionId] = useState<string | null>(null);
+  const [checkoutTotals, setCheckoutTotals] = useState<{ subtotal: number; discount: number; total: number } | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/auth/signin');
@@ -140,7 +146,7 @@ export default function CheckoutPage() {
 
       setLoadingSavedAddresses(true);
       try {
-        const res = await fetch('/api/addresses');
+        const res = await apiFetch('/api/addresses');
         if (!res.ok) return;
 
         const data: SavedAddress[] = await res.json();
@@ -203,48 +209,84 @@ export default function CheckoutPage() {
     const newErrors: Partial<ShippingAddress> = {};
 
     if (!shippingAddress.firstName.trim() || shippingAddress.firstName.length < 2) {
-      newErrors.firstName = 'Името трябва да е поне 2 символа';
+      newErrors.firstName = t('checkout.validation.firstNameMin');
     }
     if (!shippingAddress.lastName.trim() || shippingAddress.lastName.length < 2) {
-      newErrors.lastName = 'Фамилията трябва да е поне 2 символа';
+      newErrors.lastName = t('checkout.validation.lastNameMin');
     }
     if (!shippingAddress.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(shippingAddress.email)) {
-      newErrors.email = 'Въведете валиден имейл адрес';
+      newErrors.email = t('checkout.validation.invalidEmail');
     }
     if (!shippingAddress.phone.trim() || shippingAddress.phone.length < 6) {
-      newErrors.phone = 'Въведете валиден телефонен номер';
+      newErrors.phone = t('checkout.validation.phoneTooShort');
     }
     if (!shippingAddress.address.trim() || shippingAddress.address.length < 5) {
-      newErrors.address = 'Адресът трябва да е поне 5 символа';
+      newErrors.address = t('checkout.validation.addressMin');
     }
     if (!shippingAddress.city.trim() || shippingAddress.city.length < 2) {
-      newErrors.city = 'Въведете валиден град';
+      newErrors.city = t('checkout.validation.cityMin');
     }
     if (!shippingAddress.postalCode.trim() || shippingAddress.postalCode.length < 4) {
-      newErrors.postalCode = 'Въведете валиден пощенски код';
+      newErrors.postalCode = t('checkout.validation.postalCodeMin');
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleContinueToPayment = () => {
+  const handleContinueToPayment = async () => {
     setIsValidating(true);
-    if (validateShippingForm()) {
+    if (!validateShippingForm()) {
+      setIsValidating(false);
+      return;
+    }
+
+    try {
+      const res = await apiFetch('/api/checkout/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items.map((item) => ({
+            productId: item.id,
+            quantity: item.quantity,
+            color: item.color || null,
+            size: item.size || null,
+          })),
+          discountCode: discountCode?.code || null,
+          shippingAddress,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || t('checkout.error.createOrder'));
+      }
+
+      setCheckoutSessionId(data.checkoutSessionId);
+      setCheckoutTotals({
+        subtotal: Number(data.subtotal || 0),
+        discount: Number(data.discount || 0),
+        total: Number(data.total || 0),
+      });
       setStep('payment');
       setError('');
+    } catch (err: any) {
+      setError(err.message || t('checkout.error.createOrder'));
     }
+
     setIsValidating(false);
   };
 
   const createOrder = async () => {
-    const res = await fetch('/api/payment/paypal/create-order', {
+    if (!checkoutSessionId) {
+      throw new Error('Checkout session is missing. Please go back and try again.');
+    }
+
+    const res = await apiFetch('/api/payment/paypal/create-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        items, 
-        discountCode: discountCode?.code,
-        shippingAddress 
+      body: JSON.stringify({
+        checkoutSessionId,
       }),
     });
     const data = await res.json();
@@ -253,21 +295,23 @@ export default function CheckoutPage() {
       if (data.stockErrors && Array.isArray(data.stockErrors)) {
         throw new Error(data.stockErrors.join('. '));
       }
-      throw new Error(data.message || data.error || 'Грешка при създаване на поръчка');
+      throw new Error(data.message || data.error || t('checkout.error.createOrder'));
     }
-    return data.orderId;
+    return data.providerPaymentId;
   };
 
   const onApprove = async (data: any) => {
     try {
-      const res = await fetch('/api/payment/paypal/capture-order', {
+      if (!checkoutSessionId) {
+        throw new Error('Checkout session is missing. Please try again.');
+      }
+
+      const res = await apiFetch('/api/payment/paypal/capture-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          orderId: data.orderID, 
-          items, 
-          discountCode: discountCode?.code,
-          shippingAddress 
+          checkoutSessionId,
+          providerPaymentId: data.orderID,
         }),
       });
       const result = await res.json();
@@ -276,13 +320,13 @@ export default function CheckoutPage() {
         if (result.stockErrors && Array.isArray(result.stockErrors)) {
           throw new Error(result.stockErrors.join('. '));
         }
-        throw new Error(result.message || result.error || 'Плащането не е успешно');
+        throw new Error(result.message || result.error || t('checkout.error.paymentFailed'));
       }
       setPaymentComplete(true);
       clearCart();
       router.push(`/payment/success?orderId=${result.orderId}`);
     } catch (err: any) {
-      setError('Плащането не е успешно: ' + (err.message || 'Неизвестна грешка'));
+      setError(t('checkout.error.paymentFailed') + ': ' + (err.message || t('checkout.error.unknown')));
     }
   };
 
@@ -294,22 +338,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!PAYPAL_CLIENT_ID || PAYPAL_CLIENT_ID === 'your_paypal_client_id') {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4 bg-[#0a0a0f]">
-        <div className="bg-white/[0.02] border border-white/10 rounded-xl p-8 max-w-md text-center">
-          <h2 className="text-2xl font-heading font-bold text-white mb-4">PayPal не е конфигуриран</h2>
-          <p className="text-white/50 mb-6 font-body">Моля, конфигурирайте PayPal в .env файла</p>
-          <button onClick={() => router.push('/cart')} className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-body">
-            Обратно към кошницата
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, currency: 'EUR' }}>
+  const checkoutContent = (
       <div className="min-h-screen bg-[#0a0a0f] py-6 sm:py-8 md:py-12">
         <div className="container mx-auto px-4 max-w-6xl">
           {/* Email Verification Warning */}
@@ -318,9 +347,9 @@ export default function CheckoutPage() {
               <div className="flex items-start gap-2 sm:gap-3">
                 <FiMail className="text-yellow-500 mt-0.5 flex-shrink-0" size={18} />
                 <div>
-                  <p className="text-yellow-500 font-medium mb-1 text-sm sm:text-base font-body">Email Not Verified</p>
+                  <p className="text-yellow-500 font-medium mb-1 text-sm sm:text-base font-body">{t('checkout.emailNotVerified')}</p>
                   <p className="text-yellow-400 text-xs sm:text-sm font-body">
-                    Please verify your email address to complete your purchase. Check your inbox for the verification link.
+                    {t('checkout.emailNotVerifiedDesc')}
                   </p>
                 </div>
               </div>
@@ -329,7 +358,7 @@ export default function CheckoutPage() {
 
           {/* Header with Steps */}
           <div className="mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4 sm:mb-6">Плащане</h1>
+            <h1 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4 sm:mb-6">{t('checkout.pageTitle')}</h1>
             
             {/* Progress Steps */}
             <div className="flex items-center gap-2 sm:gap-4">
@@ -339,7 +368,7 @@ export default function CheckoutPage() {
                 }`}>
                   {step === 'payment' ? <FiCheckCircle size={16} /> : '1'}
                 </div>
-                <span className="font-medium text-sm sm:text-base font-body">Доставка</span>
+                <span className="font-medium text-sm sm:text-base font-body">{t('checkout.step.shipping')}</span>
               </div>
               
               <div className={`flex-1 h-0.5 sm:h-1 ${step === 'payment' ? 'bg-green-500' : 'bg-white/10'}`} />
@@ -350,7 +379,7 @@ export default function CheckoutPage() {
                 }`}>
                   2
                 </div>
-                <span className="font-medium text-sm sm:text-base font-body">Плащане</span>
+                <span className="font-medium text-sm sm:text-base font-body">{t('checkout.step.payment')}</span>
               </div>
             </div>
           </div>
@@ -369,13 +398,13 @@ export default function CheckoutPage() {
                 <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 sm:p-6">
                   <h2 className="text-lg sm:text-xl font-heading font-bold text-white mb-4 sm:mb-6 flex items-center gap-2">
                     <FiTruck className="text-blue-400" size={20} />
-                    Адрес за доставка
+                    {t('checkout.shippingAddress')}
                   </h2>
 
                   {user && (
                     <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-white/[0.02] border border-white/10 rounded-lg">
                       <label className="block text-sm font-medium text-white/70 mb-2 font-body">
-                        Запазен адрес
+                        {t('checkout.savedAddress')}
                       </label>
                       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                         <select
@@ -385,10 +414,10 @@ export default function CheckoutPage() {
                           className="flex-1 px-4 py-3 bg-white/[0.03] border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-body disabled:opacity-60"
                         >
                           {savedAddresses.length === 0 ? (
-                            <option value="">Няма запазени адреси</option>
+                            <option value="">{t('checkout.noSavedAddresses')}</option>
                           ) : (
                             <>
-                              <option value="">Изберете запазен адрес</option>
+                              <option value="">{t('checkout.selectSaved')}</option>
                               {savedAddresses.map((address) => (
                                 <option key={address.id} value={address.id}>
                                   {address.firstName} {address.lastName} - {address.address1}, {address.city}
@@ -403,7 +432,7 @@ export default function CheckoutPage() {
                           onClick={() => router.push('/account')}
                           className="px-4 py-3 border border-white/10 rounded-lg text-white/70 hover:text-white hover:border-white/30 transition-colors font-body"
                         >
-                          Управление
+                          {t('checkout.manage')}
                         </button>
                       </div>
                     </div>
@@ -412,9 +441,9 @@ export default function CheckoutPage() {
                   <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                     <InputField
                       icon={FiUser}
-                      label="Име"
+                      label={t('checkout.form.firstName')}
                       name="firstName"
-                      placeholder="Въведете името си"
+                      placeholder={t('checkout.form.firstNamePlaceholder')}
                       error={errors.firstName}
                       value={shippingAddress.firstName}
                       onChange={(value) => setShippingAddress(prev => ({ ...prev, firstName: value }))}
@@ -422,9 +451,9 @@ export default function CheckoutPage() {
                     />
                     <InputField
                       icon={FiUser}
-                      label="Фамилия"
+                      label={t('checkout.form.lastName')}
                       name="lastName"
-                      placeholder="Въведете фамилията си"
+                      placeholder={t('checkout.form.lastNamePlaceholder')}
                       error={errors.lastName}
                       value={shippingAddress.lastName}
                       onChange={(value) => setShippingAddress(prev => ({ ...prev, lastName: value }))}
@@ -435,7 +464,7 @@ export default function CheckoutPage() {
                   <div className="grid sm:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4">
                     <InputField
                       icon={FiMail}
-                      label="Имейл"
+                      label={t('checkout.form.email')}
                       name="email"
                       type="email"
                       placeholder="email@example.com"
@@ -446,7 +475,7 @@ export default function CheckoutPage() {
                     />
                     <InputField
                       icon={FiPhone}
-                      label="Телефон"
+                      label={t('checkout.form.phone')}
                       name="phone"
                       type="tel"
                       placeholder="+359 888 123 456"
@@ -460,9 +489,9 @@ export default function CheckoutPage() {
                   <div className="mt-4">
                     <InputField
                       icon={FiMapPin}
-                      label="Адрес"
+                      label={t('checkout.form.address')}
                       name="address"
-                      placeholder="ул. Примерна 123, бл. 1, ап. 1"
+                      placeholder={t('checkout.form.addressPlaceholder')}
                       error={errors.address}
                       value={shippingAddress.address}
                       onChange={(value) => setShippingAddress(prev => ({ ...prev, address: value }))}
@@ -473,9 +502,9 @@ export default function CheckoutPage() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mt-3 sm:mt-4">
                     <InputField
                       icon={FiMapPin}
-                      label="Град"
+                      label={t('checkout.form.city')}
                       name="city"
-                      placeholder="София"
+                      placeholder={t('checkout.form.cityPlaceholder')}
                       error={errors.city}
                       value={shippingAddress.city}
                       onChange={(value) => setShippingAddress(prev => ({ ...prev, city: value }))}
@@ -483,7 +512,7 @@ export default function CheckoutPage() {
                     />
                     <InputField
                       icon={FiMapPin}
-                      label="Пощенски код"
+                      label={t('checkout.form.postalCode')}
                       name="postalCode"
                       placeholder="1000"
                       error={errors.postalCode}
@@ -493,9 +522,9 @@ export default function CheckoutPage() {
                     />
                     <InputField
                       icon={FiMapPin}
-                      label="Държава"
+                      label={t('checkout.form.country')}
                       name="country"
-                      placeholder="България"
+                      placeholder={t('checkout.form.countryPlaceholder')}
                       error={errors.country}
                       value={shippingAddress.country}
                       onChange={(value) => setShippingAddress(prev => ({ ...prev, country: value }))}
@@ -507,13 +536,13 @@ export default function CheckoutPage() {
                     <label className="block text-sm font-medium text-white/70 mb-2 font-body">
                       <span className="flex items-center gap-2">
                         <FiFileText size={16} className="text-blue-400" />
-                        Бележки към поръчката (по избор)
+                        {t('checkout.notes')}
                       </span>
                     </label>
                     <textarea
                       value={shippingAddress.notes}
                       onChange={(e) => setShippingAddress(prev => ({ ...prev, notes: e.target.value }))}
-                      placeholder="Допълнителни инструкции за доставка..."
+                      placeholder={t('checkout.notesPlaceholder')}
                       rows={3}
                       className="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-lg text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all resize-none font-body"
                     />
@@ -524,7 +553,7 @@ export default function CheckoutPage() {
                     disabled={isValidating}
                     className="w-full mt-6 bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-xl transition-colors disabled:opacity-50 font-body"
                   >
-                    {isValidating ? 'Валидиране...' : 'Продължи към плащане'}
+                    {isValidating ? t('checkout.validating') : t('checkout.continueToPayment')}
                   </button>
                 </div>
               ) : (
@@ -535,13 +564,13 @@ export default function CheckoutPage() {
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-lg font-heading font-bold text-white flex items-center gap-2">
                         <FiTruck className="text-blue-400" />
-                        Адрес за доставка
+                        {t('checkout.shippingAddress')}
                       </h2>
                       <button 
                         onClick={() => setStep('shipping')}
                         className="text-blue-400 hover:text-blue-300 text-sm font-body"
                       >
-                        Промени
+                        {t('checkout.change')}
                       </button>
                     </div>
                     <div className="text-white/60 text-sm space-y-1 font-body">
@@ -559,19 +588,14 @@ export default function CheckoutPage() {
                   <div className="bg-white/[0.02] border border-white/10 rounded-xl p-6">
                     <h2 className="text-xl font-heading font-bold text-white mb-6 flex items-center gap-2">
                       <FiShield className="text-blue-400" />
-                      Метод на плащане
+                      {t('checkout.paymentMethodTitle')}
                     </h2>
                     
                     {/* Apple Pay / Google Pay (only shows on supported devices) */}
                     <div className="mb-4">
                       <ApplePayButton
-                        amount={getTotal()}
-                        items={items.map(item => ({
-                          ...item,
-                          productId: item.id,
-                        }))}
-                        shippingAddress={shippingAddress}
-                        discountCode={discountCode?.code}
+                        amount={checkoutTotals?.total ?? getTotal()}
+                        checkoutSessionId={checkoutSessionId}
                         onSuccess={(orderId) => {
                           setPaymentComplete(true);
                           clearCart();
@@ -585,16 +609,11 @@ export default function CheckoutPage() {
                     <div className="mb-6">
                       <div className="flex items-center gap-2 mb-4">
                         <FiCreditCard className="text-blue-400" size={20} />
-                        <span className="text-white font-medium">Плащане с карта</span>
+                        <span className="text-white font-medium">{t('checkout.cardPayment')}</span>
                       </div>
                       <StripeCardPayment
-                        amount={getTotal()}
-                        items={items.map(item => ({
-                          ...item,
-                          productId: item.id,
-                        }))}
-                        shippingAddress={shippingAddress}
-                        discountCode={discountCode?.code}
+                        amount={checkoutTotals?.total ?? getTotal()}
+                        checkoutSessionId={checkoutSessionId}
                         onSuccess={(orderId) => {
                           setPaymentComplete(true);
                           clearCart();
@@ -604,34 +623,42 @@ export default function CheckoutPage() {
                       />
                     </div>
 
-                    {/* Divider */}
-                    <div className="relative my-6">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-white/10"></div>
-                      </div>
-                      <div className="relative flex justify-center text-sm">
-                        <span className="px-4 bg-[#0a0a0f] text-white/40 font-body">или платете с PayPal</span>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-white/[0.03] p-4 rounded-lg mb-4">
-                      <p className="text-white/50 text-sm mb-4 font-body">
-                        Плащането се обработва сигурно чрез PayPal. Можете да платите с PayPal акаунт или директно с карта.
-                      </p>
-                    </div>
+                    {isPayPalEnabled ? (
+                      <>
+                        {/* Divider */}
+                        <div className="relative my-6">
+                          <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-white/10"></div>
+                          </div>
+                          <div className="relative flex justify-center text-sm">
+                            <span className="px-4 bg-[#0a0a0f] text-white/40 font-body">{t('checkout.orPayWithPaypal')}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white/[0.03] p-4 rounded-lg mb-4">
+                          <p className="text-white/50 text-sm mb-4 font-body">
+                            {t('checkout.paypalSecure')}
+                          </p>
+                        </div>
 
-                    <PayPalButtons 
-                      createOrder={createOrder} 
-                      onApprove={onApprove} 
-                      onError={(err) => setError('PayPal грешка: ' + err)}
-                      style={{ layout: 'vertical', shape: 'rect' }}
-                    />
+                        <PayPalButtons 
+                          createOrder={createOrder} 
+                          onApprove={onApprove} 
+                          onError={(err) => setError('PayPal: ' + err)}
+                          style={{ layout: 'vertical', shape: 'rect' }}
+                        />
+                      </>
+                    ) : (
+                      <div className="bg-white/[0.03] p-4 rounded-lg mb-4">
+                        <p className="text-white/50 text-sm font-body">{t('checkout.paypalNotConfiguredDesc')}</p>
+                      </div>
+                    )}
 
                     <button 
                       onClick={() => setStep('shipping')}
                       className="w-full mt-4 border border-white/10 text-white/60 hover:text-white hover:border-white/20 py-3 rounded-xl transition-colors font-body"
                     >
-                      ← Обратно към адреса
+                      {t('checkout.backToAddress')}
                     </button>
                   </div>
                 </div>
@@ -641,7 +668,7 @@ export default function CheckoutPage() {
             {/* Order Summary Sidebar */}
             <div className="lg:col-span-1">
               <div className="bg-white/[0.02] border border-white/10 rounded-xl p-6 sticky top-8">
-                <h2 className="text-xl font-heading font-bold text-white mb-6">Обобщение на поръчката</h2>
+                <h2 className="text-xl font-heading font-bold text-white mb-6">{t('checkout.summary')}</h2>
                 
                 {/* Items */}
                 <div className="space-y-4 mb-6 max-h-64 overflow-y-auto">
@@ -660,8 +687,8 @@ export default function CheckoutPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-white text-sm font-medium truncate font-body">{item.name}</p>
-                        {item.color && <p className="text-white/40 text-xs font-body">Цвят: {item.color}</p>}
-                        {item.size && <p className="text-white/40 text-xs font-body">Размер: {item.size}</p>}
+                        {item.color && <p className="text-white/40 text-xs font-body">{t('checkout.colorLabel')} {item.color}</p>}
+                        {item.size && <p className="text-white/40 text-xs font-body">{t('checkout.sizeLabel')} {item.size}</p>}
                       </div>
                       <p className="text-white font-bold text-sm font-body">
                         {((item.price ?? 0) * (item.quantity ?? 0)).toFixed(2)} €
@@ -673,38 +700,47 @@ export default function CheckoutPage() {
                 {/* Totals */}
                 <div className="border-t border-white/10 pt-4 space-y-3">
                   <div className="flex justify-between text-white/50 font-body">
-                    <span>Междинна сума</span>
-                    <span>{(getSubtotal() ?? 0).toFixed(2)} €</span>
+                    <span>{t('checkout.subtotalLabel')}</span>
+                    <span>{(checkoutTotals?.subtotal ?? getSubtotal() ?? 0).toFixed(2)} €</span>
                   </div>
                   
                   {discountCode && (
                     <div className="flex justify-between text-green-400 font-body">
-                      <span>Отстъпка ({discountCode.percentage}%)</span>
-                      <span>-{(getDiscount() ?? 0).toFixed(2)} €</span>
+                      <span>{t('checkout.discountLabel')} ({discountCode.percentage}%)</span>
+                      <span>-{(checkoutTotals?.discount ?? getDiscount() ?? 0).toFixed(2)} €</span>
                     </div>
                   )}
                   
                   <div className="flex justify-between text-white/50 font-body">
-                    <span>Доставка</span>
-                    <span className="text-green-400">Безплатна</span>
+                    <span>{t('checkout.shippingLabel')}</span>
+                    <span className="text-green-400">{t('checkout.freeShipping')}</span>
                   </div>
                   
                   <div className="flex justify-between text-white font-bold text-xl pt-2 border-t border-white/10">
-                    <span className="font-heading">Общо</span>
-                    <span className="text-blue-400 font-heading">{(getTotal() ?? 0).toFixed(2)} €</span>
+                    <span className="font-heading">{t('checkout.totalLabel')}</span>
+                    <span className="text-blue-400 font-heading">{(checkoutTotals?.total ?? getTotal() ?? 0).toFixed(2)} €</span>
                   </div>
                 </div>
 
                 {/* Security Badge */}
                 <div className="mt-6 flex items-center gap-2 text-white/50 text-sm font-body">
                   <FiShield className="text-green-400" />
-                  <span>Сигурно плащане с SSL криптиране</span>
+                  <span>{t('checkout.sslNote')}</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </PayPalScriptProvider>
   );
+
+  if (isPayPalEnabled) {
+    return (
+      <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, currency: 'EUR' }}>
+        {checkoutContent}
+      </PayPalScriptProvider>
+    );
+  }
+
+  return checkoutContent;
 }

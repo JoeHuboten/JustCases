@@ -1,73 +1,42 @@
 'use client';
+
 import { useState, useEffect } from 'react';
-import { Stripe, PaymentRequest } from '@stripe/stripe-js';
+import { PaymentRequest } from '@stripe/stripe-js';
 import {
   Elements,
   PaymentRequestButtonElement,
   useStripe,
-  useElements,
 } from '@stripe/react-stripe-js';
 import getStripe from '@/lib/stripe-client';
-import { FiSmartphone } from 'react-icons/fi';
-
-// Stripe is loaded lazily via getStripe() to avoid runtime errors when key is missing
+import { apiFetch } from '@/lib/client-api';
 
 interface ApplePayButtonProps {
-  amount: number; // in EUR (e.g., 29.99)
-  items: Array<{
-    name: string;
-    price: number;
-    quantity: number;
-    image: string;
-    color?: string;
-    size?: string;
-    productId: string;
-    variantId?: string;
-  }>;
-  shippingAddress: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    address: string;
-    city: string;
-    postalCode: string;
-    country: string;
-    notes: string;
-  };
-  discountCode?: string;
+  amount: number;
+  checkoutSessionId: string | null;
   onSuccess: (orderId: string) => void;
   onError: (error: string) => void;
 }
 
-function ApplePayButtonInner({ 
-  amount, 
-  items, 
-  shippingAddress,
-  discountCode,
-  onSuccess, 
-  onError 
-}: ApplePayButtonProps) {
+function ApplePayButtonInner({ amount, checkoutSessionId, onSuccess, onError }: ApplePayButtonProps) {
   const stripe = useStripe();
   const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(null);
   const [canMakePayment, setCanMakePayment] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    if (!stripe) return;
+    if (!stripe || !checkoutSessionId) return;
 
     const pr = stripe.paymentRequest({
       country: 'BG',
       currency: 'eur',
       total: {
         label: 'Just Cases - Поръчка',
-        amount: Math.round(amount * 100), // Convert to cents
+        amount: Math.round(amount * 100),
       },
       requestPayerName: true,
       requestPayerEmail: true,
     });
 
-    // Check if Apple Pay or Google Pay is available
     pr.canMakePayment().then((result) => {
       if (result) {
         setCanMakePayment(true);
@@ -75,74 +44,58 @@ function ApplePayButtonInner({
       }
     });
 
-    // Handle payment method
     pr.on('paymentmethod', async (event) => {
       setIsProcessing(true);
-      
       try {
-        // Create payment intent on the server
-        const intentResponse = await fetch('/api/payment/stripe/create-intent', {
+        const intentResponse = await apiFetch('/api/payment/stripe/create-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            items,
-            discountCode,
-            shippingAddress,
-            paymentMethodType: 'apple_pay',
-          }),
+          body: JSON.stringify({ checkoutSessionId }),
         });
-
         const intentData = await intentResponse.json();
-
         if (!intentResponse.ok) {
           event.complete('fail');
-          onError(intentData.message || 'Грешка при създаване на плащане');
+          onError(intentData.message || intentData.error || 'Failed to create payment intent');
           setIsProcessing(false);
           return;
         }
 
-        // Confirm the payment
         const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
           intentData.clientSecret,
           { payment_method: event.paymentMethod.id },
-          { handleActions: false }
+          { handleActions: false },
         );
 
         if (confirmError) {
           event.complete('fail');
-          onError(confirmError.message || 'Плащането не е успешно');
+          onError(confirmError.message || 'Payment failed');
           setIsProcessing(false);
           return;
         }
 
         event.complete('success');
 
-        // Handle additional authentication if needed
         if (paymentIntent?.status === 'requires_action') {
           const { error: actionError } = await stripe.confirmCardPayment(intentData.clientSecret);
           if (actionError) {
-            onError(actionError.message || 'Автентикацията не е успешна');
+            onError(actionError.message || 'Authentication failed');
             setIsProcessing(false);
             return;
           }
         }
 
-        // Capture the payment and create order
-        const captureResponse = await fetch('/api/payment/stripe/capture', {
+        const providerPaymentId = paymentIntent?.id || intentData.paymentIntentId;
+        const captureResponse = await apiFetch('/api/payment/stripe/capture', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            paymentIntentId: intentData.paymentIntentId,
-            items,
-            discountCode,
-            shippingAddress,
+            checkoutSessionId,
+            providerPaymentId,
           }),
         });
-
         const captureData = await captureResponse.json();
-
         if (!captureResponse.ok) {
-          onError(captureData.message || 'Грешка при обработка на поръчката');
+          onError(captureData.message || captureData.error || 'Failed to finalize order');
           setIsProcessing(false);
           return;
         }
@@ -150,19 +103,13 @@ function ApplePayButtonInner({
         onSuccess(captureData.orderId);
       } catch (err: any) {
         event.complete('fail');
-        onError(err.message || 'Неизвестна грешка');
+        onError(err?.message || 'Unknown payment error');
         setIsProcessing(false);
       }
     });
+  }, [stripe, amount, checkoutSessionId, onSuccess, onError]);
 
-    return () => {
-      // Cleanup
-    };
-  }, [stripe, amount, items, shippingAddress, discountCode, onSuccess, onError]);
-
-  if (!canMakePayment || !paymentRequest) {
-    return null;
-  }
+  if (!canMakePayment || !paymentRequest || !checkoutSessionId) return null;
 
   return (
     <div className="w-full">
@@ -209,12 +156,10 @@ export default function ApplePayButton(props: ApplePayButtonProps) {
     }
   }, []);
 
-  if (!stripeConfigured) {
-    return null;
-  }
+  if (!stripeConfigured || !stripePromise) return null;
 
   return (
-    <Elements stripe={stripePromise!}>
+    <Elements stripe={stripePromise}>
       <ApplePayButtonInner {...props} />
     </Elements>
   );

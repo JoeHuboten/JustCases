@@ -89,9 +89,9 @@ export default function AboutPage() {
               <div className="bg-blue-500 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <FiHeart className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-heading font-bold text-white mb-3">Страст</h3>
+              <h3 className="text-xl font-heading font-bold text-white mb-3">{t('about.value.passion')}</h3>
               <p className="text-white/60 font-body">
-                Страстни сме към мобилните аксесоари и помагаме ви да намерите идеалното съчетание за вашето устройство.
+                {t('about.value.passion.text')}
               </p>
             </div>
           </StaggerAnimation>
@@ -102,23 +102,11 @@ export default function AboutPage() {
       <section className="py-16">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn" className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl font-heading font-bold text-white mb-8">Нашата история</h2>
+            <h2 className="text-4xl font-heading font-bold text-white mb-8">{t('about.story')}</h2>
             <div className="text-white/60 text-lg space-y-6 font-body">
-              <p>
-                Just Cases беше основана с една проста визия: да направи премиум мобилните аксесоари достъпни за всички. 
-                Започнахме като малък екип от ентусиасти по технологии, които бяха разочаровани от липсата на качествени, 
-                стилни аксесоари на пазара.
-              </p>
-              <p>
-                Днес се превърнахме в доверена марка, която обслужва хиляди клиенти по целия свят. 
-                Нашата внимателно подбрана колекция включва всичко - от защитни калъфи и защитни стъкла 
-                до безжични заряди и премиум слушалки.
-              </p>
-              <p>
-                Това, което ни отличава, е нашата ангажираност към качеството и разбирането, че вашето мобилно устройство 
-                е повече от просто инструмент – то е отражение на това кой сте. Ето защо предлагаме аксесоари, 
-                които не са само функционални, но и стилни и уникални.
-              </p>
+              <p>{t('about.story.p1')}</p>
+              <p>{t('about.story.p2')}</p>
+              <p>{t('about.story.p3')}</p>
             </div>
           </ScrollAnimation>
         </div>
@@ -130,19 +118,19 @@ export default function AboutPage() {
           <StaggerAnimation animation="scaleUp" stagger={0.1} className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
               <h3 className="text-4xl font-heading font-bold text-white mb-2">200+</h3>
-              <p className="text-white/40 font-body">Продукти</p>
+              <p className="text-white/40 font-body">{t('about.stat.products.label')}</p>
             </div>
             <div>
               <h3 className="text-4xl font-heading font-bold text-white mb-2">30K+</h3>
-              <p className="text-white/40 font-body">Доволни клиенти</p>
+              <p className="text-white/40 font-body">{t('about.stat.customers.label')}</p>
             </div>
             <div>
               <h3 className="text-4xl font-heading font-bold text-white mb-2">50+</h3>
-              <p className="text-white/40 font-body">Държави</p>
+              <p className="text-white/40 font-body">{t('about.stat.countries')}</p>
             </div>
             <div>
               <h3 className="text-4xl font-heading font-bold text-white mb-2">99%</h3>
-              <p className="text-white/40 font-body">Ниво на удовлетвореност</p>
+              <p className="text-white/40 font-body">{t('about.stat.satisfaction')}</p>
             </div>
           </StaggerAnimation>
         </div>

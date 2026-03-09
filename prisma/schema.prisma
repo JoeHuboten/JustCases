@@ -17,11 +17,13 @@ model User {
   phone          String?
   dateOfBirth    DateTime?
   role           UserRole        @default(USER)
+  tokenVersion   Int             @default(0)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   accounts       Account[]
   addresses      Address[]
   cartItems      CartItem[]
+  checkoutSessions CheckoutSession[]
   orders         Order[]
   paymentMethods PaymentMethod[]
   reviews        Review[]
@@ -59,9 +61,11 @@ model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
-  type       String   @default("EMAIL_VERIFICATION") // EMAIL_VERIFICATION, PASSWORD_RESET, etc.
+  type       VerificationTokenType @default(EMAIL_VERIFICATION)
 
   @@unique([identifier, token])
+  @@index([identifier, type])
+  @@index([expires])
 }
 
 model Category {
@@ -119,11 +123,12 @@ model Order {
   deliveryFee       Float          @default(0)
   status            OrderStatus    @default(PENDING)
   paymentType       PaymentType    @default(CARD)
-  paymentIntentId   String?
-  paymentId         String?        // PayPal transaction ID or other payment gateway ID
+  paymentIntentId   String?        @unique
+  paymentId         String?        @unique // PayPal transaction ID or other payment gateway ID
   discountCodeId    String?
   shippingAddressId String?
   paymentMethodId   String?
+  checkoutSessionId String?        @unique
   trackingNumber    String?
   courierService    String?        // e.g., "DHL", "Econt", "Speedy"
   estimatedDelivery DateTime?
@@ -138,6 +143,7 @@ model Order {
   paymentMethod     PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
   shippingAddress   Address?       @relation(fields: [shippingAddressId], references: [id])
   discountCode      DiscountCode?  @relation(fields: [discountCodeId], references: [id])
+  checkoutSession   CheckoutSession? @relation(fields: [checkoutSessionId], references: [id])
   user              User           @relation(fields: [userId], references: [id])
   items             OrderItem[]
   statusHistory     OrderStatusHistory[]
@@ -264,6 +270,33 @@ model DiscountCode {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   orders      Order[]
+  checkoutSessions CheckoutSession[]
+}
+
+model CheckoutSession {
+  id                String                @id @default(cuid())
+  userId            String
+  status            CheckoutSessionStatus @default(PENDING)
+  currency          String                @default("EUR")
+  subtotal          Float
+  discount          Float                 @default(0)
+  total             Float
+  discountCodeId    String?
+  shippingAddress   Json?
+  items             Json
+  provider          PaymentType?
+  providerPaymentId String?
+  finalizedAt       DateTime?
+  expiresAt         DateTime
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  discountCode      DiscountCode?         @relation(fields: [discountCodeId], references: [id])
+  order             Order?
+  user              User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([expiresAt])
+  @@index([providerPaymentId])
 }
 
 model ContactMessage {
@@ -311,4 +344,15 @@ enum OrderStatus {
   SHIPPED
   DELIVERED
   CANCELLED
+}
+
+enum VerificationTokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+enum CheckoutSessionStatus {
+  PENDING
+  COMPLETED
+  EXPIRED
 }

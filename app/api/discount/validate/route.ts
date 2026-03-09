@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { apiRateLimit } from '@/lib/rate-limit';
 import { validateCsrf } from '@/lib/csrf';
+import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+
+const logger = createLogger('api:discount:validate');
 
 export async function POST(request: NextRequest) {
   // Rate limiting
@@ -77,7 +80,7 @@ export async function POST(request: NextRequest) {
       message: `${discountCode.percentage}% discount applied!`,
     });
   } catch (error) {
-    console.error('Error validating discount code:', error);
+    logger.error('Error validating discount code', { error: getSafeErrorDetails(error) });
     return NextResponse.json(
       { error: 'Failed to validate discount code' },
       { status: 500 }

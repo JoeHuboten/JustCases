@@ -1,6 +1,6 @@
 # JustCases - Premium Mobile Accessories E-Commerce
 
-A modern, dark-themed e-commerce website for mobile device accessories built with Next.js 15, TypeScript, Tailwind CSS, and Prisma.
+A modern, dark-themed e-commerce website for mobile device accessories built with Next.js 16, TypeScript, Tailwind CSS, and Prisma.
 
 ## Features
 
@@ -16,7 +16,7 @@ A modern, dark-themed e-commerce website for mobile device accessories built wit
 
 ## Tech Stack
 
-- **Framework**: Next.js 15 (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **Authentication**: NextAuth.js
@@ -84,11 +84,23 @@ Create a `.env` file in the project root:
 ```env
 DATABASE_URL="file:./dev.db"
 JWT_SECRET="your-jwt-secret-here"
+UPSTASH_REDIS_REST_URL=""
+UPSTASH_REDIS_REST_TOKEN=""
+JOB_WORKER_SECRET=""
 ```
 
 **Generate JWT secret:**
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+**Email queue worker (optional, recommended in production):**
+
+```bash
+curl -X POST "http://localhost:3000/api/internal/jobs/email/drain" \
+  -H "x-worker-secret: $JOB_WORKER_SECRET" \
+  -H "content-type: application/json" \
+  -d '{"limit":25}'
 ```
 
 ## 🗄️ Database
@@ -191,4 +203,3 @@ This project is created for JustCases.
 ## Author
 
 Built with ❤️ using Next.js
-

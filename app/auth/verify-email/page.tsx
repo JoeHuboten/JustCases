@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { FiCheckCircle, FiXCircle, FiLoader } from 'react-icons/fi';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function VerifyEmailPage() {
   return (
@@ -18,6 +19,7 @@ export default function VerifyEmailPage() {
 }
 
 function VerifyEmailContent() {
+  const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
@@ -29,7 +31,7 @@ function VerifyEmailContent() {
   useEffect(() => {
     if (!token) {
       setStatus('error');
-      setMessage('No verification token provided.');
+      setMessage(t('auth.verify.noToken'));
       return;
     }
 
@@ -51,11 +53,11 @@ function VerifyEmailContent() {
           }
         } else {
           setStatus('error');
-          setMessage(data.error || 'Verification failed.');
+          setMessage(data.error || t('auth.verify.failed'));
         }
       } catch (error) {
         setStatus('error');
-        setMessage('An error occurred during verification. Please try again.');
+        setMessage(t('auth.verify.error'));
       }
     };
 
@@ -94,14 +96,14 @@ function VerifyEmailContent() {
 
         {/* Title */}
         <h1 className="text-4xl font-bold text-white mb-4">
-          {status === 'loading' && 'Verifying Email...'}
-          {status === 'success' && (alreadyVerified ? 'Already Verified' : 'Email Verified!')}
-          {status === 'error' && 'Verification Failed'}
+          {status === 'loading' && t('auth.verify.loading')}
+          {status === 'success' && (alreadyVerified ? t('auth.verify.alreadyVerified') : t('auth.verify.success'))}
+          {status === 'error' && t('auth.verify.failed')}
         </h1>
 
         {/* Message */}
         <p className="text-text-secondary text-lg mb-8">
-          {status === 'loading' && 'Please wait while we verify your email address...'}
+          {status === 'loading' && t('auth.verify.subtitle')}
           {message}
         </p>
 
@@ -112,14 +114,14 @@ function VerifyEmailContent() {
               href="/auth/signin"
               className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-accent to-accent-light text-white px-8 py-4 rounded-xl font-medium hover:scale-105 transition-transform shadow-lg shadow-accent/20"
             >
-              {alreadyVerified ? 'Sign In' : 'Sign In Now'}
+              {alreadyVerified ? t('auth.verify.signIn') : t('auth.verify.signInNow')}
             </Link>
             
             <Link
               href="/"
               className="inline-flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-xl font-medium transition-colors"
             >
-              Go Home
+              {t('auth.verify.goHome')}
             </Link>
           </div>
         )}
@@ -130,14 +132,14 @@ function VerifyEmailContent() {
               href="/auth/signup"
               className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-accent to-accent-light text-white px-8 py-4 rounded-xl font-medium hover:scale-105 transition-transform shadow-lg shadow-accent/20"
             >
-              Try Again
+              {t('auth.verify.tryAgain')}
             </Link>
             
             <Link
               href="/contact"
               className="inline-flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-xl font-medium transition-colors"
             >
-              Contact Support
+              {t('auth.verify.contactSupport')}
             </Link>
           </div>
         )}
@@ -145,7 +147,7 @@ function VerifyEmailContent() {
         {/* Auto-redirect notice */}
         {status === 'success' && !alreadyVerified && (
           <p className="text-text-secondary text-sm mt-8">
-            Redirecting to sign in page in 3 seconds...
+            {t('auth.verify.redirecting')}
           </p>
         )}
       </div>

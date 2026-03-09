@@ -1,78 +1,83 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAdmin } from '@/lib/auth-utils';
-import { discountCodeSchema } from '@/lib/validation';
+import { withApiGuard } from '@/lib/api-guard';
+import { strictRateLimit } from '@/lib/rate-limit';
+import { discountCodeUpdateSchema } from '@/lib/validation';
+import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+import { z } from 'zod';
+
+const logger = createLogger('api:admin:discount-codes:id');
 
 // PUT - Update discount code
-export const PUT = requireAdmin(async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
-  try {
-    const { id } = await params;
-    
-    const body = await request.json();
-    const { code, percentage, expiresAt, maxUses, active } = body;
+export const PUT = withApiGuard<z.infer<typeof discountCodeUpdateSchema>, { params: Promise<{ id: string }> }>(
+  {
+    requireAdmin: true,
+    csrf: true,
+    rateLimit: strictRateLimit,
+    bodySchema: discountCodeUpdateSchema,
+  },
+  async (_request: NextRequest, context) => {
+    try {
+      const { id } = await context.params;
+      const body = context.body!;
 
-    // Validate percentage range if provided
-    if (percentage !== undefined && (percentage < 1 || percentage > 100)) {
-      return NextResponse.json(
-        { error: 'Percentage must be between 1 and 100' },
-        { status: 400 }
-      );
-    }
+      if (body.code) {
+        const existing = await prisma.discountCode.findUnique({
+          where: { code: body.code.toUpperCase() },
+        });
 
-    // If code is being changed, check if it already exists
-    if (code) {
-      const existing = await prisma.discountCode.findUnique({
-        where: { code: code.toUpperCase() },
+        if (existing && existing.id !== id) {
+          return NextResponse.json(
+            { error: 'Discount code already exists' },
+            { status: 400 },
+          );
+        }
+      }
+
+      const discountCode = await prisma.discountCode.update({
+        where: { id },
+        data: {
+          code: body.code ? body.code.toUpperCase() : undefined,
+          percentage: body.percentage,
+          expiresAt: body.expiresAt ? new Date(body.expiresAt) : null,
+          maxUses: body.maxUses !== undefined ? body.maxUses : undefined,
+          active: body.active,
+        },
       });
 
-      if (existing && existing.id !== id) {
-        return NextResponse.json(
-          { error: 'Discount code already exists' },
-          { status: 400 }
-        );
-      }
+      return NextResponse.json(discountCode);
+    } catch (error) {
+      logger.error('Failed to update discount code', { error: getSafeErrorDetails(error) });
+      return NextResponse.json(
+        { error: 'Failed to update discount code' },
+        { status: 500 },
+      );
     }
-
-    // Update discount code
-    const discountCode = await prisma.discountCode.update({
-      where: { id },
-      data: {
-        code: code ? code.toUpperCase() : undefined,
-        percentage,
-        expiresAt: expiresAt ? new Date(expiresAt) : null,
-        maxUses: maxUses !== undefined ? maxUses : undefined,
-        active,
-      },
-    });
-
-    return NextResponse.json(discountCode);
-  } catch (error) {
-    console.error('Error updating discount code:', error);
-    return NextResponse.json(
-      { error: 'Failed to update discount code' },
-      { status: 500 }
-    );
-  }
-});
+  },
+);
 
 // DELETE - Delete discount code
-export const DELETE = requireAdmin(async (
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) => {
-  try {
-    const { id } = await params;
-    
-    await prisma.discountCode.delete({
-      where: { id },
-    });
+export const DELETE = withApiGuard<unknown, { params: Promise<{ id: string }> }>(
+  {
+    requireAdmin: true,
+    csrf: true,
+    rateLimit: strictRateLimit,
+  },
+  async (_request: NextRequest, context) => {
+    try {
+      const { id } = await context.params;
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error deleting discount code:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete discount code' },
-      { status: 500 }
-    );
-  }
-});
+      await prisma.discountCode.delete({
+        where: { id },
+      });
+
+      return NextResponse.json({ success: true });
+    } catch (error) {
+      logger.error('Failed to delete discount code', { error: getSafeErrorDetails(error) });
+      return NextResponse.json(
+        { error: 'Failed to delete discount code' },
+        { status: 500 },
+      );
+    }
+  },
+);

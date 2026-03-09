@@ -3,7 +3,7 @@ import { prisma, productSelectFields, getPaginationParams } from '@/lib/prisma';
 import { apiRateLimit } from '@/lib/rate-limit';
 import { apiCache, cacheKeys, cacheTTL } from '@/lib/cache';
 import { Prisma } from '@prisma/client';
-import { createLogger, getRequestId } from '@/lib/logger';
+import { createLogger, getRequestId, getSafeErrorDetails } from '@/lib/logger';
 
 type SortOption = 'popular' | 'newest' | 'price-low' | 'price-high' | 'rating';
 
@@ -27,9 +27,17 @@ export async function GET(request: NextRequest) {
   const requestId = getRequestId(request.headers);
   const logger = createLogger('api:products').withRequestId(requestId);
   const startTime = Date.now();
-  
-  logger.debug('GET /api/products', { 
-    query: Object.fromEntries(request.nextUrl.searchParams) 
+
+  logger.debug('GET /api/products', {
+    query: {
+      page: request.nextUrl.searchParams.get('page') || '1',
+      limit: request.nextUrl.searchParams.get('limit') || '12',
+      category: request.nextUrl.searchParams.get('category') || null,
+      featured: request.nextUrl.searchParams.get('featured') || null,
+      inStock: request.nextUrl.searchParams.get('inStock') || null,
+      sort: request.nextUrl.searchParams.get('sort') || 'popular',
+      hasSearch: Boolean(request.nextUrl.searchParams.get('search')?.trim()),
+    },
   });
 
   // Rate limiting
@@ -64,7 +72,7 @@ export async function GET(request: NextRequest) {
     );
     
     // Try cache first
-    const cached = apiCache.get<{ products: unknown[]; total: number; page: number; totalPages: number; limit: number }>(cacheKey);
+    const cached = await apiCache.getDistributed<{ products: unknown[]; total: number; page: number; totalPages: number; limit: number }>(cacheKey);
     if (cached) {
       return NextResponse.json(cached);
     }
@@ -136,7 +144,7 @@ export async function GET(request: NextRequest) {
 
     // Cache the result (shorter TTL for search queries)
     const ttl = search ? 30 : cacheTTL.products;
-    apiCache.set(cacheKey, result, ttl);
+    await apiCache.setDistributed(cacheKey, result, ttl);
 
     const duration = Date.now() - startTime;
     logger.info(`Found ${products.length} products`, { total, page, totalPages, duration: `${duration}ms` });
@@ -144,7 +152,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result, { headers: { 'x-request-id': requestId } });
   } catch (error) {
     const duration = Date.now() - startTime;
-    logger.error('Error fetching products', { error, duration: `${duration}ms` });
+    logger.error('Error fetching products', { error: getSafeErrorDetails(error), duration: `${duration}ms` });
     return NextResponse.json(
       { error: 'Failed to fetch products', requestId }, 
       { status: 500, headers: { 'x-request-id': requestId } }

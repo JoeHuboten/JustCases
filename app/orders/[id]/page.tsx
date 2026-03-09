@@ -9,6 +9,7 @@ import {
   FiArrowLeft, FiMapPin, FiPhone, FiMail, FiCopy, FiExternalLink 
 } from 'react-icons/fi';
 import { OrderDetailSkeleton } from '@/components/SkeletonLoaders';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface OrderItem {
   id: string;
@@ -108,6 +109,7 @@ export default function OrderDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedTracking, setCopiedTracking] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -118,12 +120,12 @@ export default function OrderDetailPage() {
 
         if (!response.ok) {
           if (response.status === 404) {
-            setError('Order not found');
+            setError('orderDetail.notFound');
           } else if (response.status === 401) {
             router.push('/auth/signin');
             return;
           } else {
-            setError('Failed to load order');
+            setError('orderDetail.loadFailed');
           }
           return;
         }
@@ -132,7 +134,7 @@ export default function OrderDetailPage() {
         setOrder(data);
       } catch (err) {
         console.error('Error fetching order:', err);
-        setError('Failed to load order');
+        setError('orderDetail.loadFailed');
       } finally {
         setIsLoading(false);
       }
@@ -178,14 +180,14 @@ export default function OrderDetailPage() {
       <div className="min-h-screen bg-gradient-to-br from-background via-primary/10 to-background py-10">
         <div className="container-custom max-w-4xl text-center">
           <FiPackage className="mx-auto text-6xl text-gray-500 mb-4" />
-          <h1 className="text-2xl font-bold text-white mb-2">{error || 'Order not found'}</h1>
-          <p className="text-text-secondary mb-6">The order you're looking for doesn't exist or you don't have access to it.</p>
+          <h1 className="text-2xl font-bold text-white mb-2">{t(error || 'orderDetail.notFound')}</h1>
+          <p className="text-text-secondary mb-6">{t('orderDetail.notFoundDesc')}</p>
           <Link 
             href="/orders"
             className="inline-flex items-center gap-2 bg-accent hover:bg-accent-hover text-white px-6 py-3 rounded-lg transition-colors"
           >
             <FiArrowLeft />
-            Back to Orders
+            {t('orderDetail.backToOrders')}
           </Link>
         </div>
       </div>
@@ -206,7 +208,7 @@ export default function OrderDetailPage() {
           className="inline-flex items-center gap-2 text-text-secondary hover:text-white mb-6 transition-colors"
         >
           <FiArrowLeft />
-          Back to Orders
+          {t('orderDetail.backToOrders')}
         </Link>
 
         {/* Order Header */}
@@ -214,10 +216,10 @@ export default function OrderDetailPage() {
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
             <div>
               <h1 className="text-2xl font-bold text-white mb-1">
-                Order #{order.id.slice(-8).toUpperCase()}
+                {t('orderDetail.orderPrefix')}{order.id.slice(-8).toUpperCase()}
               </h1>
               <p className="text-text-secondary">
-                Placed on {new Date(order.createdAt).toLocaleDateString('bg-BG', {
+                {t('orderDetail.placedOn')} {new Date(order.createdAt).toLocaleDateString('bg-BG', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
@@ -229,7 +231,7 @@ export default function OrderDetailPage() {
             <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${statusConfig.bgColor}`}>
               <StatusIcon className={statusConfig.color} />
               <span className={`font-medium ${statusConfig.color}`}>
-                {statusConfig.labelBg}
+                {t(`orderDetail.status.${order.status.toLowerCase()}`)}
               </span>
             </div>
           </div>
@@ -254,7 +256,7 @@ export default function OrderDetailPage() {
                         <Icon size={20} />
                       </div>
                       <span className={`text-xs mt-2 ${isActive ? 'text-white' : 'text-gray-500'}`}>
-                        {config.labelBg}
+                        {t(`orderDetail.status.${status.toLowerCase()}`)}
                       </span>
                     </div>
                   );
@@ -277,12 +279,12 @@ export default function OrderDetailPage() {
           <div className="bg-background-secondary rounded-2xl p-6 mb-6">
             <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
               <FiTruck className="text-accent" />
-              Tracking Information
+              {t('orderDetail.trackingInfo')}
             </h2>
             
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
-                <p className="text-text-secondary text-sm mb-1">Tracking Number</p>
+                <p className="text-text-secondary text-sm mb-1">{t('orderDetail.trackingNumber')}</p>
                 <div className="flex items-center gap-2">
                   <code className="text-white font-mono bg-gray-800 px-3 py-2 rounded">
                     {order.trackingNumber}
@@ -299,14 +301,14 @@ export default function OrderDetailPage() {
               
               {order.courierService && (
                 <div>
-                  <p className="text-text-secondary text-sm mb-1">Courier</p>
+                  <p className="text-text-secondary text-sm mb-1">{t('orderDetail.courier')}</p>
                   <p className="text-white font-medium">{order.courierService}</p>
                 </div>
               )}
               
               {order.estimatedDelivery && (
                 <div>
-                  <p className="text-text-secondary text-sm mb-1">Estimated Delivery</p>
+                  <p className="text-text-secondary text-sm mb-1">{t('orderDetail.estimatedDelivery')}</p>
                   <p className="text-white font-medium">
                     {new Date(order.estimatedDelivery).toLocaleDateString('bg-BG')}
                   </p>
@@ -321,7 +323,7 @@ export default function OrderDetailPage() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 mt-4 text-accent hover:underline"
               >
-                Track on {order.courierService} website
+                {t('orderDetail.trackOnCourier')} {order.courierService}
                 <FiExternalLink size={14} />
               </a>
             )}
@@ -330,7 +332,7 @@ export default function OrderDetailPage() {
 
         {/* Order Items */}
         <div className="bg-background-secondary rounded-2xl p-6 mb-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Order Items</h2>
+          <h2 className="text-lg font-semibold text-white mb-4">{t('orderDetail.orderItems')}</h2>
           
           <div className="space-y-4">
             {order.items.map((item) => (
@@ -354,9 +356,9 @@ export default function OrderDetailPage() {
                   </Link>
                   
                   <div className="flex flex-wrap gap-2 mt-1 text-sm text-text-secondary">
-                    {item.color && <span>Color: {item.color}</span>}
-                    {item.size && <span>Size: {item.size}</span>}
-                    <span>Qty: {item.quantity}</span>
+                    {item.color && <span>{t('orderDetail.color')} {item.color}</span>}
+                    {item.size && <span>{t('orderDetail.size')} {item.size}</span>}
+                    <span>{t('orderDetail.qty')} {item.quantity}</span>
                   </div>
                   
                   <p className="text-accent font-medium mt-2">
@@ -375,7 +377,7 @@ export default function OrderDetailPage() {
             <div className="bg-background-secondary rounded-2xl p-6">
               <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <FiMapPin className="text-accent" />
-                Shipping Address
+                {t('orderDetail.shippingAddress')}
               </h2>
               
               <div className="text-text-secondary space-y-1">
@@ -397,30 +399,30 @@ export default function OrderDetailPage() {
 
           {/* Order Summary */}
           <div className="bg-background-secondary rounded-2xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Order Summary</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">{t('orderDetail.orderSummary')}</h2>
             
             <div className="space-y-3 text-text-secondary">
               <div className="flex justify-between">
-                <span>Subtotal</span>
+                <span>{t('orderDetail.subtotal')}</span>
                 <span className="text-white">{(order.subtotal ?? 0).toFixed(2)} €</span>
               </div>
               
               {(order.discount ?? 0) > 0 && (
                 <div className="flex justify-between text-green-400">
-                  <span>Discount</span>
+                  <span>{t('orderDetail.discount')}</span>
                   <span>-{(order.discount ?? 0).toFixed(2)} €</span>
                 </div>
               )}
               
               <div className="flex justify-between">
-                <span>Delivery</span>
+                <span>{t('orderDetail.deliveryFee')}</span>
                 <span className="text-white">
-                  {(order.deliveryFee ?? 0) > 0 ? `${(order.deliveryFee ?? 0).toFixed(2)} €` : 'Free'}
+                  {(order.deliveryFee ?? 0) > 0 ? `${(order.deliveryFee ?? 0).toFixed(2)} €` : t('orderDetail.free')}
                 </span>
               </div>
               
               <div className="flex justify-between pt-3 border-t border-gray-700 text-lg font-semibold">
-                <span className="text-white">Total</span>
+                <span className="text-white">{t('orderDetail.total')}</span>
                 <span className="text-accent">{(order.total ?? 0).toFixed(2)} €</span>
               </div>
             </div>
@@ -430,7 +432,7 @@ export default function OrderDetailPage() {
         {/* Customer Notes */}
         {order.customerNotes && (
           <div className="bg-background-secondary rounded-2xl p-6 mt-6">
-            <h2 className="text-lg font-semibold text-white mb-2">Your Notes</h2>
+            <h2 className="text-lg font-semibold text-white mb-2">{t('orderDetail.notes')}</h2>
             <p className="text-text-secondary">{order.customerNotes}</p>
           </div>
         )}
@@ -438,7 +440,7 @@ export default function OrderDetailPage() {
         {/* Status History */}
         {order.statusHistory && order.statusHistory.length > 0 && (
           <div className="bg-background-secondary rounded-2xl p-6 mt-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Order History</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">{t('orderDetail.orderHistory')}</h2>
             
             <div className="space-y-4">
               {order.statusHistory.map((entry, index) => {
@@ -447,7 +449,7 @@ export default function OrderDetailPage() {
                   <div key={entry.id} className="flex gap-4">
                     <div className={`w-3 h-3 rounded-full mt-1.5 ${config.color.replace('text-', 'bg-')}`} />
                     <div className="flex-1">
-                      <p className="text-white font-medium">{config.labelBg}</p>
+                      <p className="text-white font-medium">{t(`orderDetail.status.${entry.status.toLowerCase()}`)}</p>
                       {entry.notes && <p className="text-text-secondary text-sm">{entry.notes}</p>}
                       <p className="text-gray-500 text-xs mt-1">
                         {new Date(entry.createdAt).toLocaleString('bg-BG')}

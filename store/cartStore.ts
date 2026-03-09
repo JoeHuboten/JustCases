@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { apiFetch } from '@/lib/client-api';
 
 export interface CartItem {
   id: string;
@@ -124,7 +125,7 @@ export const useCartStore = create<CartStore>()(
 
       applyDiscountCode: async (code: string) => {
         try {
-          const response = await fetch('/api/discount/validate', {
+          const response = await apiFetch('/api/discount/validate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code }),

@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react';
 import { FiWifi, FiWifiOff, FiRefreshCw, FiHome } from 'react-icons/fi';
 import Link from 'next/link';
 import ScrollAnimation from '@/components/ScrollAnimation';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function OfflinePage() {
+  const { t } = useLanguage();
   const [isOnline, setIsOnline] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
 
@@ -45,14 +47,14 @@ export default function OfflinePage() {
 
           {/* Title */}
           <h1 className="text-3xl font-bold text-white mb-4">
-            {isOnline ? 'Connection Restored!' : 'You\'re Offline'}
+            {isOnline ? t('offline.connectionRestored') : t('offline.title')}
           </h1>
 
           {/* Description */}
           <p className="text-text-secondary mb-8 leading-relaxed">
             {isOnline 
-              ? 'Great! Your internet connection is back. You can now continue browsing Just Cases.'
-              : 'It looks like you\'re not connected to the internet. Some features may not be available, but you can still browse cached content.'
+              ? t('offline.connectionRestoredDesc')
+              : t('offline.subtitle')
             }
           </p>
 
@@ -65,12 +67,12 @@ export default function OfflinePage() {
             {isOnline ? (
               <>
                 <FiWifi size={16} />
-                Online
+                {t('offline.online')}
               </>
             ) : (
               <>
                 <FiWifiOff size={16} />
-                Offline
+                {t('offline.offline')}
               </>
             )}
           </div>
@@ -83,7 +85,7 @@ export default function OfflinePage() {
                 className="w-full bg-accent text-white py-3 px-6 rounded-lg font-medium hover:bg-accent-light transition-colors flex items-center justify-center gap-2"
               >
                 <FiRefreshCw size={18} className={retryCount > 0 ? 'animate-spin' : ''} />
-                Try Again {retryCount > 0 && `(${retryCount})`}
+                {t('offline.tryAgain')} {retryCount > 0 && `(${retryCount})`}
               </button>
             )}
 
@@ -92,34 +94,34 @@ export default function OfflinePage() {
               className="w-full bg-primary/50 text-white py-3 px-6 rounded-lg font-medium hover:bg-primary/70 transition-colors flex items-center justify-center gap-2 border border-gray-700"
             >
               <FiHome size={18} />
-              Go to Homepage
+              {t('offline.goHome')}
             </Link>
           </div>
 
           {/* Offline Features */}
           {!isOnline && (
             <div className="mt-8 p-4 bg-primary/30 rounded-lg border border-gray-700/50">
-              <h3 className="text-white font-medium mb-3">Available Offline:</h3>
+              <h3 className="text-white font-medium mb-3">{t('offline.whatCanDo')}</h3>
               <ul className="text-text-secondary text-sm space-y-2 text-left">
                 <li className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  Browse cached products
+                  {t('offline.tip1')}
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  View product details
+                  {t('offline.tip2')}
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  Access your wishlist
+                  {t('offline.tip3')}
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                  Cart (will sync when online)
+                  {t('offline.tip4')}
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-red-400 rounded-full"></div>
-                  New purchases
+                  {t('offline.tip5')}
                 </li>
               </ul>
             </div>
@@ -129,8 +131,8 @@ export default function OfflinePage() {
           <div className="mt-6 text-xs text-text-secondary">
             <p>
               {isOnline 
-                ? 'Your data will sync automatically in the background.'
-                : 'Check your internet connection and try again. Your progress is saved locally.'
+                ? t('offline.syncMessage')
+                : t('offline.checkNetwork')
               }
             </p>
           </div>

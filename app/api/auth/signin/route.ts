@@ -2,15 +2,28 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database';
 import { verifyPassword, createToken } from '@/lib/auth-utils';
 import { authRateLimit } from '@/lib/rate-limit';
-import { emailSchema, passwordSchema } from '@/lib/validation';
+import { emailSchema } from '@/lib/validation';
+import { validateCsrf } from '@/lib/csrf';
+import { createLogger, getRequestId, getSafeErrorDetails } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
+  const requestId = getRequestId(request.headers);
+  const logger = createLogger('api:auth:signin').withRequestId(requestId);
+
   // Rate limiting - 5 attempts per 15 minutes
   const rateLimitResult = await authRateLimit(request);
   if (!rateLimitResult.success) {
     return NextResponse.json(
       { error: 'Too many login attempts. Please try again later.' },
       { status: 429 }
+    );
+  }
+
+  const csrfResult = validateCsrf(request);
+  if (!csrfResult.valid) {
+    return NextResponse.json(
+      { error: csrfResult.error || 'Invalid request' },
+      { status: 403 }
     );
   }
 
@@ -36,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { email },
-    }) as any;
+    });
 
     if (!user || !user.password) {
       return NextResponse.json(
@@ -54,7 +67,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const token = await createToken(user.id, user.email!, user.role);
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        { error: 'Please verify your email before signing in.' },
+        { status: 403 }
+      );
+    }
+
+    const token = await createToken(user.id, user.email!, user.role, user.tokenVersion);
 
     const response = NextResponse.json({
       success: true,
@@ -79,7 +99,7 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Sign in error:', error);
+    logger.error('Sign in failed', { error: getSafeErrorDetails(error) });
     return NextResponse.json(
       { error: 'Authentication failed. Please try again.' },
       { status: 500 }

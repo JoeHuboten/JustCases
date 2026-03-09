@@ -1,12 +1,16 @@
-import { PrismaClient } from '@prisma/client';
+/**
+ * Database access layer.
+ *
+ * Re-exports the shared Prisma singleton from lib/prisma.ts so every import
+ * path (`@/lib/database` or `@/lib/prisma`) references the same client
+ * instance. This avoids duplicate connection pools in development / production.
+ *
+ * Higher-level query helpers live here; low-level selects/pagination helpers
+ * stay in lib/prisma.ts.
+ */
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
-
-export const prisma = globalForPrisma.prisma ?? new PrismaClient();
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+import { prisma } from './prisma';
+export { prisma };
 
 // Database query functions
 export async function getCategories() {

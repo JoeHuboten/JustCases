@@ -3,6 +3,9 @@ import { getUserFromRequest } from '@/lib/auth-utils';
 import { prisma } from '@/lib/prisma';
 import { apiRateLimit } from '@/lib/rate-limit';
 import { validateCsrf } from '@/lib/csrf';
+import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+
+const logger = createLogger('api:wishlist');
 
 // GET - Fetch user's wishlist
 export async function GET(request: NextRequest) {
@@ -53,7 +56,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ items });
   } catch (error) {
-    console.error('Error fetching wishlist:', error);
+    logger.error('Error fetching wishlist', { error: getSafeErrorDetails(error) });
     return NextResponse.json(
       { error: 'Failed to fetch wishlist' },
       { status: 500 }
@@ -148,9 +151,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error('Error adding to wishlist:', error);
-    }
+    logger.error('Error adding to wishlist', { error: getSafeErrorDetails(error) });
     return NextResponse.json(
       { error: 'Failed to add to wishlist' },
       { status: 500 }
@@ -209,7 +210,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
-    console.error('Error removing from wishlist:', error);
+    logger.error('Error removing from wishlist', { error: getSafeErrorDetails(error) });
     return NextResponse.json(
       { error: 'Failed to remove from wishlist' },
       { status: 500 }

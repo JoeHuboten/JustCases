@@ -1,23 +1,12 @@
 services:
   - type: web
     name: justcases
-    runtime: docker
-    dockerfilePath: ./Dockerfile
+    runtime: node
+    buildCommand: npm ci && npx prisma generate && npm run build
+    startCommand: npm run start
     region: frankfurt
     plan: free
     healthCheckPath: /api/health
-    # Docker build args for NEXT_PUBLIC_ variables
-    dockerBuildArgs:
-      - key: DATABASE_URL
-        fromEnvVar: DATABASE_URL
-      - key: JWT_SECRET
-        fromEnvVar: JWT_SECRET
-      - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-        fromEnvVar: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-      - key: NEXT_PUBLIC_PAYPAL_CLIENT_ID
-        fromEnvVar: NEXT_PUBLIC_PAYPAL_CLIENT_ID
-      - key: NEXT_PUBLIC_APP_URL
-        fromEnvVar: NEXT_PUBLIC_APP_URL
     envVars:
       - key: DATABASE_URL
         sync: false

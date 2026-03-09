@@ -6,9 +6,11 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
+  const productsPromise = prisma.product.findMany({ include: { category: true } });
+
   // Fetch all data
   const [products, categories, orders, users, pendingOrders] = await Promise.all([
-    prisma.product.findMany({ include: { category: true } }),
+    productsPromise,
     prisma.category.findMany(),
     prisma.order.findMany(),
     prisma.user.findMany(),
@@ -23,16 +25,18 @@ export default async function AdminDashboard() {
     }),
   ]);
 
+  type ProductWithCategory = Awaited<typeof productsPromise>[number];
+
   // Filter low stock products after fetching (since we need to compare stock to lowStockThreshold)
   const lowStockProducts = products
-    .filter(p => p.stock <= p.lowStockThreshold)
-    .sort((a, b) => a.stock - b.stock)
+    .filter((p: ProductWithCategory) => p.stock <= p.lowStockThreshold)
+    .sort((a: ProductWithCategory, b: ProductWithCategory) => a.stock - b.stock)
     .slice(0, 10);
 
   // Calculate stats
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
-  const outOfStockCount = products.filter(p => p.stock === 0).length;
-  const lowStockCount = products.filter(p => p.stock > 0 && p.stock <= p.lowStockThreshold).length;
+  const outOfStockCount = products.filter((p: ProductWithCategory) => p.stock === 0).length;
+  const lowStockCount = products.filter((p: ProductWithCategory) => p.stock > 0 && p.stock <= p.lowStockThreshold).length;
   
   const stats = {
     totalProducts: products.length,

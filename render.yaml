@@ -2,8 +2,8 @@ services:
   - type: web
     name: justcases
     runtime: node
-    buildCommand: npm ci && npx prisma generate && npm run build
-    startCommand: node .next/standalone/server.js
+    buildCommand: NODE_ENV=production npm ci && NODE_ENV=production npx prisma generate && NODE_ENV=production npm run build
+    startCommand: NODE_ENV=production node .next/standalone/server.js
     region: frankfurt
     plan: free
     healthCheckPath: /api/health
@@ -22,8 +22,6 @@ services:
         sync: false
       - key: PAYPAL_MODE
         value: sandbox
-      - key: NODE_ENV
-        value: production
       - key: NEXT_PUBLIC_APP_URL
         sync: false
       - key: RATE_LIMIT_FAIL_CLOSED

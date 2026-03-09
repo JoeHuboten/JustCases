@@ -3,7 +3,7 @@ services:
     name: justcases
     runtime: node
     buildCommand: npm ci && npx prisma generate && npm run build
-    startCommand: npm run start
+    startCommand: node .next/standalone/server.js
     region: frankfurt
     plan: free
     healthCheckPath: /api/health

@@ -1,7 +1,9 @@
 // Service Worker for JustCases
-const CACHE_NAME = 'justcases-v1';
-const STATIC_CACHE = 'justcases-static-v1';
-const DYNAMIC_CACHE = 'justcases-dynamic-v1';
+// Increment version on each deployment to force cache invalidation
+const CACHE_VERSION = 'v3';
+const CACHE_NAME = `justcases-${CACHE_VERSION}`;
+const STATIC_CACHE = `justcases-static-${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `justcases-dynamic-${CACHE_VERSION}`;
 
 // Files to cache for offline functionality
 const STATIC_FILES = [
@@ -88,12 +90,9 @@ self.addEventListener('fetch', (event) => {
   } else if (url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/_next/image')) {
     // Static assets - cache first
     event.respondWith(handleStaticRequest(request));
-  } else if (url.pathname.startsWith('/product/') || url.pathname.startsWith('/shop')) {
-    // Product pages - network first, then cache
-    event.respondWith(handlePageRequest(request));
   } else {
-    // Other pages - cache first, then network
-    event.respondWith(handleOtherRequest(request));
+    // All HTML pages - network first so users always get fresh content after deploys
+    event.respondWith(handlePageRequest(request));
   }
 });
 

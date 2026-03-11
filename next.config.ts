@@ -4,8 +4,6 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['react-icons', 'zustand', 'gsap'],
   },
-  // Enable static generation where possible
-  output: 'standalone',
   images: {
     remotePatterns: [
       {

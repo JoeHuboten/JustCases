@@ -30,3 +30,5 @@ services:
         value: "true"
       - key: HOSTNAME
         value: "0.0.0.0"
+      - key: NODE_VERSION
+        value: "20"

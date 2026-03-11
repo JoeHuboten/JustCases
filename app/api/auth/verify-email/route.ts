@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
     if (!user) {
       logger.warn('User not found for verification token');
       return NextResponse.json(
-        { error: 'User not found', requestId },
+        { error: 'Invalid or expired verification link', requestId },
         { status: 404, headers: { 'x-request-id': requestId } }
       );
     }

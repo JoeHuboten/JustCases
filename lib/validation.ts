@@ -173,19 +173,11 @@ export function sanitizeInput(input: string): string {
     .replace(/\//g, '&#x2F;');
 }
 
-// Validate and sanitize object
+// Validate object using its Zod schema.
+// Note: sanitizeInput() is intentionally NOT applied here — React JSX auto-escapes
+// output at render time, so storing raw values avoids double-encoding issues
+// (e.g. apostrophes stored as &#x27;). Use sanitizeInput() explicitly for
+// non-React output contexts such as plain-text email templates.
 export function validateAndSanitize<T>(schema: z.ZodSchema<T>, data: unknown): T {
-  const validated = schema.parse(data);
-  
-  // Sanitize string fields
-  if (typeof validated === 'object' && validated !== null) {
-    Object.keys(validated).forEach((key) => {
-      const value = (validated as any)[key];
-      if (typeof value === 'string') {
-        (validated as any)[key] = sanitizeInput(value);
-      }
-    });
-  }
-  
-  return validated;
+  return schema.parse(data);
 }

@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { error: 'User not found' },
+        { error: 'Invalid or expired reset token' },
         { status: 404 }
       );
     }

@@ -147,8 +147,9 @@ export default async function proxy(request: NextRequest) {
   // Content Security Policy
   const cspDirectives = [
     "default-src 'self'",
-    // Use request nonce for first-party scripts and allow trusted payment providers.
-    `script-src 'self' 'nonce-${nonce}' https://www.paypal.com https://www.sandbox.paypal.com https://*.paypal.com https://js.stripe.com`,
+    // Next.js App Router injects inline hydration scripts.
+    // Keep nonce for custom scripts while allowing framework inline chunks.
+    `script-src 'self' 'unsafe-inline' 'nonce-${nonce}' https://www.paypal.com https://www.sandbox.paypal.com https://*.paypal.com https://js.stripe.com`,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
     "img-src 'self' data: blob: https: http:",

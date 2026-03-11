@@ -30,5 +30,3 @@ services:
         value: "true"
       - key: HOSTNAME
         value: "0.0.0.0"
-      - key: PORT
-        value: "3000"

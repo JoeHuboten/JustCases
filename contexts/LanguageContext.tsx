@@ -1162,7 +1162,9 @@ const translations = {
 
     // Auth - Sign In
     'auth.signin.backHome': 'Обратно към началото',
+    'auth.signin.backToHome': 'Обратно към началото',
     'auth.signin.welcome': 'Добре дошли отново',
+    'auth.signin.title': 'Добре дошли отново',
     'auth.signin.subtitle': 'Влезте в акаунта си',
     'auth.signin.email': 'Имейл',
     'auth.signin.emailPlaceholder': 'ваш@имейл.com',
@@ -1171,7 +1173,9 @@ const translations = {
     'auth.signin.rememberMe': 'Запомни ме за 7 дни',
     'auth.signin.forgotPassword': 'Забравена парола?',
     'auth.signin.signingIn': 'Влизане...',
+    'auth.signin.loading': 'Влизане...',
     'auth.signin.signIn': 'Вход',
+    'auth.signin.submit': 'Вход',
     'auth.signin.noAccount': 'Нямате акаунт?',
     'auth.signin.signUp': 'Регистрирайте се',
     'auth.signin.failed': 'Неуспешен вход',
@@ -2640,7 +2644,9 @@ const translations = {
 
     // Auth - Sign In
     'auth.signin.backHome': 'Back to Home',
+    'auth.signin.backToHome': 'Back to Home',
     'auth.signin.welcome': 'Welcome Back',
+    'auth.signin.title': 'Welcome Back',
     'auth.signin.subtitle': 'Sign in to your account',
     'auth.signin.email': 'Email',
     'auth.signin.emailPlaceholder': 'your@email.com',
@@ -2649,7 +2655,9 @@ const translations = {
     'auth.signin.rememberMe': 'Remember me for 7 days',
     'auth.signin.forgotPassword': 'Forgot password?',
     'auth.signin.signingIn': 'Signing in...',
+    'auth.signin.loading': 'Signing in...',
     'auth.signin.signIn': 'Sign In',
+    'auth.signin.submit': 'Sign In',
     'auth.signin.noAccount': 'Don\'t have an account?',
     'auth.signin.signUp': 'Sign up',
     'auth.signin.failed': 'Sign in failed',

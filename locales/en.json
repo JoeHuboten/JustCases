@@ -1121,7 +1121,7 @@
   "auth.signup.hasAccount": "Already have an account?",
   "auth.signup.signIn": "Sign in",
   "auth.signup.passwordMismatch": "Passwords do not match",
-  "auth.signup.passwordTooShort": "Password must be at least 6 characters",
+  "auth.signup.passwordTooShort": "Password must be at least 8 characters with uppercase, lowercase, and a number",
   "auth.signup.failed": "Sign up failed",
   "auth.forgot.checkEmail": "Check Your Email",
   "auth.forgot.checkEmailDesc": "If an account with this email address exists, we've sent password reset instructions.",

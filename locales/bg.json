@@ -1121,7 +1121,7 @@
   "auth.signup.hasAccount": "Вече имате акаунт?",
   "auth.signup.signIn": "Вход",
   "auth.signup.passwordMismatch": "Паролите не съвпадат",
-  "auth.signup.passwordTooShort": "Паролата трябва да е поне 6 символа",
+  "auth.signup.passwordTooShort": "Паролата трябва да е поне 8 символа с главна буква, малка буква и цифра",
   "auth.signup.failed": "Регистрацията не бе успешна",
   "auth.forgot.checkEmail": "Проверете имейла си",
   "auth.forgot.checkEmailDesc": "Ако съществува акаунт с този имейл адрес, изпратихме инструкции за нулиране на паролата.",

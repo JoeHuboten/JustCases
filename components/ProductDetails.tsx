@@ -140,8 +140,8 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                 onClick={() => setSelectedColor(color)}
                 className={`px-4 py-2 border rounded-lg transition-all duration-200 cursor-pointer font-body ${
                   selectedColor === color
-                    ? 'border-blue-500/50 bg-blue-500/20 text-white shadow-lg shadow-blue-500/20'
-                    : 'border-white/10 text-white/50 hover:border-blue-500/30 hover:text-white hover:bg-blue-500/10'
+                    ? 'border-teal-500/50 bg-teal-500/20 text-white shadow-lg shadow-teal-500/20'
+                    : 'border-white/10 text-white/50 hover:border-teal-500/30 hover:text-white hover:bg-teal-500/10'
                 }`}
               >
                 {localizeProductOption(color, language)}
@@ -164,8 +164,8 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                 onClick={() => setSelectedSize(size)}
                 className={`px-4 py-2 border rounded-lg transition-all duration-200 cursor-pointer font-body ${
                   selectedSize === size
-                    ? 'border-blue-500/50 bg-blue-500/20 text-white shadow-lg shadow-blue-500/20'
-                    : 'border-white/10 text-white/50 hover:border-blue-500/30 hover:text-white hover:bg-blue-500/10'
+                    ? 'border-teal-500/50 bg-teal-500/20 text-white shadow-lg shadow-teal-500/20'
+                    : 'border-white/10 text-white/50 hover:border-teal-500/30 hover:text-white hover:bg-teal-500/10'
                 }`}
               >
                 {localizeProductOption(size, language)}
@@ -180,7 +180,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         <button 
           onClick={handleAddToCart}
           disabled={isAddingToCart || !product.inStock}
-          className="flex-1 py-4 flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-body"
+          className="flex-1 py-4 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-body"
         >
           <FiShoppingCart size={20} />
           {!product.inStock 
@@ -195,7 +195,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           className={`px-6 py-4 border rounded-xl transition-all duration-200 ${
             inWishlist 
               ? 'border-red-500 text-red-500 bg-red-500/20 shadow-lg shadow-red-500/20' 
-              : 'border-white/10 text-white/50 hover:border-blue-500/30 hover:text-blue-400 hover:shadow-md'
+              : 'border-white/10 text-white/50 hover:border-teal-500/30 hover:text-teal-400 hover:shadow-md'
           } disabled:opacity-60 disabled:cursor-not-allowed`}
         >
           <FiHeart size={20} className={inWishlist ? 'fill-current' : ''} />

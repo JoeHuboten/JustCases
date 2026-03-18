@@ -23,7 +23,7 @@ export default function LanguageSwitcher() {
         aria-pressed={language === 'bg'}
         className={`h-8 rounded-lg px-2.5 text-xs font-semibold transition-all ${
           language === 'bg'
-            ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
+            ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/30'
             : 'text-white/70 hover:text-white hover:bg-white/10'
         }`}
       >
@@ -36,7 +36,7 @@ export default function LanguageSwitcher() {
         aria-pressed={language === 'en'}
         className={`h-8 rounded-lg px-2.5 text-xs font-semibold transition-all ${
           language === 'en'
-            ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
+            ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/30'
             : 'text-white/70 hover:text-white hover:bg-white/10'
         }`}
       >

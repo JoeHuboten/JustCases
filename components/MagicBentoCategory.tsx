@@ -73,7 +73,7 @@ const MagicBentoCategory = ({ categories }: MagicBentoCategoryProps) => {
       {/* Global Spotlight Effect */}
       <div className="fixed pointer-events-none z-10 w-96 h-96 rounded-full opacity-0 transition-opacity duration-300 mix-blend-screen"
            style={{
-             background: 'radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.08) 30%, transparent 70%)',
+             background: 'radial-gradient(circle, rgba(20, 184, 166, 0.15) 0%, rgba(20, 184, 166, 0.08) 30%, transparent 70%)',
              transform: 'translate(-50%, -50%)',
              left: '50%',
              top: '50%'
@@ -104,7 +104,7 @@ const MagicBentoCategory = ({ categories }: MagicBentoCategoryProps) => {
             <Link
               key={category.id}
               href={`/shop/${category.slug}`}
-              className={`bento-card group relative ${getGridSpan()} ${getHeight()} bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 hover:border-blue-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/10 cursor-pointer hover-tilt`}
+              className={`bento-card group relative ${getGridSpan()} ${getHeight()} bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 hover:border-teal-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-teal-500/10 cursor-pointer hover-tilt`}
               style={{
                 '--glow-x': '50%',
                 '--glow-y': '50%',
@@ -129,12 +129,12 @@ const MagicBentoCategory = ({ categories }: MagicBentoCategoryProps) => {
               )}
 
               {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-800/70 to-slate-900/90 group-hover:from-blue-900/30 group-hover:via-slate-800/50 group-hover:to-blue-900/30 transition-all duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-800/70 to-slate-900/90 group-hover:from-teal-900/30 group-hover:via-slate-800/50 group-hover:to-teal-900/30 transition-all duration-300" />
 
               {/* Subtle Pattern Overlay */}
               <div className="absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity duration-300"
                    style={{
-                     backgroundImage: `radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.3) 1px, transparent 0)`,
+                     backgroundImage: `radial-gradient(circle at 1px 1px, rgba(20, 184, 166, 0.3) 1px, transparent 0)`,
                      backgroundSize: '20px 20px'
                    }}
               />
@@ -143,7 +143,7 @@ const MagicBentoCategory = ({ categories }: MagicBentoCategoryProps) => {
               <div 
                 className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 style={{
-                  background: `radial-gradient(300px circle at var(--glow-x) var(--glow-y), rgba(59, 130, 246, calc(var(--glow-intensity) * 0.3)) 0%, transparent 50%)`
+                  background: `radial-gradient(300px circle at var(--glow-x) var(--glow-y), rgba(20, 184, 166, calc(var(--glow-intensity) * 0.3)) 0%, transparent 50%)`
                 }}
               />
 
@@ -151,7 +151,7 @@ const MagicBentoCategory = ({ categories }: MagicBentoCategoryProps) => {
               <div className="relative z-10 h-full flex flex-col justify-between p-6">
                 {/* Top Section */}
                 <div className="flex items-start justify-between">
-                  <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center group-hover:bg-blue-500/30 transition-colors duration-300">
+                  <div className="w-12 h-12 bg-teal-500/20 rounded-xl flex items-center justify-center group-hover:bg-teal-500/30 transition-colors duration-300">
                     <span className="text-xl">
                       {category.name === 'Phone Cases' && '📱'}
                       {category.name === 'Screen Protectors' && '🛡️'}
@@ -164,7 +164,7 @@ const MagicBentoCategory = ({ categories }: MagicBentoCategoryProps) => {
                   
                   {/* Hover Arrow */}
                   <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
-                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
@@ -174,7 +174,7 @@ const MagicBentoCategory = ({ categories }: MagicBentoCategoryProps) => {
 
                 {/* Bottom Section */}
                 <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors duration-300">
+                  <h3 className="text-xl font-bold text-white group-hover:text-teal-400 transition-colors duration-300">
                     {category.name}
                   </h3>
                   
@@ -185,7 +185,7 @@ const MagicBentoCategory = ({ categories }: MagicBentoCategoryProps) => {
                   )}
 
                   {/* Category Badge */}
-                  <div className="inline-block bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full text-xs font-medium border border-blue-500/20 group-hover:bg-blue-500/20 transition-colors duration-300">
+                  <div className="inline-block bg-teal-500/10 text-teal-400 px-3 py-1 rounded-full text-xs font-medium border border-teal-500/20 group-hover:bg-teal-500/20 transition-colors duration-300">
                     Explore
                   </div>
                 </div>
@@ -195,7 +195,7 @@ const MagicBentoCategory = ({ categories }: MagicBentoCategoryProps) => {
               <div 
                 className="absolute inset-0 rounded-2xl border-2 border-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 style={{
-                  background: `linear-gradient(45deg, transparent, rgba(59, 130, 246, 0.5), transparent) border-box`,
+                  background: `linear-gradient(45deg, transparent, rgba(20, 184, 166, 0.5), transparent) border-box`,
                   mask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
                   maskComposite: 'subtract'
                 }}

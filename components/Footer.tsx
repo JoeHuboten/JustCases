@@ -18,7 +18,7 @@ const Footer = memo(function Footer() {
       
       {/* Newsletter Section */}
       <div className="relative container-custom py-8 sm:py-12">
-        <div className="bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-cyan-500/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 border border-white/5 shadow-2xl">
+        <div className="bg-gradient-to-br from-teal-500/10 via-purple-500/5 to-cyan-500/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 border border-white/5 shadow-2xl">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
             <div className="text-center md:text-left">
               <h3 className="text-xl sm:text-2xl md:text-3xl font-heading font-bold text-white mb-2">{t('footer.newsletter.title')}</h3>
@@ -34,24 +34,34 @@ const Footer = memo(function Footer() {
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
           {/* Brand */}
           <div className="col-span-2 sm:col-span-2 md:col-span-2 lg:col-span-1">
-            <Link href="/" className="inline-block text-xl sm:text-2xl font-heading font-bold mb-4 sm:mb-6 group">
-              <span className="bg-gradient-to-r from-white via-white to-blue-400 bg-clip-text text-transparent group-hover:from-blue-400 group-hover:to-cyan-400 transition-all duration-300">JUST</span>
-              <span className="text-blue-400 group-hover:text-cyan-400 transition-colors duration-300">CASES</span>
+            <Link href="/" className="inline-flex items-center gap-2 mb-4 sm:mb-6 group">
+              <svg viewBox="0 0 200 40" fill="none" className="h-8">
+                <g transform="translate(18, 20)">
+                  <path d="M0,-14 L16,-6 L0,2 L-16,-6 Z" fill="#4eeadb" />
+                  <path d="M-16,-6 L0,2 L0,18 L-16,10 Z" fill="#1a9e8f" />
+                  <path d="M16,-6 L0,2 L0,18 L16,10 Z" fill="#2bc4b0" />
+                  <path d="M-12.5,-3.5 L-4.5,1 L-4.5,6 L-8,4.2 L-8,0.5 L-12.5,-1.5 Z" fill="#0d2d2a" opacity="0.85" />
+                  <path d="M-8,4.2 L-4.5,6 L-4.5,8.5 Q-4.5,11 -7,10 L-9.5,8.6 L-8,7.5 L-6.2,8.6 Q-5.2,9 -5.5,8 L-5.5,6 L-8,4.2 Z" fill="#0d2d2a" opacity="0.85" />
+                  <path d="M12.5,-3.5 L7,-0.5 Q5,1 5,5 Q5,9 7,10.5 L12.5,7 L12.5,9 L8,12 Q3.5,9.5 3.5,5 Q3.5,0.5 8,-2 L12.5,-4.5 Z" fill="#0d2d2a" opacity="0.85" />
+                </g>
+                <text x="40" y="26" fontFamily="system-ui, -apple-system, sans-serif" fontSize="19" fontWeight="500" fill="white" letterSpacing="-0.3">Just</text>
+                <text x="77" y="26" fontFamily="system-ui, -apple-system, sans-serif" fontSize="19" fontWeight="500" fill="#2bc4b0" letterSpacing="-0.3">Cases</text>
+              </svg>
             </Link>
             <p className="text-white/40 text-sm mb-6 sm:mb-8 leading-relaxed font-body">
               {t('footer.brand.description')}
             </p>
             <div className="flex space-x-2 sm:space-x-3">
-              <a href="#" aria-label={t('footer.followTwitter')} className="w-11 h-11 sm:w-10 sm:h-10 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-white/40 hover:text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/30 transition-all duration-300">
+              <a href="#" aria-label={t('footer.followTwitter')} className="w-11 h-11 sm:w-10 sm:h-10 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-white/40 hover:text-teal-400 hover:bg-teal-500/10 hover:border-teal-500/30 transition-all duration-300">
                 <FiTwitter size={18} />
               </a>
-              <a href="#" aria-label={t('footer.followFacebook')} className="w-11 h-11 sm:w-10 sm:h-10 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-white/40 hover:text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/30 transition-all duration-300">
+              <a href="#" aria-label={t('footer.followFacebook')} className="w-11 h-11 sm:w-10 sm:h-10 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-white/40 hover:text-teal-400 hover:bg-teal-500/10 hover:border-teal-500/30 transition-all duration-300">
                 <FiFacebook size={18} />
               </a>
-              <a href="#" aria-label={t('footer.followInstagram')} className="w-11 h-11 sm:w-10 sm:h-10 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-white/40 hover:text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/30 transition-all duration-300">
+              <a href="#" aria-label={t('footer.followInstagram')} className="w-11 h-11 sm:w-10 sm:h-10 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-white/40 hover:text-teal-400 hover:bg-teal-500/10 hover:border-teal-500/30 transition-all duration-300">
                 <FiInstagram size={18} />
               </a>
-              <a href="#" aria-label={t('footer.viewGithub')} className="w-11 h-11 sm:w-10 sm:h-10 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-white/40 hover:text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/30 transition-all duration-300">
+              <a href="#" aria-label={t('footer.viewGithub')} className="w-11 h-11 sm:w-10 sm:h-10 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-white/40 hover:text-teal-400 hover:bg-teal-500/10 hover:border-teal-500/30 transition-all duration-300">
                 <FiGithub size={18} />
               </a>
             </div>
@@ -61,10 +71,10 @@ const Footer = memo(function Footer() {
           <div>
             <h3 className="text-white font-heading font-semibold mb-6 text-sm tracking-wider uppercase">{t('footer.company')}</h3>
             <ul className="space-y-4">
-              <li><Link href="/about" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-blue-400 transition-all duration-300"></span>{t('footer.about')}</Link></li>
-              <li><Link href="/features" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-blue-400 transition-all duration-300"></span>{t('footer.features')}</Link></li>
-              <li><Link href="/works" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-blue-400 transition-all duration-300"></span>{t('footer.howItWorks')}</Link></li>
-              <li><Link href="/career" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-blue-400 transition-all duration-300"></span>{t('footer.career')}</Link></li>
+              <li><Link href="/about" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-teal-400 transition-all duration-300"></span>{t('footer.about')}</Link></li>
+              <li><Link href="/features" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-teal-400 transition-all duration-300"></span>{t('footer.features')}</Link></li>
+              <li><Link href="/works" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-teal-400 transition-all duration-300"></span>{t('footer.howItWorks')}</Link></li>
+              <li><Link href="/career" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-teal-400 transition-all duration-300"></span>{t('footer.career')}</Link></li>
             </ul>
           </div>
 
@@ -72,10 +82,10 @@ const Footer = memo(function Footer() {
           <div>
             <h3 className="text-white font-heading font-semibold mb-6 text-sm tracking-wider uppercase">{t('footer.help')}</h3>
             <ul className="space-y-4">
-              <li><Link href="/support" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-blue-400 transition-all duration-300"></span>{t('footer.customerSupport')}</Link></li>
-              <li><Link href="/delivery" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-blue-400 transition-all duration-300"></span>{t('footer.deliveryDetails')}</Link></li>
-              <li><Link href="/terms" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-blue-400 transition-all duration-300"></span>{t('footer.terms')}</Link></li>
-              <li><Link href="/privacy" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-blue-400 transition-all duration-300"></span>{t('footer.privacyPolicy')}</Link></li>
+              <li><Link href="/support" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-teal-400 transition-all duration-300"></span>{t('footer.customerSupport')}</Link></li>
+              <li><Link href="/delivery" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-teal-400 transition-all duration-300"></span>{t('footer.deliveryDetails')}</Link></li>
+              <li><Link href="/terms" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-teal-400 transition-all duration-300"></span>{t('footer.terms')}</Link></li>
+              <li><Link href="/privacy" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-teal-400 transition-all duration-300"></span>{t('footer.privacyPolicy')}</Link></li>
             </ul>
           </div>
 
@@ -83,10 +93,10 @@ const Footer = memo(function Footer() {
           <div>
             <h3 className="text-white font-heading font-semibold mb-6 text-sm tracking-wider uppercase">{t('footer.faq')}</h3>
             <ul className="space-y-4">
-              <li><Link href="/account" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-blue-400 transition-all duration-300"></span>{t('footer.account')}</Link></li>
-              <li><Link href="/deliveries" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-blue-400 transition-all duration-300"></span>{t('footer.manageDeliveries')}</Link></li>
-              <li><Link href="/orders" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-blue-400 transition-all duration-300"></span>{t('footer.orders')}</Link></li>
-              <li><Link href="/payments" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-blue-400 transition-all duration-300"></span>{t('footer.payments')}</Link></li>
+              <li><Link href="/account" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-teal-400 transition-all duration-300"></span>{t('footer.account')}</Link></li>
+              <li><Link href="/deliveries" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-teal-400 transition-all duration-300"></span>{t('footer.manageDeliveries')}</Link></li>
+              <li><Link href="/orders" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-teal-400 transition-all duration-300"></span>{t('footer.orders')}</Link></li>
+              <li><Link href="/payments" className="text-white/40 hover:text-white transition-colors duration-300 text-sm font-body flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-px bg-teal-400 transition-all duration-300"></span>{t('footer.payments')}</Link></li>
             </ul>
           </div>
 

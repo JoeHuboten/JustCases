@@ -16,7 +16,7 @@ export default function NotFound() {
             404
           </div>
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-32 h-32 bg-gradient-to-br from-blue-500/20 to-blue-400/20 rounded-full animate-pulse" />
+            <div className="w-32 h-32 bg-gradient-to-br from-teal-500/20 to-teal-400/20 rounded-full animate-pulse" />
           </div>
         </div>
 
@@ -32,7 +32,7 @@ export default function NotFound() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
             href="/"
-            className="inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-8 py-4 rounded-xl font-medium hover:scale-105 transition-transform shadow-lg shadow-blue-500/20 font-body"
+            className="inline-flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white px-8 py-4 rounded-xl font-medium hover:scale-105 transition-transform shadow-lg shadow-teal-500/20 font-body"
           >
             <FiHome size={20} />
             {t('notFound.goHome', 'Към началото')}
@@ -54,7 +54,7 @@ export default function NotFound() {
           </p>
           <Link
             href="/shop"
-            className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors font-body"
+            className="inline-flex items-center gap-2 text-teal-400 hover:text-teal-300 transition-colors font-body"
           >
             <FiSearch size={16} />
             {t('notFound.searchProducts', 'Потърсете продукт')}

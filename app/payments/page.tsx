@@ -90,14 +90,14 @@ export default function PaymentsPage() {
       icon: FiCreditCard,
       description: 'Visa, Mastercard',
       features: [t('payments.method.safe'), t('payments.method.fast'), t('payments.method.widelyAccepted')],
-      color: 'text-blue-500'
+      color: 'text-teal-500'
     },
     {
       name: 'PayPal',
       icon: FiShield,
       description: t('payments.method.wallet'),
       features: [t('payments.method.protected'), t('payments.method.easy'), t('payments.method.noRegistration')],
-      color: 'text-blue-600'
+      color: 'text-teal-600'
     },
     {
       name: 'Apple Pay',
@@ -118,7 +118,7 @@ export default function PaymentsPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0f]">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-[#0a0a0f] to-blue-900/20 py-20">
+      <section className="bg-gradient-to-r from-[#0a0a0f] to-teal-900/20 py-20">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn" className="text-center">
             <h1 className="text-5xl font-bold text-white mb-6">{t('payments.title')}</h1>

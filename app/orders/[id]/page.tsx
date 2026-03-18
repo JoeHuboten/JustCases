@@ -71,8 +71,8 @@ const STATUS_CONFIG = {
   PROCESSING: { 
     label: 'Processing', 
     labelBg: 'В обработка',
-    color: 'text-blue-400', 
-    bgColor: 'bg-blue-400/10',
+    color: 'text-teal-400', 
+    bgColor: 'bg-teal-400/10',
     icon: FiPackage,
     step: 2
   },

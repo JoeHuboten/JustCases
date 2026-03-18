@@ -113,8 +113,8 @@ function PaymentSuccessContent() {
           )}
 
           {/* Order Confirmation Message */}
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-8">
-            <p className="text-blue-400 text-sm">
+          <div className="bg-teal-500/10 border border-teal-500/20 rounded-lg p-4 mb-8">
+            <p className="text-teal-400 text-sm">
               {t('paymentSuccess.emailSent')}
             </p>
           </div>

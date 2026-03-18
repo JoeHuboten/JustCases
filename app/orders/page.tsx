@@ -74,7 +74,7 @@ export default function OrdersPage() {
       case 'PENDING':
         return <FiPackage className="text-yellow-400" />;
       case 'PROCESSING':
-        return <FiTruck className="text-blue-400" />;
+        return <FiTruck className="text-teal-400" />;
       case 'SHIPPED':
         return <FiTruck className="text-purple-400" />;
       case 'DELIVERED':
@@ -108,7 +108,7 @@ export default function OrdersPage() {
       case 'PENDING':
         return 'text-yellow-400 bg-yellow-400/20';
       case 'PROCESSING':
-        return 'text-blue-400 bg-blue-400/20';
+        return 'text-teal-400 bg-teal-400/20';
       case 'SHIPPED':
         return 'text-purple-400 bg-purple-400/20';
       case 'DELIVERED':

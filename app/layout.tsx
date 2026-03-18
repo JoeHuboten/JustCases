@@ -124,7 +124,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="bg" className={`dark ${spaceGrotesk.variable} ${outfit.variable}`}>
+    <html lang="bg" suppressHydrationWarning className={`dark ${spaceGrotesk.variable} ${outfit.variable}`}>
       <body className={outfit.className}>
         <script
           type="application/ld+json"

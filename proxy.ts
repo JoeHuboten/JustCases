@@ -22,7 +22,7 @@ function getSecret(): Uint8Array {
   return new TextEncoder().encode(secret);
 }
 
-export async function middleware(request: NextRequest) {
+const proxy = async (request: NextRequest) => {
   const { pathname } = request.nextUrl;
 
   const isAdminPath = ADMIN_PATHS.some(
@@ -56,7 +56,9 @@ export async function middleware(request: NextRequest) {
     signInUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(signInUrl);
   }
-}
+};
+
+export default proxy;
 
 export const config = {
   matcher: [

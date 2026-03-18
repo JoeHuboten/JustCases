@@ -61,7 +61,7 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0f]">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-[#0a0a0f] to-blue-900/20 py-20">
+      <section className="bg-gradient-to-r from-[#0a0a0f] to-teal-900/20 py-20">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn" className="text-center">
             <h1 className="text-5xl font-heading font-bold text-white mb-6">{t('contact.title')}</h1>
@@ -82,7 +82,7 @@ export default function ContactPage() {
                 <h2 className="text-3xl font-heading font-bold text-white mb-8">{t('contact.info.title')}</h2>
                 <StaggerAnimation animation="fadeIn" stagger={0.1} className="space-y-6">
                   <div className="flex items-start space-x-4">
-                    <div className="bg-blue-500 rounded-full p-3">
+                    <div className="bg-teal-500 rounded-full p-3">
                       <FiMail className="text-white text-xl" />
                     </div>
                     <div>
@@ -93,7 +93,7 @@ export default function ContactPage() {
                   </div>
                   
                   <div className="flex items-start space-x-4">
-                    <div className="bg-blue-500 rounded-full p-3">
+                    <div className="bg-teal-500 rounded-full p-3">
                       <FiPhone className="text-white text-xl" />
                     </div>
                     <div>
@@ -104,7 +104,7 @@ export default function ContactPage() {
                   </div>
                   
                   <div className="flex items-start space-x-4">
-                    <div className="bg-blue-500 rounded-full p-3">
+                    <div className="bg-teal-500 rounded-full p-3">
                       <FiMapPin className="text-white text-xl" />
                     </div>
                     <div>
@@ -118,7 +118,7 @@ export default function ContactPage() {
                   </div>
                   
                   <div className="flex items-start space-x-4">
-                    <div className="bg-blue-500 rounded-full p-3">
+                    <div className="bg-teal-500 rounded-full p-3">
                       <FiClock className="text-white text-xl" />
                     </div>
                     <div>
@@ -190,7 +190,7 @@ export default function ContactPage() {
                       value={formData.name}
                       onChange={handleChange}
                       required
-                      className="w-full bg-white/[0.03] text-white px-4 py-3 rounded-lg border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 font-body"
+                      className="w-full bg-white/[0.03] text-white px-4 py-3 rounded-lg border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 font-body"
                       placeholder={t('contact.form.namePlaceholder')}
                     />
                   </div>
@@ -206,7 +206,7 @@ export default function ContactPage() {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="w-full bg-white/[0.03] text-white px-4 py-3 rounded-lg border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 font-body"
+                      className="w-full bg-white/[0.03] text-white px-4 py-3 rounded-lg border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 font-body"
                       placeholder={t('contact.form.emailPlaceholder')}
                     />
                   </div>
@@ -222,7 +222,7 @@ export default function ContactPage() {
                       value={formData.subject}
                       onChange={handleChange}
                       required
-                      className="w-full bg-white/[0.03] text-white px-4 py-3 rounded-lg border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 font-body"
+                      className="w-full bg-white/[0.03] text-white px-4 py-3 rounded-lg border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 font-body"
                       placeholder={t('contact.form.subjectPlaceholder')}
                     />
                   </div>
@@ -238,7 +238,7 @@ export default function ContactPage() {
                       onChange={handleChange}
                       required
                       rows={6}
-                      className="w-full bg-white/[0.03] text-white px-4 py-3 rounded-lg border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 resize-none font-body"
+                      className="w-full bg-white/[0.03] text-white px-4 py-3 rounded-lg border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 resize-none font-body"
                       placeholder={t('contact.form.messagePlaceholder')}
                     />
                   </div>
@@ -246,7 +246,7 @@ export default function ContactPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed font-body"
+                    className="w-full bg-teal-500 hover:bg-teal-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed font-body"
                   >
                     {loading ? (
                       <>

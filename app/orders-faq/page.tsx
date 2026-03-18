@@ -49,7 +49,7 @@ export default function OrdersFaqPage() {
       icon: FiRefreshCw,
       title: t('ordersFaq.status.processing'),
       description: t('ordersFaq.status.processingDesc'),
-      color: 'text-blue-500'
+      color: 'text-teal-500'
     },
     {
       status: 'SHIPPED',

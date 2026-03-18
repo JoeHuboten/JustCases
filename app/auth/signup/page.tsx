@@ -1,17 +1,25 @@
 ﻿'use client';
 
 import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FiMail, FiLock, FiUser, FiArrowLeft } from 'react-icons/fi';
+
+const GlassInput = ({ children }: { children: React.ReactNode }) => (
+  <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm transition-colors focus-within:border-teal-400/70 focus-within:bg-teal-500/10">
+    {children}
+  </div>
+);
 
 export default function SignUpPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -25,13 +33,13 @@ export default function SignUpPage() {
     setSuccess(false);
 
     if (password !== confirmPassword) {
-      setError(t('auth.signup.passwordMismatch'));
+      setError(t('auth.signup.passwordMismatch', 'Passwords do not match'));
       return;
     }
 
     const strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
     if (!strongPassword.test(password)) {
-      setError(t('auth.signup.passwordTooShort'));
+      setError(t('auth.signup.passwordTooShort', 'Password must be at least 8 characters with uppercase, lowercase, and a number'));
       return;
     }
 
@@ -39,101 +47,159 @@ export default function SignUpPage() {
     const result = await signUp(email, password, name);
 
     if (result.success) {
-      // Check if verification is required
       if (result.requiresVerification) {
         setSuccess(true);
       } else {
         router.push('/');
       }
     } else {
-      setError(result.error || t('auth.signup.failed'));
+      setError(result.error || t('auth.signup.failed', 'Registration failed'));
     }
-
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/10 to-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <Link href="/" className="flex items-center gap-2 text-text-secondary hover:text-white transition-colors mb-8">
-          <FiArrowLeft size={20} />
-          <span>{t('auth.signup.backHome')}</span>
-        </Link>
-        <div className="bg-gradient-to-br from-primary/80 to-primary backdrop-blur-xl border border-gray-800/50 rounded-2xl p-8 shadow-2xl">
-          <h1 className="text-3xl font-bold text-white mb-2">{t('auth.signup.title')}</h1>
-          <p className="text-text-secondary mb-8">{t('auth.signup.subtitle')}</p>
-          
-          {success && (
-            <div className="bg-green-500/10 border border-green-500/50 rounded-lg p-4 mb-6">
-              <p className="text-green-500 text-sm font-medium mb-2">{t('auth.signup.success')}</p>
-              <p className="text-green-400 text-sm">
-                {t('auth.signup.checkEmail')}
-              </p>
-            </div>
-          )}
-          
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 mb-6">
-              <p className="text-red-500 text-sm">{error}</p>
-            </div>
-          )}
-          
-          {!success && (
-            <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="name" className="block text-white mb-2 font-medium">{t('auth.signup.name')}</label>
-              <div className="relative">
-                <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={20} />
-                <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full bg-background/50 border border-gray-700 rounded-lg px-12 py-3 text-white placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder={t('auth.signup.namePlaceholder')} />
+    <div className="min-h-screen flex flex-col md:flex-row bg-[#0a0a0f]">
+      {/* Left: Sign Up Form */}
+      <section className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-md">
+          <div className="flex flex-col gap-6">
+            <h1 className="animate-element animate-delay-100 text-4xl md:text-5xl font-heading font-semibold leading-tight text-white">
+              {t('auth.signup.title', 'Create Account')}
+            </h1>
+            <p className="animate-element animate-delay-200 text-white/50">
+              {t('auth.signup.subtitle', 'Join us and discover premium mobile accessories')}
+            </p>
+
+            {success && (
+              <div className="bg-green-500/10 border border-green-500/50 rounded-2xl p-4">
+                <p className="text-green-400 text-sm font-medium mb-1">{t('auth.signup.success', 'Account created!')}</p>
+                <p className="text-green-400/80 text-sm">{t('auth.signup.checkEmail', 'Check your email to verify your account.')}</p>
               </div>
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-white mb-2 font-medium">{t('auth.signup.email')}</label>
-              <div className="relative">
-                <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={20} />
-                <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full bg-background/50 border border-gray-700 rounded-lg px-12 py-3 text-white placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder={t('auth.signup.emailPlaceholder')} />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="password" className="block text-white mb-2 font-medium">{t('auth.signup.password')}</label>
-              <div className="relative">
-                <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={20} />
-                <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} className="w-full bg-background/50 border border-gray-700 rounded-lg px-12 py-3 text-white placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder="" />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="confirmPassword" className="block text-white mb-2 font-medium">{t('auth.signup.confirmPassword')}</label>
-              <div className="relative">
-                <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={20} />
-                <input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={8} className="w-full bg-background/50 border border-gray-700 rounded-lg px-12 py-3 text-white placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder="" />
-              </div>
-            </div>
-            <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-accent to-accent/80 text-white py-3 rounded-lg font-medium hover:from-accent-light hover:to-accent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
-              {loading ? t('auth.signup.creating') : t('auth.signup.create')}
-            </button>
-          </form>
-          )}
-          
-          <div className="mt-6 text-center">
-            {success ? (
-              <p className="text-text-secondary">
-                {t('auth.signup.noEmail')}{' '}
-                <button 
-                  onClick={() => setSuccess(false)} 
-                  className="text-accent hover:text-accent-light transition-colors"
-                >
-                  {t('auth.signup.tryAgain')}
-                </button>
-              </p>
-            ) : (
-              <p className="text-text-secondary">
-                {t('auth.signup.hasAccount')}{' '}
-                <Link href="/auth/signin" className="text-accent hover:text-accent-light transition-colors">{t('auth.signup.signIn')}</Link>
-              </p>
             )}
+
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/50 rounded-2xl p-4">
+                <p className="text-red-400 text-sm">{error}</p>
+              </div>
+            )}
+
+            {!success && (
+              <form className="space-y-5" onSubmit={handleSubmit}>
+                <div className="animate-element animate-delay-300">
+                  <label className="text-sm font-medium text-white/50 mb-1 block">{t('auth.signup.name', 'Full Name')}</label>
+                  <GlassInput>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      placeholder={t('auth.signup.namePlaceholder', 'Enter your full name')}
+                      className="w-full bg-transparent text-sm text-white p-4 rounded-2xl focus:outline-none placeholder:text-white/25"
+                    />
+                  </GlassInput>
+                </div>
+
+                <div className="animate-element animate-delay-400">
+                  <label className="text-sm font-medium text-white/50 mb-1 block">{t('auth.signup.email', 'Email Address')}</label>
+                  <GlassInput>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      placeholder={t('auth.signup.emailPlaceholder', 'Enter your email address')}
+                      className="w-full bg-transparent text-sm text-white p-4 rounded-2xl focus:outline-none placeholder:text-white/25"
+                    />
+                  </GlassInput>
+                </div>
+
+                <div className="animate-element animate-delay-500">
+                  <label className="text-sm font-medium text-white/50 mb-1 block">{t('auth.signup.password', 'Password')}</label>
+                  <GlassInput>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        minLength={8}
+                        placeholder={t('auth.signup.passwordPlaceholder', 'Create a strong password')}
+                        className="w-full bg-transparent text-sm text-white p-4 pr-12 rounded-2xl focus:outline-none placeholder:text-white/25"
+                      />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-3 flex items-center">
+                        {showPassword
+                          ? <EyeOff className="w-5 h-5 text-white/30 hover:text-white/60 transition-colors" />
+                          : <Eye className="w-5 h-5 text-white/30 hover:text-white/60 transition-colors" />
+                        }
+                      </button>
+                    </div>
+                  </GlassInput>
+                </div>
+
+                <div className="animate-element animate-delay-600">
+                  <label className="text-sm font-medium text-white/50 mb-1 block">{t('auth.signup.confirmPassword', 'Confirm Password')}</label>
+                  <GlassInput>
+                    <div className="relative">
+                      <input
+                        type={showConfirm ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        minLength={8}
+                        placeholder={t('auth.signup.confirmPlaceholder', 'Re-enter your password')}
+                        className="w-full bg-transparent text-sm text-white p-4 pr-12 rounded-2xl focus:outline-none placeholder:text-white/25"
+                      />
+                      <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute inset-y-0 right-3 flex items-center">
+                        {showConfirm
+                          ? <EyeOff className="w-5 h-5 text-white/30 hover:text-white/60 transition-colors" />
+                          : <Eye className="w-5 h-5 text-white/30 hover:text-white/60 transition-colors" />
+                        }
+                      </button>
+                    </div>
+                  </GlassInput>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="animate-element animate-delay-700 w-full rounded-2xl bg-gradient-to-r from-teal-500 to-cyan-500 py-4 font-medium text-white hover:from-teal-600 hover:to-cyan-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? t('auth.signup.creating', 'Creating account...') : t('auth.signup.create', 'Create Account')}
+                </button>
+              </form>
+            )}
+
+            <p className="animate-element animate-delay-800 text-center text-sm text-white/40">
+              {success ? (
+                <>
+                  {t('auth.signup.noEmail', "Didn't receive the email?")}{' '}
+                  <button onClick={() => setSuccess(false)} className="text-teal-400 hover:underline transition-colors">
+                    {t('auth.signup.tryAgain', 'Try again')}
+                  </button>
+                </>
+              ) : (
+                <>
+                  {t('auth.signup.hasAccount', 'Already have an account?')}{' '}
+                  <Link href="/auth/signin" className="text-teal-400 hover:underline transition-colors">
+                    {t('auth.signup.signIn', 'Sign In')}
+                  </Link>
+                </>
+              )}
+            </p>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Right: Hero Image */}
+      <section className="hidden md:block flex-1 relative p-4">
+        <div
+          className="animate-slide-right animate-delay-300 absolute inset-4 rounded-3xl bg-cover bg-center"
+          style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1556656793-08538906a9f8?w=1200&q=80)' }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent rounded-3xl" />
+        </div>
+      </section>
     </div>
   );
 }

@@ -76,7 +76,7 @@ const InputField = ({
   <div>
     <label className="block text-sm font-medium text-white/70 mb-2 font-body">
       <span className="flex items-center gap-2">
-        <Icon size={16} className="text-blue-400" />
+        <Icon size={16} className="text-teal-400" />
         {label} {required && <span className="text-red-400">*</span>}
       </span>
     </label>
@@ -91,7 +91,7 @@ const InputField = ({
       className={`w-full px-4 py-3 bg-white/[0.03] border rounded-lg text-white placeholder-white/30 focus:outline-none focus:ring-2 transition-all font-body ${
         fieldError 
           ? 'border-red-500 focus:ring-red-500/50' 
-          : 'border-white/10 focus:ring-blue-500/50 focus:border-blue-500'
+          : 'border-white/10 focus:ring-teal-500/50 focus:border-teal-500'
       }`}
     />
     {fieldError && <p className="text-red-400 text-sm mt-1 font-body">{fieldError}</p>}
@@ -333,7 +333,7 @@ export default function CheckoutPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f]">
-        <div className="animate-spin h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full" />
+        <div className="animate-spin h-12 w-12 border-4 border-teal-500 border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -362,9 +362,9 @@ export default function CheckoutPage() {
             
             {/* Progress Steps */}
             <div className="flex items-center gap-2 sm:gap-4">
-              <div className={`flex items-center gap-1.5 sm:gap-2 ${step === 'shipping' ? 'text-blue-400' : 'text-green-400'}`}>
+              <div className={`flex items-center gap-1.5 sm:gap-2 ${step === 'shipping' ? 'text-teal-400' : 'text-green-400'}`}>
                 <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-sm ${
-                  step === 'shipping' ? 'bg-blue-500' : 'bg-green-500'
+                  step === 'shipping' ? 'bg-teal-500' : 'bg-green-500'
                 }`}>
                   {step === 'payment' ? <FiCheckCircle size={16} /> : '1'}
                 </div>
@@ -373,9 +373,9 @@ export default function CheckoutPage() {
               
               <div className={`flex-1 h-0.5 sm:h-1 ${step === 'payment' ? 'bg-green-500' : 'bg-white/10'}`} />
               
-              <div className={`flex items-center gap-1.5 sm:gap-2 ${step === 'payment' ? 'text-blue-400' : 'text-white/40'}`}>
+              <div className={`flex items-center gap-1.5 sm:gap-2 ${step === 'payment' ? 'text-teal-400' : 'text-white/40'}`}>
                 <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-sm ${
-                  step === 'payment' ? 'bg-blue-500' : 'bg-white/10'
+                  step === 'payment' ? 'bg-teal-500' : 'bg-white/10'
                 }`}>
                   2
                 </div>
@@ -397,7 +397,7 @@ export default function CheckoutPage() {
                 /* Shipping Form */
                 <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 sm:p-6">
                   <h2 className="text-lg sm:text-xl font-heading font-bold text-white mb-4 sm:mb-6 flex items-center gap-2">
-                    <FiTruck className="text-blue-400" size={20} />
+                    <FiTruck className="text-teal-400" size={20} />
                     {t('checkout.shippingAddress')}
                   </h2>
 
@@ -411,7 +411,7 @@ export default function CheckoutPage() {
                           value={selectedSavedAddressId}
                           onChange={(e) => handleSelectSavedAddress(e.target.value)}
                           disabled={loadingSavedAddresses || savedAddresses.length === 0}
-                          className="flex-1 px-4 py-3 bg-white/[0.03] border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-body disabled:opacity-60"
+                          className="flex-1 px-4 py-3 bg-white/[0.03] border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all font-body disabled:opacity-60"
                         >
                           {savedAddresses.length === 0 ? (
                             <option value="">{t('checkout.noSavedAddresses')}</option>
@@ -535,7 +535,7 @@ export default function CheckoutPage() {
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-white/70 mb-2 font-body">
                       <span className="flex items-center gap-2">
-                        <FiFileText size={16} className="text-blue-400" />
+                        <FiFileText size={16} className="text-teal-400" />
                         {t('checkout.notes')}
                       </span>
                     </label>
@@ -544,14 +544,14 @@ export default function CheckoutPage() {
                       onChange={(e) => setShippingAddress(prev => ({ ...prev, notes: e.target.value }))}
                       placeholder={t('checkout.notesPlaceholder')}
                       rows={3}
-                      className="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-lg text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all resize-none font-body"
+                      className="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-lg text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all resize-none font-body"
                     />
                   </div>
 
                   <button
                     onClick={handleContinueToPayment}
                     disabled={isValidating}
-                    className="w-full mt-6 bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-xl transition-colors disabled:opacity-50 font-body"
+                    className="w-full mt-6 bg-teal-500 hover:bg-teal-600 text-white font-bold py-4 rounded-xl transition-colors disabled:opacity-50 font-body"
                   >
                     {isValidating ? t('checkout.validating') : t('checkout.continueToPayment')}
                   </button>
@@ -563,12 +563,12 @@ export default function CheckoutPage() {
                   <div className="bg-white/[0.02] border border-white/10 rounded-xl p-6">
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-lg font-heading font-bold text-white flex items-center gap-2">
-                        <FiTruck className="text-blue-400" />
+                        <FiTruck className="text-teal-400" />
                         {t('checkout.shippingAddress')}
                       </h2>
                       <button 
                         onClick={() => setStep('shipping')}
-                        className="text-blue-400 hover:text-blue-300 text-sm font-body"
+                        className="text-teal-400 hover:text-teal-300 text-sm font-body"
                       >
                         {t('checkout.change')}
                       </button>
@@ -587,7 +587,7 @@ export default function CheckoutPage() {
                   {/* Payment */}
                   <div className="bg-white/[0.02] border border-white/10 rounded-xl p-6">
                     <h2 className="text-xl font-heading font-bold text-white mb-6 flex items-center gap-2">
-                      <FiShield className="text-blue-400" />
+                      <FiShield className="text-teal-400" />
                       {t('checkout.paymentMethodTitle')}
                     </h2>
                     
@@ -608,7 +608,7 @@ export default function CheckoutPage() {
                     {/* Stripe Card Payment */}
                     <div className="mb-6">
                       <div className="flex items-center gap-2 mb-4">
-                        <FiCreditCard className="text-blue-400" size={20} />
+                        <FiCreditCard className="text-teal-400" size={20} />
                         <span className="text-white font-medium">{t('checkout.cardPayment')}</span>
                       </div>
                       <StripeCardPayment
@@ -681,7 +681,7 @@ export default function CheckoutPage() {
                           fill 
                           className="object-cover rounded-lg" 
                         />
-                        <span className="absolute -top-2 -right-2 w-5 h-5 bg-blue-500 rounded-full text-xs flex items-center justify-center text-white">
+                        <span className="absolute -top-2 -right-2 w-5 h-5 bg-teal-500 rounded-full text-xs flex items-center justify-center text-white">
                           {item.quantity}
                         </span>
                       </div>
@@ -718,7 +718,7 @@ export default function CheckoutPage() {
                   
                   <div className="flex justify-between text-white font-bold text-xl pt-2 border-t border-white/10">
                     <span className="font-heading">{t('checkout.totalLabel')}</span>
-                    <span className="text-blue-400 font-heading">{(checkoutTotals?.total ?? getTotal() ?? 0).toFixed(2)} €</span>
+                    <span className="text-teal-400 font-heading">{(checkoutTotals?.total ?? getTotal() ?? 0).toFixed(2)} €</span>
                   </div>
                 </div>
 

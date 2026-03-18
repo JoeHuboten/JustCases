@@ -123,7 +123,7 @@ export default function AdminMessagesPage() {
                     </span>
                   </div>
                   {message.replied && (
-                    <div className="flex items-center gap-1 text-blue-500">
+                    <div className="flex items-center gap-1 text-teal-500">
                       <FiCheckCircle />
                       <span>Replied</span>
                     </div>

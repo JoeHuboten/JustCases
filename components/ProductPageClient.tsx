@@ -189,7 +189,7 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                 <Link
                   key={relatedProduct.id}
                   href={`/product/${relatedProduct.slug}`}
-                  className="group bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden hover:border-blue-500/30 transition"
+                  className="group bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden hover:border-teal-500/30 transition"
                 >
                   <div className="relative aspect-square bg-white/[0.02]">
                     <Image
@@ -200,7 +200,7 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                     />
                   </div>
                   <div className="p-4">
-                    <h3 className="text-white font-heading font-semibold mb-2 group-hover:text-blue-400 transition">
+                    <h3 className="text-white font-heading font-semibold mb-2 group-hover:text-teal-400 transition">
                       {relatedProduct.name}
                     </h3>
                     <div className="flex items-center gap-3">

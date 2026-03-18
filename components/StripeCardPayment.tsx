@@ -20,7 +20,7 @@ const cardElementOptions = {
       color: '#ffffff',
       fontFamily: 'system-ui, -apple-system, sans-serif',
       '::placeholder': { color: 'rgba(255, 255, 255, 0.4)' },
-      iconColor: '#60a5fa',
+      iconColor: '#2dd4bf',
     },
     invalid: { color: '#ef4444', iconColor: '#ef4444' },
   },
@@ -103,7 +103,7 @@ function StripeCardPaymentInner({ amount, checkoutSessionId, onSuccess, onError 
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="bg-white/[0.03] border border-white/10 rounded-lg p-4">
         <div className="flex items-center gap-2 mb-3">
-          <FiCreditCard className="text-blue-400" size={18} />
+          <FiCreditCard className="text-teal-400" size={18} />
           <span className="text-white/70 text-sm font-medium">Данни на картата</span>
         </div>
         <CardElement options={cardElementOptions} />
@@ -118,7 +118,7 @@ function StripeCardPaymentInner({ amount, checkoutSessionId, onSuccess, onError 
       <button
         type="submit"
         disabled={disabled}
-        className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-500/50 text-white font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2"
+        className="w-full bg-teal-500 hover:bg-teal-600 disabled:bg-teal-500/50 text-white font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2"
       >
         {isProcessing ? (
           <>

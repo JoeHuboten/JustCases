@@ -109,14 +109,14 @@ export default function AdminAnalytics() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-blue-500/20 to-blue-500/5 p-6 rounded-lg border border-blue-500/30">
+        <div className="bg-gradient-to-br from-teal-500/20 to-teal-500/5 p-6 rounded-lg border border-teal-500/30">
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-text-secondary text-sm">Total Orders</p>
               <p className="text-3xl font-bold text-white">{stats.totalOrders}</p>
             </div>
-            <div className="bg-blue-500/20 p-3 rounded-lg">
-              <FiShoppingBag className="h-8 w-8 text-blue-500" />
+            <div className="bg-teal-500/20 p-3 rounded-lg">
+              <FiShoppingBag className="h-8 w-8 text-teal-500" />
             </div>
           </div>
           <div className="flex items-center gap-2 text-sm">
@@ -191,8 +191,8 @@ export default function AdminAnalytics() {
       </div>
 
       {/* Info Message */}
-      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-6">
-        <p className="text-blue-400 text-sm">
+      <div className="bg-teal-500/10 border border-teal-500/30 rounded-lg p-6">
+        <p className="text-teal-400 text-sm">
           <strong>Note:</strong> Growth percentages are currently mock data. In a production environment, 
           these would be calculated based on historical data comparison.
         </p>

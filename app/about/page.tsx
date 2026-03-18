@@ -10,7 +10,7 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0f]">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-[#0a0a0f] to-blue-900/20 py-20">
+      <section className="bg-gradient-to-r from-[#0a0a0f] to-teal-900/20 py-20">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn" className="text-center">
             <h1 className="text-5xl font-heading font-bold text-white mb-6">{t('about.title')}</h1>
@@ -59,7 +59,7 @@ export default function AboutPage() {
           </ScrollAnimation>
           <StaggerAnimation animation="scaleUp" stagger={0.2} className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center">
-              <div className="bg-blue-500 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <div className="bg-teal-500 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <FiUsers className="text-white text-2xl" />
               </div>
               <h3 className="text-xl font-heading font-bold text-white mb-3">{t('about.value.customerFirst')}</h3>
@@ -68,7 +68,7 @@ export default function AboutPage() {
               </p>
             </div>
             <div className="text-center">
-              <div className="bg-blue-500 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <div className="bg-teal-500 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <FiTarget className="text-white text-2xl" />
               </div>
               <h3 className="text-xl font-heading font-bold text-white mb-3">{t('about.value.qualityFocus')}</h3>
@@ -77,7 +77,7 @@ export default function AboutPage() {
               </p>
             </div>
             <div className="text-center">
-              <div className="bg-blue-500 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <div className="bg-teal-500 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <FiAward className="text-white text-2xl" />
               </div>
               <h3 className="text-xl font-heading font-bold text-white mb-3">{t('about.value.innovation')}</h3>
@@ -86,7 +86,7 @@ export default function AboutPage() {
               </p>
             </div>
             <div className="text-center">
-              <div className="bg-blue-500 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <div className="bg-teal-500 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <FiHeart className="text-white text-2xl" />
               </div>
               <h3 className="text-xl font-heading font-bold text-white mb-3">{t('about.value.passion')}</h3>

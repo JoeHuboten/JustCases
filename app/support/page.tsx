@@ -105,7 +105,7 @@ export default function SupportPage() {
       
       <div className="min-h-screen bg-[#0a0a0f]">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-[#0a0a0f] to-blue-900/20 py-20">
+      <section className="bg-gradient-to-r from-[#0a0a0f] to-teal-900/20 py-20">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn" className="text-center">
             <h1 className="text-5xl font-bold text-white mb-6">{t('support.title')}</h1>
@@ -246,10 +246,10 @@ export default function SupportPage() {
             <button
               onClick={() => setSelectedCategory('general')}
               aria-pressed={selectedCategory === 'general'}
-              className={`px-6 py-3 rounded-xl font-medium border transition-all duration-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60 ${
+              className={`px-6 py-3 rounded-xl font-medium border transition-all duration-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/60 ${
                 selectedCategory === 'general'
-                  ? 'bg-gradient-to-r from-blue-500/80 to-cyan-500/80 text-white border-blue-400/60 shadow-lg shadow-blue-500/30'
-                  : 'bg-white/[0.04] text-white/80 border-white/20 hover:bg-white/[0.08] hover:text-white hover:border-blue-400/40'
+                  ? 'bg-gradient-to-r from-teal-500/80 to-cyan-500/80 text-white border-teal-400/60 shadow-lg shadow-teal-500/30'
+                  : 'bg-white/[0.04] text-white/80 border-white/20 hover:bg-white/[0.08] hover:text-white hover:border-teal-400/40'
               }`}
             >
               {t('support.faq.general')}
@@ -257,10 +257,10 @@ export default function SupportPage() {
             <button
               onClick={() => setSelectedCategory('delivery')}
               aria-pressed={selectedCategory === 'delivery'}
-              className={`px-6 py-3 rounded-xl font-medium border transition-all duration-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60 ${
+              className={`px-6 py-3 rounded-xl font-medium border transition-all duration-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/60 ${
                 selectedCategory === 'delivery'
-                  ? 'bg-gradient-to-r from-blue-500/80 to-cyan-500/80 text-white border-blue-400/60 shadow-lg shadow-blue-500/30'
-                  : 'bg-white/[0.04] text-white/80 border-white/20 hover:bg-white/[0.08] hover:text-white hover:border-blue-400/40'
+                  ? 'bg-gradient-to-r from-teal-500/80 to-cyan-500/80 text-white border-teal-400/60 shadow-lg shadow-teal-500/30'
+                  : 'bg-white/[0.04] text-white/80 border-white/20 hover:bg-white/[0.08] hover:text-white hover:border-teal-400/40'
               }`}
             >
               {t('support.faq.delivery')}
@@ -268,10 +268,10 @@ export default function SupportPage() {
             <button
               onClick={() => setSelectedCategory('returns')}
               aria-pressed={selectedCategory === 'returns'}
-              className={`px-6 py-3 rounded-xl font-medium border transition-all duration-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60 ${
+              className={`px-6 py-3 rounded-xl font-medium border transition-all duration-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/60 ${
                 selectedCategory === 'returns'
-                  ? 'bg-gradient-to-r from-blue-500/80 to-cyan-500/80 text-white border-blue-400/60 shadow-lg shadow-blue-500/30'
-                  : 'bg-white/[0.04] text-white/80 border-white/20 hover:bg-white/[0.08] hover:text-white hover:border-blue-400/40'
+                  ? 'bg-gradient-to-r from-teal-500/80 to-cyan-500/80 text-white border-teal-400/60 shadow-lg shadow-teal-500/30'
+                  : 'bg-white/[0.04] text-white/80 border-white/20 hover:bg-white/[0.08] hover:text-white hover:border-teal-400/40'
               }`}
             >
               {t('support.faq.returns')}

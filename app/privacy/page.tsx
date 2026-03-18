@@ -10,7 +10,7 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0f]">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-[#0a0a0f] to-blue-900/20 py-20">
+      <section className="bg-gradient-to-r from-[#0a0a0f] to-teal-900/20 py-20">
         <div className="container-custom">
           <ScrollAnimation animation="fadeIn" className="text-center">
             <h1 className="text-5xl font-bold text-white mb-6">{t('privacy.title')}</h1>

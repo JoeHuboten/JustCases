@@ -113,9 +113,9 @@ const ProductCard = ({
 
   return (
     <Link href={`/product/${slug}`} className="group block">
-      <div className="relative bg-[#0a0a0f] border border-white/5 rounded-2xl overflow-hidden hover:border-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 transform hover:-translate-y-1">
+      <div className="relative bg-[#0a0a0f] border border-white/5 rounded-2xl overflow-hidden hover:border-teal-500/30 hover:shadow-2xl hover:shadow-teal-500/10 transition-all duration-500 transform hover:-translate-y-1">
         {/* Glow effect on hover */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
         
         {/* Image */}
         <div className="relative aspect-square bg-gradient-to-br from-white/[0.03] to-white/[0.01] overflow-hidden">
@@ -171,7 +171,7 @@ const ProductCard = ({
             onClick={handleAddToCart}
             disabled={isAddingToCart}
             aria-label={`${t('productCard.addToCart')} ${name}`}
-            className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-600 text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 disabled:opacity-50 z-20 cursor-pointer transition-all duration-500 ease-out sm:hover:scale-110 shadow-lg shadow-blue-500/30 backdrop-blur-md sm:transform sm:hover:-translate-y-1"
+            className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl flex items-center justify-center bg-gradient-to-br from-teal-500 to-teal-600 text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 disabled:opacity-50 z-20 cursor-pointer transition-all duration-500 ease-out sm:hover:scale-110 shadow-lg shadow-teal-500/30 backdrop-blur-md sm:transform sm:hover:-translate-y-1"
           >
             <FiShoppingCart size={16} />
           </button>
@@ -181,12 +181,12 @@ const ProductCard = ({
         <div className="p-4 sm:p-5 relative">
           {/* Category badge */}
           {category && (
-            <span className="inline-block text-[10px] sm:text-xs text-blue-400/80 font-body font-medium mb-1.5 sm:mb-2 tracking-wide uppercase">
+            <span className="inline-block text-[10px] sm:text-xs text-teal-400/80 font-body font-medium mb-1.5 sm:mb-2 tracking-wide uppercase">
               {categoryLabel}
             </span>
           )}
           
-          <h3 className="text-white font-heading font-semibold mb-2 sm:mb-3 group-hover:text-blue-400 transition-colors duration-300 line-clamp-2 leading-snug text-sm sm:text-base">
+          <h3 className="text-white font-heading font-semibold mb-2 sm:mb-3 group-hover:text-teal-400 transition-colors duration-300 line-clamp-2 leading-snug text-sm sm:text-base">
             {name}
           </h3>
 
@@ -214,7 +214,7 @@ const ProductCard = ({
 
           {/* Price */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <span className="font-heading font-bold text-lg sm:text-xl text-white group-hover:text-blue-400 transition-colors duration-300">
+            <span className="font-heading font-bold text-lg sm:text-xl text-white group-hover:text-teal-400 transition-colors duration-300">
               {formatPrice(price)}
             </span>
             {oldPrice && (

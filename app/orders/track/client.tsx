@@ -67,7 +67,7 @@ const statusConfig: Record<string, { color: string; icon: any }> = {
     icon: FiClock,
   },
   PROCESSING: {
-    color: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+    color: 'bg-teal-500/20 text-teal-400 border-teal-500/30',
     icon: FiPackage,
   },
   SHIPPED: {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 
@@ -12,6 +12,7 @@ export default function AdminLayout({
 }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!loading && (!user || user.role !== 'ADMIN')) {
@@ -21,8 +22,8 @@ export default function AdminLayout({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-accent/30 border-t-accent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-indigo-300 border-t-indigo-600 rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -31,12 +32,19 @@ export default function AdminLayout({
     return null;
   }
 
+  // Main dashboard page renders its own full-page layout
+  const isDashboardPage = pathname === '/admin';
+
+  if (isDashboardPage) {
+    return <>{children}</>;
+  }
+
+  // Sub-pages use sidebar layout
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <div className="flex h-screen overflow-hidden">
         <AdminSidebar />
         <main className="flex-1 lg:ml-64 overflow-y-auto">
-          {/* Mobile top padding for fixed header */}
           <div className="lg:hidden h-14" />
           <div className="p-4 sm:p-6 lg:p-8">
             {children}

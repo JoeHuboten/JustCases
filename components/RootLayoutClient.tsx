@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -24,7 +25,8 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 
   return (
     <AccessibilityProvider>
-      <LanguageProvider>
+      <ThemeProvider attribute="class" defaultTheme="dark" themes={['dark', 'bright']} enableSystem={false}>
+        <LanguageProvider>
         <AuthProvider>
           <ToastProvider>
             {!isAdminPage && (
@@ -50,6 +52,7 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
           </ToastProvider>
         </AuthProvider>
       </LanguageProvider>
+      </ThemeProvider>
     </AccessibilityProvider>
   );
 }

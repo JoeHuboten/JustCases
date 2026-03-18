@@ -1,132 +1,116 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  FiHome, 
-  FiPackage, 
-  FiGrid, 
-  FiShoppingBag, 
-  FiUsers, 
-  FiSettings,
-  FiTrendingUp,
-  FiLogOut,
-  FiMail,
-  FiPercent,
-  FiSend,
-  FiMenu,
-  FiX
-} from 'react-icons/fi';
+import {
+  Home,
+  Package,
+  ShoppingCart,
+  Users,
+  BarChart3,
+  Settings,
+  MessageCircle,
+  Tag,
+  Ticket,
+  Mail,
+  X,
+  Menu,
+} from 'lucide-react';
+import { useState } from 'react';
 
-const navigation = [
-  { name: 'Dashboard', href: '/admin', icon: FiHome },
-  { name: 'Products', href: '/admin/products', icon: FiPackage },
-  { name: 'Categories', href: '/admin/categories', icon: FiGrid },
-  { name: 'Orders', href: '/admin/orders', icon: FiShoppingBag },
-  { name: 'Users', href: '/admin/users', icon: FiUsers },
-  { name: 'Messages', href: '/admin/messages', icon: FiMail },
-  { name: 'Newsletter', href: '/admin/newsletter', icon: FiSend },
-  { name: 'Discount Codes', href: '/admin/discount-codes', icon: FiPercent },
-  { name: 'Analytics', href: '/admin/analytics', icon: FiTrendingUp },
-  { name: 'Settings', href: '/admin/settings', icon: FiSettings },
+const navLinks = [
+  { href: '/admin', label: 'Dashboard', icon: Home },
+  { href: '/admin/products', label: 'Products', icon: Package },
+  { href: '/admin/categories', label: 'Categories', icon: Tag },
+  { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
+  { href: '/admin/users', label: 'Users', icon: Users },
+  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/admin/messages', label: 'Messages', icon: MessageCircle },
+  { href: '/admin/discount-codes', label: 'Discounts', icon: Ticket },
+  { href: '/admin/newsletter', label: 'Newsletter', icon: Mail },
+  { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
 export default function AdminSidebar() {
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(false);
-
-  // Close sidebar when route changes on mobile
-  useEffect(() => {
-    setIsOpen(false);
-  }, [pathname]);
-
-  // Prevent body scroll when sidebar is open on mobile
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <>
-      {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-background-secondary border-b border-gray-800 px-4 py-3 flex items-center justify-between">
-        <Link href="/admin" className="text-lg font-bold text-white">
-          JC Admin
-        </Link>
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="p-2 text-white hover:bg-gray-800 rounded-lg transition"
-          aria-label="Toggle menu"
-        >
-          {isOpen ? <FiX className="h-6 w-6" /> : <FiMenu className="h-6 w-6" />}
-        </button>
-      </div>
+      {/* Mobile toggle */}
+      <button
+        className="lg:hidden fixed top-3 left-3 z-50 p-2 rounded-lg bg-slate-900 text-white shadow-lg"
+        onClick={() => setMobileOpen(true)}
+        aria-label="Open navigation"
+      >
+        <Menu className="size-5" />
+      </button>
 
-      {/* Mobile Overlay */}
-      {isOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
-          onClick={() => setIsOpen(false)}
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/50"
+          onClick={() => setMobileOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-background-secondary border-r border-gray-800 transform transition-transform duration-300 ease-in-out
-        lg:translate-x-0
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
-        <div className="flex flex-col h-full">
-          {/* Logo - Hidden on mobile (shown in header) */}
-          <div className="hidden lg:flex items-center justify-center h-16 border-b border-gray-800">
-            <Link href="/admin" className="text-xl font-bold text-white">
-              Just Cases ADMIN
-            </Link>
-          </div>
-
-          {/* Mobile spacer */}
-          <div className="lg:hidden h-14" />
-
-          {/* Navigation */}
-          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-            {navigation.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition ${
-                    isActive
-                      ? 'bg-accent text-white'
-                      : 'text-text-secondary hover:text-white hover:bg-gray-800'
-                  }`}
-                >
-                  <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
-                  <span className="truncate">{item.name}</span>
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Back to Site */}
-          <div className="p-3 border-t border-gray-800">
-            <Link
-              href="/"
-              className="flex items-center px-3 py-2.5 text-sm font-medium text-text-secondary hover:text-white hover:bg-gray-800 rounded-lg transition"
-            >
-              <FiLogOut className="mr-3 h-5 w-5 flex-shrink-0" />
-              <span className="truncate">Back to Site</span>
-            </Link>
-          </div>
+      <aside
+        className={`
+          fixed inset-y-0 left-0 z-50 w-64 
+          bg-slate-900 border-r border-slate-700
+          transform transition-transform duration-300
+          lg:translate-x-0
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}
+      >
+        <div className="flex items-center justify-between px-4 py-4 border-b border-slate-700">
+          <Link href="/admin" className="flex items-center gap-3">
+            <svg viewBox="0 0 512 512" className="size-9 rounded-lg" xmlns="http://www.w3.org/2000/svg">
+              <rect width="512" height="512" rx="96" fill="#0d2d2a"/>
+              <g transform="translate(256, 240)">
+                <path d="M0,-120 L140,-50 L0,20 L-140,-50 Z" fill="#4eeadb"/>
+                <path d="M-140,-50 L0,20 L0,160 L-140,90 Z" fill="#1a9e8f"/>
+                <path d="M140,-50 L0,20 L0,160 L140,90 Z" fill="#2bc4b0"/>
+              </g>
+            </svg>
+            <span className="text-lg font-semibold text-white">JustCases</span>
+          </Link>
+          <button
+            className="lg:hidden p-1.5 rounded-lg hover:bg-slate-800 text-slate-400"
+            onClick={() => setMobileOpen(false)}
+            aria-label="Close navigation"
+          >
+            <X className="size-5" />
+          </button>
         </div>
-      </div>
+
+        <nav className="mt-4 px-3 space-y-1">
+          {navLinks.map((link) => {
+            const isActive = pathname === link.href || 
+              (link.href !== '/admin' && pathname.startsWith(link.href));
+            const Icon = link.icon;
+
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                className={`
+                  flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                  ${isActive
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  }
+                `}
+              >
+                <Icon className="size-5 shrink-0" />
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </aside>
     </>
   );
 }

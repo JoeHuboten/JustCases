@@ -67,7 +67,7 @@ export default function Error({ error, reset }: ErrorProps) {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={reset}
-            className="inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-8 py-4 rounded-xl font-medium hover:scale-105 transition-transform shadow-lg shadow-blue-500/20 font-body"
+            className="inline-flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white px-8 py-4 rounded-xl font-medium hover:scale-105 transition-transform shadow-lg shadow-teal-500/20 font-body"
           >
             <FiRefreshCw size={20} />
             {t('error.tryAgain', 'Опитай отново')}
@@ -86,7 +86,7 @@ export default function Error({ error, reset }: ErrorProps) {
         <div className="mt-12 pt-8 border-t border-white/10">
           <p className="text-white/40 text-sm font-body">
             {t('error.supportPrefix', 'Ако проблемът продължава, моля ')}
-            <Link href="/contact" className="text-blue-400 hover:text-blue-300 transition-colors">
+            <Link href="/contact" className="text-teal-400 hover:text-teal-300 transition-colors">
               {t('error.contactSupport', 'свържете се с поддръжката')}
             </Link>
           </p>

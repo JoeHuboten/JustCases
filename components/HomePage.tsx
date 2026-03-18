@@ -1,387 +1,27 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { TestimonialsSection } from '@/components/ui/testimonials-with-marquee';
+import { HeroGeometric } from '@/components/ui/shape-landing-hero';
+import { FeaturesSectionWithCardGradient } from '@/components/ui/feature-section-with-card-gradient';
 
 export default function HomePage() {
   const { t } = useLanguage();
-  const [activeTestimonial, setActiveTestimonial] = useState(0);
-  const [mounted, setMounted] = useState(false);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  // Use refs for high-frequency values to avoid per-frame re-renders
-  const mousePosRef = useRef({ x: 0, y: 0 });
-  const scrollYRef = useRef(0);
-  const windowSizeRef = useRef({ width: 1920, height: 1080 });
-  const hexRef = useRef<SVGPolygonElement>(null);
-  const phoneRef = useRef<HTMLDivElement>(null);
-  const orb1Ref = useRef<HTMLDivElement>(null);
-  const orb2Ref = useRef<HTMLDivElement>(null);
-  const prismRef = useRef<HTMLDivElement>(null);
-
-  // Keep a state copy of windowSize only for canvas resize (infrequent)
-  const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
-
-  useEffect(() => {
-    setMounted(true);
-    if (typeof window !== 'undefined') {
-      const size = { width: window.innerWidth, height: window.innerHeight };
-      windowSizeRef.current = size;
-      setWindowSize(size);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-    const handleScroll = () => { scrollYRef.current = window.scrollY; };
-    const handleMouse = (e: MouseEvent) => { mousePosRef.current = { x: e.clientX, y: e.clientY }; };
-    const handleResize = () => {
-      const size = { width: window.innerWidth, height: window.innerHeight };
-      windowSizeRef.current = size;
-      setWindowSize(size);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('mousemove', handleMouse, { passive: true });
-    window.addEventListener('resize', handleResize, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('mousemove', handleMouse);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [mounted]);
-
-  // Aurora wave animation
-  useEffect(() => {
-    if (!mounted) return;
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reducedMotion) return;
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    canvas.width = windowSize.width;
-    canvas.height = windowSize.height;
-
-    let animationId: number;
-    let lastFrame = 0;
-    let time = 0;
-
-    const animate = (now: number) => {
-      if (document.visibilityState !== 'visible') {
-        animationId = requestAnimationFrame(animate);
-        return;
-      }
-      if (now - lastFrame < 33) {
-        animationId = requestAnimationFrame(animate);
-        return;
-      }
-      lastFrame = now;
-
-      time += 0.003;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Create flowing aurora waves
-      for (let i = 0; i < 3; i++) {
-        ctx.beginPath();
-        ctx.moveTo(0, canvas.height * 0.4);
-
-        for (let x = 0; x <= canvas.width; x += 5) {
-          const y = canvas.height * 0.4 +
-            Math.sin(x * 0.003 + time + i) * 80 +
-            Math.sin(x * 0.006 + time * 1.5 + i * 2) * 40 +
-            i * 60;
-          ctx.lineTo(x, y);
-        }
-
-        ctx.lineTo(canvas.width, canvas.height);
-        ctx.lineTo(0, canvas.height);
-        ctx.closePath();
-
-        const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
-        if (i === 0) {
-          gradient.addColorStop(0, 'rgba(139, 92, 246, 0.08)');
-          gradient.addColorStop(0.5, 'rgba(59, 130, 246, 0.06)');
-          gradient.addColorStop(1, 'rgba(6, 182, 212, 0.08)');
-        } else if (i === 1) {
-          gradient.addColorStop(0, 'rgba(6, 182, 212, 0.05)');
-          gradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.04)');
-          gradient.addColorStop(1, 'rgba(236, 72, 153, 0.05)');
-        } else {
-          gradient.addColorStop(0, 'rgba(59, 130, 246, 0.03)');
-          gradient.addColorStop(0.5, 'rgba(16, 185, 129, 0.03)');
-          gradient.addColorStop(1, 'rgba(139, 92, 246, 0.03)');
-        }
-        ctx.fillStyle = gradient;
-        ctx.fill();
-      }
-
-      animationId = requestAnimationFrame(animate);
-    };
-
-    animationId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationId);
-  }, [mounted, windowSize]);
-
-  // Testimonial rotation
-  useEffect(() => {
-    const interval = setInterval(() => setActiveTestimonial(p => (p + 1) % 3), 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Hexagon + interactive parallax: update DOM directly via refs (no state = no re-renders)
-  useEffect(() => {
-    if (!mounted) return;
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reducedMotion) return;
-
-    let animationId: number;
-    let lastFrame = 0;
-    const tick = (frameTs: number) => {
-      if (document.visibilityState !== 'visible') {
-        animationId = requestAnimationFrame(tick);
-        return;
-      }
-      if (frameTs - lastFrame < 33) {
-        animationId = requestAnimationFrame(tick);
-        return;
-      }
-      lastFrame = frameTs;
-
-      const nowTs = Date.now();
-      const hexY = Math.sin(nowTs * 0.001) * 10;
-      if (hexRef.current) {
-        (hexRef.current.closest('svg') as SVGSVGElement | null)?.setAttribute(
-          'style',
-          `transform: translateY(${hexY}px); transition: transform 0.1s ease-out`,
-        );
-      }
-
-      const mp = mousePosRef.current;
-      const ws = windowSizeRef.current;
-      const sy = scrollYRef.current;
-
-      // Floating orbs
-      if (orb1Ref.current) {
-        orb1Ref.current.style.left = `calc(20% + ${mp.x * 0.02}px)`;
-        orb1Ref.current.style.top = `calc(20% + ${mp.y * 0.02}px)`;
-      }
-      if (orb2Ref.current) {
-        orb2Ref.current.style.right = `calc(15% - ${mp.x * 0.015}px)`;
-        orb2Ref.current.style.bottom = `calc(20% - ${mp.y * 0.015}px)`;
-      }
-
-      // Prism rotation from scroll
-      if (prismRef.current) {
-        prismRef.current.style.transform = `rotate(${sy * 0.02}deg)`;
-      }
-
-      // Phone perspective tilt
-      if (phoneRef.current) {
-        phoneRef.current.style.transform = `perspective(1000px) rotateY(${(mp.x - ws.width / 2) * 0.01}deg) rotateX(${(mp.y - ws.height / 2) * -0.01}deg)`;
-      }
-
-      animationId = requestAnimationFrame(tick);
-    };
-    animationId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(animationId);
-  }, [mounted]);
 
   return (
     <div className="min-h-screen bg-[#050508] overflow-hidden">
-      {/* Aurora Canvas Background */}
-      <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }} />
-
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center">
-        {/* Floating Orbs that follow mouse slightly */}
-        <div 
-          ref={orb1Ref}
-          className="absolute w-[600px] h-[600px] rounded-full opacity-40 pointer-events-none"
-          style={{
-            background: 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)',
-            left: '20%',
-            top: '20%',
-            transition: 'all 0.5s ease-out',
-          }}
-        />
-        <div 
-          ref={orb2Ref}
-          className="absolute w-[500px] h-[500px] rounded-full opacity-30 pointer-events-none"
-          style={{
-            background: 'radial-gradient(circle, rgba(6,182,212,0.12) 0%, transparent 70%)',
-            right: '15%',
-            bottom: '20%',
-            transition: 'all 0.6s ease-out',
-          }}
-        />
-
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-12 gap-8 lg:gap-4 items-center min-h-screen py-24">
-            {/* Left Content */}
-            <div className="lg:col-span-6 lg:pr-8">
-              {/* Floating Tag */}
-              <div className="inline-flex items-center gap-3 mb-8">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-violet-500/50 blur-lg rounded-full" />
-                  <div className="relative px-4 py-1.5 rounded-full bg-gradient-to-r from-violet-500/20 to-cyan-500/20 border border-white/10 backdrop-blur-sm">
-                    <span className="text-xs font-body text-white/80 tracking-wider uppercase">{t('homePage.newCollection')}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Headline with staggered reveal effect */}
-              <h1 className="font-heading text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-bold leading-[0.95] mb-8">
-                <span className="block text-white/90">{t('homePage.heroTitle1')}</span>
-                <span className="block relative mt-2">
-                  <span 
-                    className="bg-clip-text text-transparent"
-                    style={{
-                      backgroundImage: 'linear-gradient(135deg, #8B5CF6 0%, #06B6D4 50%, #10B981 100%)',
-                      backgroundSize: '200% 200%',
-                      animation: 'gradientShift 8s ease infinite',
-                    }}
-                  >
-                    {t('homePage.heroTitle2')}
-                  </span>
-                </span>
-              </h1>
-
-              {/* Subtitle */}
-              <p className="font-body text-lg md:text-xl text-white/40 max-w-md mb-10 leading-relaxed">
-                {t('homePage.heroDesc')}
-              </p>
-
-              {/* CTA Group */}
-              <div className="flex flex-wrap items-center gap-4 mb-16">
-                <Link
-                  href="/shop"
-                  className="group relative"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-cyan-600 rounded-full opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
-                  <div className="relative flex items-center gap-3 px-8 py-4 bg-white rounded-full font-heading font-semibold text-[#050508] transition-transform duration-300 group-hover:scale-[1.02]">
-                    <span>{t('homePage.shopCollection')}</span>
-                    <div className="w-6 h-6 rounded-full bg-[#050508] flex items-center justify-center">
-                      <svg className="w-3 h-3 text-white transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </div>
-                </Link>
-
-                <Link
-                  href="/about"
-                  className="group flex items-center gap-3 px-6 py-4 font-body text-white/50 hover:text-white/80 transition-colors"
-                >
-                  <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center group-hover:border-white/30 group-hover:bg-white/5 transition-all">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z"/>
-                    </svg>
-                  </div>
-                  <span>{t('homePage.learnMore')}</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* Right Visual - Crystal/Prism Phone Showcase */}
-            <div className="lg:col-span-6 relative flex items-center justify-center">
-              <div className="relative w-full max-w-md aspect-[3/4]">
-                {/* Prism Effect Background */}
-                <div 
-                  ref={prismRef}
-                  className="absolute inset-0"
-                  style={{
-                    background: `
-                      linear-gradient(135deg, rgba(139,92,246,0.1) 0%, transparent 50%),
-                      linear-gradient(225deg, rgba(6,182,212,0.1) 0%, transparent 50%),
-                      linear-gradient(315deg, rgba(16,185,129,0.08) 0%, transparent 50%)
-                    `,
-                    clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-                    transition: 'transform 0.1s ease-out',
-                  }}
-                />
-
-                {/* Hexagonal Frame */}
-                <div className="absolute inset-8">
-                  <svg className="w-full h-full" viewBox="0 0 200 230" fill="none" style={{ transition: 'transform 0.1s ease-out' }}>
-                    <defs>
-                      <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="rgba(139,92,246,0.3)" />
-                        <stop offset="50%" stopColor="rgba(6,182,212,0.2)" />
-                        <stop offset="100%" stopColor="rgba(16,185,129,0.3)" />
-                      </linearGradient>
-                    </defs>
-                    <polygon 
-                      ref={hexRef}
-                      points="100,10 180,55 180,145 100,190 20,145 20,55" 
-                      fill="url(#hexGrad)"
-                      stroke="url(#hexGrad)"
-                      strokeWidth="1"
-                    />
-                  </svg>
-                </div>
-
-                {/* Central Phone Mockup */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div 
-                    ref={phoneRef}
-                    className="relative w-48 h-96 rounded-[2.5rem] bg-gradient-to-b from-white/10 to-white/5 border border-white/10 backdrop-blur-sm overflow-hidden"
-                    style={{ 
-                      transition: 'transform 0.3s ease-out',
-                    }}
-                  >
-                    {/* Phone Screen */}
-                    <div className="absolute inset-2 rounded-[2rem] bg-[#050508] overflow-hidden">
-                      {/* Dynamic Content */}
-                      <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
-                        <div className="w-16 h-16 mb-4 rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center">
-                          <span className="font-heading text-2xl text-white font-bold">A</span>
-                        </div>
-                        <span className="font-heading text-white text-lg font-semibold">{t('homePage.brandName')}</span>
-                        <span className="font-body text-white/40 text-xs mt-1">{t('homePage.brandSlogan')}</span>
-                      </div>
-                      {/* Screen Glare */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent pointer-events-none" />
-                    </div>
-                    
-                    {/* Notch */}
-                    <div className="absolute top-3 left-1/2 -translate-x-1/2 w-20 h-6 bg-[#050508] rounded-full" />
-                  </div>
-                </div>
-
-                {/* Floating Feature Pills */}
-                {[
-                  { label: t('homePage.pill.protection'), icon: '🛡️', pos: 'top-12 -left-4', delay: '0s' },
-                  { label: t('homePage.pill.premium'), icon: '✨', pos: 'top-24 -right-8', delay: '0.5s' },
-                  { label: t('homePage.pill.delivery'), icon: '📦', pos: 'bottom-32 -left-8', delay: '1s' },
-                  { label: t('homePage.pill.returns'), icon: '↩️', pos: 'bottom-16 -right-4', delay: '1.5s' },
-                ].map((pill, i) => (
-                  <div
-                    key={i}
-                    className={`absolute ${pill.pos} px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center gap-2`}
-                    style={{ 
-                      animation: `float 4s ease-in-out infinite`,
-                      animationDelay: pill.delay,
-                    }}
-                  >
-                    <span className="text-sm">{pill.icon}</span>
-                    <span className="font-body text-xs text-white/70">{pill.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Scroll Hint */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3">
-          <div className="w-px h-12 bg-gradient-to-b from-transparent via-white/20 to-transparent" />
-          <span className="font-body text-[10px] text-white/20 tracking-[0.3em] uppercase">{t('homePage.scroll')}</span>
-        </div>
-      </section>
+      <HeroGeometric
+        badge={t('homePage.newCollection')}
+        title1={t('homePage.heroTitle1')}
+        title2={t('homePage.heroTitle2')}
+        description={t('homePage.heroDesc')}
+        ctaLabel={t('homePage.shopCollection')}
+        ctaHref="/shop"
+        secondaryLabel={t('homePage.learnMore')}
+        secondaryHref="/about"
+      />
 
       {/* Brands - Minimal Line */}
       <section className="py-16 border-y border-white/5">
@@ -400,196 +40,79 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features - Bento Style */}
-      <section className="py-24 md:py-32 relative">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Intro */}
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="inline-block font-body text-xs tracking-[0.3em] uppercase text-violet-400/80 mb-4">{t('homePage.advantages')}</span>
-            <h2 className="font-heading text-3xl md:text-5xl font-bold text-white leading-tight">
-              {t('homePage.advantagesDesc')}
-            </h2>
-          </div>
-
-          {/* Bento Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
-            {/* Main Feature - Large Hero */}
-            <div className="md:col-span-2 lg:col-span-2 lg:row-span-2 relative group overflow-hidden rounded-3xl bg-gradient-to-br from-violet-500/10 via-transparent to-cyan-500/10 border border-white/5 p-8 md:p-10 flex flex-col justify-between">
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-600/20 to-cyan-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-              <div className="relative z-10">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/20 to-cyan-500/20 border border-white/10 mb-6">
-                  <span className="text-3xl">🛡️</span>
-                </div>
-                <h3 className="font-heading text-2xl md:text-3xl font-bold text-white mb-3">{t('homePage.feature.protection')}</h3>
-                <p className="font-body text-white/40 text-lg max-w-md leading-relaxed">
-                  {t('homePage.feature.protectionDesc')}
-                </p>
-              </div>
-              {/* Visual Element */}
-              <div className="relative z-10 mt-8 flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                  <span className="font-body text-sm text-white/60">{t('homePage.milStd')}</span>
-                </div>
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
-                  <div className="w-2 h-2 rounded-full bg-cyan-400" />
-                  <span className="font-body text-sm text-white/60">{t('homePage.dropTest')}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Feature 2 - Premium Materials */}
-            <div className="lg:col-span-2 relative group overflow-hidden rounded-3xl bg-white/[0.02] border border-white/5 p-6 md:p-8">
-              <div className="absolute inset-0 bg-gradient-to-br from-pink-600/10 to-orange-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-              <div className="relative z-10">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 border border-white/10 mb-5">
-                  <span className="text-2xl">✨</span>
-                </div>
-                <h3 className="font-heading text-xl font-bold text-white mb-2">{t('homePage.feature.materials')}</h3>
-                <p className="font-body text-white/40 text-sm leading-relaxed">
-                  {t('homePage.feature.materialsDesc')}
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 3 - Express Delivery */}
-            <div className="relative group overflow-hidden rounded-3xl bg-white/[0.02] border border-white/5 p-6 md:p-8">
-              <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-              <div className="relative z-10">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 border border-white/10 mb-5">
-                  <span className="text-2xl">🚀</span>
-                </div>
-                <h3 className="font-heading text-xl font-bold text-white mb-2">{t('homePage.feature.delivery')}</h3>
-                <p className="font-body text-white/40 text-sm leading-relaxed">
-                  {t('homePage.feature.deliveryDesc')}
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 4 - 30 Days Return */}
-            <div className="relative group overflow-hidden rounded-3xl bg-white/[0.02] border border-white/5 p-6 md:p-8">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/10 to-teal-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-              <div className="relative z-10">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 border border-white/10 mb-5">
-                  <span className="text-2xl">↩️</span>
-                </div>
-                <h3 className="font-heading text-xl font-bold text-white mb-2">{t('homePage.feature.returns')}</h3>
-                <p className="font-body text-white/40 text-sm leading-relaxed">
-                  {t('homePage.feature.returnsDesc')}
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 5 - Quality Guarantee - Wide Bottom */}
-            <div className="md:col-span-2 lg:col-span-4 relative group overflow-hidden rounded-3xl bg-white/[0.02] border border-white/5 p-6 md:p-8">
-              <div className="absolute inset-0 bg-gradient-to-br from-yellow-600/10 to-orange-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-              <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 border border-white/10 shrink-0">
-                  <span className="text-2xl">💎</span>
-                </div>
-                <div>
-                  <h3 className="font-heading text-xl font-bold text-white mb-2">{t('homePage.feature.guarantee')}</h3>
-                  <p className="font-body text-white/40 text-sm leading-relaxed">
-                    {t('homePage.feature.guaranteeDesc')}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+      {/* Features - Card Gradient */}
+      <section className="relative">
+        <div className="container mx-auto">
+          <FeaturesSectionWithCardGradient
+            sectionLabel={t('homePage.advantages')}
+            sectionTitle={t('homePage.advantagesDesc')}
+            features={[
+              {
+                icon: '🛡️',
+                title: t('homePage.feature.protection'),
+                description: t('homePage.feature.protectionDesc'),
+              },
+              {
+                icon: '✨',
+                title: t('homePage.feature.materials'),
+                description: t('homePage.feature.materialsDesc'),
+              },
+              {
+                icon: '🚀',
+                title: t('homePage.feature.delivery'),
+                description: t('homePage.feature.deliveryDesc'),
+              },
+              {
+                icon: '↩️',
+                title: t('homePage.feature.returns'),
+                description: t('homePage.feature.returnsDesc'),
+              },
+              {
+                icon: '💎',
+                title: t('homePage.feature.guarantee'),
+                description: t('homePage.feature.guaranteeDesc'),
+              },
+            ]}
+          />
         </div>
       </section>
 
-      {/* Testimonials - Card Carousel */}
-      <section className="py-24 md:py-32 relative overflow-hidden">
-        {/* Background Glow */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-violet-500/10 rounded-full blur-[150px]" />
-        </div>
+      {/* Testimonials - Marquee */}
+      <TestimonialsSection
+        title={t('homePage.reviewsDesc')}
+        description={t('homePage.reviews')}
+        testimonials={[
+          {
+            author: {
+              name: t('homePage.review1.name'),
+              handle: t('homePage.review1.role'),
+              avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face',
+            },
+            text: t('homePage.review1.text'),
+          },
+          {
+            author: {
+              name: t('homePage.review2.name'),
+              handle: t('homePage.review2.role'),
+              avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+            },
+            text: t('homePage.review2.text'),
+          },
+          {
+            author: {
+              name: t('homePage.review3.name'),
+              handle: t('homePage.review3.role'),
+              avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face',
+            },
+            text: t('homePage.review3.text'),
+          },
+        ]}
+      />
 
+      {/* Stats */}
+      <section className="py-12 md:py-16 relative overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="inline-block font-body text-xs tracking-[0.3em] uppercase text-cyan-400/80 mb-4">{t('homePage.reviews')}</span>
-            <h2 className="font-heading text-3xl md:text-5xl font-bold text-white leading-tight">
-              {t('homePage.reviewsDesc')}
-            </h2>
-          </div>
-
-          {/* Testimonial Cards */}
-          <div className="relative max-w-4xl mx-auto">
-            <div className="flex gap-6 overflow-hidden">
-              {[
-                { 
-                  name: t('homePage.review1.name'), 
-                  role: t('homePage.review1.role'), 
-                  text: t('homePage.review1.text'),
-                  avatar: t('homePage.review1.name').charAt(0)
-                },
-                { 
-                  name: t('homePage.review2.name'), 
-                  role: t('homePage.review2.role'), 
-                  text: t('homePage.review2.text'),
-                  avatar: t('homePage.review2.name').charAt(0)
-                },
-                { 
-                  name: t('homePage.review3.name'), 
-                  role: t('homePage.review3.role'), 
-                  text: t('homePage.review3.text'),
-                  avatar: t('homePage.review3.name').charAt(0)
-                },
-              ].map((testimonial, i) => (
-                <div
-                  key={i}
-                  className={`shrink-0 w-full md:w-[calc(50%-12px)] transition-all duration-500 ${
-                    i === activeTestimonial ? 'opacity-100 scale-100' : 'opacity-40 scale-95'
-                  }`}
-                  style={{
-                    transform: `translateX(calc(-${activeTestimonial * 100}% - ${activeTestimonial * 24}px))`,
-                  }}
-                >
-                  <div className="p-6 md:p-8 rounded-3xl bg-white/[0.03] border border-white/5 backdrop-blur-sm h-full">
-                    {/* Stars */}
-                    <div className="flex gap-1 mb-4">
-                      {[...Array(5)].map((_, j) => (
-                        <svg key={j} className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
-                    </div>
-                    {/* Quote */}
-                    <p className="font-body text-white/60 text-lg leading-relaxed mb-6">
-                      &ldquo;{testimonial.text}&rdquo;
-                    </p>
-                    {/* Author */}
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center">
-                        <span className="font-heading text-white font-bold text-sm">{testimonial.avatar}</span>
-                      </div>
-                      <div>
-                        <span className="font-heading text-white font-medium block text-sm">{testimonial.name}</span>
-                        <span className="font-body text-white/40 text-xs">{testimonial.role}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Dots */}
-            <div className="flex justify-center gap-2 mt-8">
-              {[0, 1, 2].map((i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveTestimonial(i)}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    i === activeTestimonial ? 'bg-white w-6' : 'bg-white/20 hover:bg-white/40'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16 mt-16 pt-16 border-t border-white/5">
+          <div className="flex flex-wrap justify-center gap-8 md:gap-16 pt-8 border-t border-white/5">
             {[
               { value: '30K+', label: t('homePage.stats.customers') },
               { value: '4.9', label: t('homePage.stats.rating') },
@@ -643,7 +166,7 @@ export default function HomePage() {
             </p>
             <Link
               href="/shop"
-              className="group relative inline-flex overflow-hidden"
+              className="group relative inline-flex overflow-hidden rounded-full"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-cyan-600 to-emerald-600 rounded-full opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
               <div className="relative flex items-center gap-3 px-10 py-5 bg-white rounded-full font-heading font-semibold text-lg text-[#050508] transition-transform duration-300 group-hover:scale-[1.02]">

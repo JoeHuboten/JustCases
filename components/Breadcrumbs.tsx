@@ -40,7 +40,7 @@ export default function Breadcrumbs({ items, showHome = true }: BreadcrumbsProps
                 <Link
                   href={item.href}
                   itemProp="item"
-                  className="flex items-center gap-1.5 text-white/40 hover:text-blue-400 transition-colors duration-200"
+                  className="flex items-center gap-1.5 text-white/40 hover:text-teal-400 transition-colors duration-200"
                 >
                   {index === 0 && showHome && <FiHome size={14} />}
                   <span itemProp="name">{item.label}</span>

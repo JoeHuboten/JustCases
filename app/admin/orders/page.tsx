@@ -57,7 +57,7 @@ interface PaginatedResponse {
 
 const statusColors = {
   PENDING: 'bg-yellow-500/20 text-yellow-500',
-  PROCESSING: 'bg-blue-500/20 text-blue-500',
+  PROCESSING: 'bg-teal-500/20 text-teal-500',
   SHIPPED: 'bg-purple-500/20 text-purple-500',
   DELIVERED: 'bg-green-500/20 text-green-500',
   CANCELLED: 'bg-red-500/20 text-red-500',

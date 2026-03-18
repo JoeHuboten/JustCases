@@ -6,14 +6,23 @@ import { createNewsletterUnsubscribeToken } from '@/lib/newsletter-token';
 const EMAIL_PROVIDER = process.env.EMAIL_PROVIDER || 'nodemailer'; // 'resend' or 'nodemailer'
 
 // Initialize Resend
-const RESEND_CONFIGURED = process.env.RESEND_API_KEY && 
+const RESEND_CONFIGURED = Boolean(
+  process.env.RESEND_API_KEY &&
   process.env.RESEND_API_KEY !== 'your_resend_api_key' &&
-  process.env.RESEND_API_KEY.startsWith('re_');
+  process.env.RESEND_API_KEY !== 're_REPLACE_WITH_YOUR_KEY' &&
+  /^re_[A-Za-z0-9]{10,}/.test(process.env.RESEND_API_KEY)
+);
 
 const resend = RESEND_CONFIGURED ? new Resend(process.env.RESEND_API_KEY!) : null;
 
 // Initialize Nodemailer (works with Gmail, Outlook, etc.)
-const NODEMAILER_CONFIGURED = process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS;
+const NODEMAILER_CONFIGURED = Boolean(
+  process.env.SMTP_HOST &&
+  process.env.SMTP_USER &&
+  process.env.SMTP_USER !== 'your-email@gmail.com' &&
+  process.env.SMTP_PASS &&
+  process.env.SMTP_PASS !== 'your-app-password-here'
+);
 
 const transporter = NODEMAILER_CONFIGURED ? nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -1214,6 +1223,15 @@ export async function sendEmailVerification(
   email: string,
   data: Parameters<typeof emailTemplates.emailVerification>[0]
 ) {
+  if (process.env.NODE_ENV !== 'production' && !RESEND_CONFIGURED && !NODEMAILER_CONFIGURED) {
+    console.log(
+      '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
+      '📧  DEV: No email provider configured — copy this link to verify:\n' +
+      `     To:   ${email}\n` +
+      `     URL:  ${data.verificationUrl}\n` +
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
+    );
+  }
   const template = emailTemplates.emailVerification(data);
   return sendEmail(email, template);
 }

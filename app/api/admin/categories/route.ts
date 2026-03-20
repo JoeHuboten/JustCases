@@ -4,6 +4,7 @@ import { withApiGuard } from '@/lib/api-guard';
 import { apiRateLimit, strictRateLimit } from '@/lib/rate-limit';
 import { categorySchema } from '@/lib/validation';
 import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+import { writeAuditLog } from '@/lib/audit-log';
 
 const logger = createLogger('api:admin:categories');
 
@@ -45,7 +46,7 @@ export const POST = withApiGuard(
     rateLimit: strictRateLimit,
     bodySchema: categorySchema,
   },
-  async (_request: NextRequest, { body }) => {
+  async (request: NextRequest, { body, user }) => {
     try {
       const category = await prisma.category.create({
         data: {
@@ -54,6 +55,15 @@ export const POST = withApiGuard(
           description: body!.description,
           image: body!.image,
         },
+      });
+
+      await writeAuditLog({
+        action: 'category.create',
+        actor: { id: user!.id, email: user!.email!, role: user!.role },
+        request,
+        targetType: 'category',
+        targetId: category.id,
+        metadata: { name: category.name, slug: category.slug },
       });
 
       return NextResponse.json({ category }, { status: 201 });

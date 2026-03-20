@@ -244,25 +244,104 @@ No schema changes required - existing Prisma schema supports all new features.
 
 ---
 
+## 🛡️ OWASP A06 — Vulnerable & Outdated Components (Dependency Security)
+
+### Implementation
+
+**Automated dependency scanning** is configured via GitHub Actions:
+
+| Workflow | Trigger | Purpose |
+|---|---|---|
+| `.github/workflows/dependency-review.yml` | Pull request → `main` | Blocks PRs that introduce high/critical vulnerabilities using the GitHub Dependency Review action |
+| `.github/workflows/dependency-security.yml` | Push to `main` · Weekly schedule (Mon 08:00 UTC) · `workflow_dispatch` | Runs `npm audit --audit-level=high`; CI fails on high or critical severity |
+
+**Automated dependency updates** are managed by Dependabot (`.github/dependabot.yml`):
+- Weekly PRs against `main` for npm packages
+- Grouped updates for `next`, `react`, `prisma`, `@radix-ui`, `eslint`, and `@types/*`
+- Maximum 10 open PRs at once
+
+**Local checks:**
+```bash
+# Check for vulnerabilities locally
+npm audit
+
+# Fix auto-fixable vulnerabilities
+npm audit fix
+```
+
+**Responding to CI failures:**
+1. Run `npm audit --json | npx npm-audit-html` to generate a human-readable report.
+2. Review the vulnerable package and determine if a fix or exemption is appropriate.
+3. Apply the fix with `npm audit fix` (or a manual version bump) and push to re-trigger CI.
+4. For false positives or acceptable risks, add a note to the PR and get a second approval.
+
+---
+
+## 🔍 OWASP A09 — Security Logging & Monitoring (Admin Audit Logging)
+
+### Implementation
+
+**Persistent audit log storage** (`prisma/schema.prisma` — `AdminAuditLog` model):
+- Stores every admin mutation with actor identity, IP, user-agent, route, method, target, and bounded metadata.
+- Migration: `prisma/migrations/20241220000000_add_admin_audit_log/migration.sql`
+
+**Audit logging utility** (`lib/audit-log.ts`):
+- `logAdminAction({ action, actor, request, target?, metadata? })` — never throws; failures are swallowed and emitted via the structured logger.
+- IP extracted safely from `x-forwarded-for` → `x-real-ip` chain.
+- Metadata bounded to 4 KB to avoid large payload storage.
+
+**Wired into all admin mutation endpoints:**
+
+| Route | Actions logged |
+|---|---|
+| `POST /api/admin/products` | `product.create` |
+| `PUT /api/admin/products/[id]` | `product.update` |
+| `DELETE /api/admin/products/[id]` | `product.delete` |
+| `POST /api/admin/categories` | `category.create` |
+| `PUT /api/admin/categories/[id]` | `category.update` |
+| `DELETE /api/admin/categories/[id]` | `category.delete` |
+| `POST /api/admin/discount-codes` | `discount_code.create` |
+| `PUT /api/admin/discount-codes/[id]` | `discount_code.update` |
+| `DELETE /api/admin/discount-codes/[id]` | `discount_code.delete` |
+| `PUT /api/admin/orders/[id]` | `order.update` |
+| `DELETE /api/admin/orders/[id]` | `order.delete` |
+
+**Admin endpoint to view audit logs:**
+```
+GET /api/admin/audit-logs
+  ?page=1&limit=50&action=product.create&actorUserId=<id>
+```
+Returns paginated logs (newest first), restricted to ADMIN role.
+
+**Privacy considerations:**
+- IP addresses and user-agent strings are stored. Review your jurisdiction's data retention requirements.
+- No secrets, tokens, or payment payloads are stored in audit logs.
+- Metadata is limited to IDs and small summaries.
+
+**Retention:**
+- No automatic expiry. Add a scheduled job or database policy to purge records older than your required retention period (e.g., 90 days).
+
+---
+
 ## 📈 Next Steps (Optional Enhancements)
 
 ### High Priority
-1. **Password Hashing Audit:** Verify bcrypt work factor (should be 10-12)
-2. **Session Management:** Add session invalidation on password change
-3. **Audit Logging:** Log all admin actions with timestamps and IP addresses
-4. **CSRF Protection:** Add CSRF tokens for state-changing operations
+1. **Password Hashing Audit:** ✅ Completed — bcrypt work factor 12 (change-password), 10 (reset-password)
+2. **Session Management:** ✅ Completed — `tokenVersion` incremented on password change
+3. **Audit Logging:** ✅ Completed — see A09 section above
+4. **CSRF Protection:** ✅ Completed — implemented in `lib/csrf.ts`
 
 ### Medium Priority
-5. **Email Verification:** Require email confirmation for new accounts
+5. **Email Verification:** ✅ Completed — required before login
 6. **2FA (Two-Factor Auth):** Add TOTP/SMS verification for admin accounts
 7. **IP Whitelisting:** Allow restricting admin access to specific IPs
-8. **Content Security Policy:** Add CSP headers to prevent XSS
+8. **Content Security Policy:** ✅ Completed — configured in `next.config.ts`
 
 ### Low Priority
 9. **Captcha:** Add reCAPTCHA to signup/login forms
-10. **Webhook Security:** Add signature verification for PayPal webhooks
+10. **Webhook Security:** Add PayPal webhook signature verification (`PAYPAL-TRANSMISSION-SIG`)
 11. **Database Encryption:** Encrypt sensitive fields at rest
-12. **Automated Security Scans:** Integrate OWASP ZAP or similar
+12. **Automated Security Scans:** ✅ Completed — GitHub Actions + Dependabot (A06)
 
 ---
 
@@ -273,6 +352,9 @@ No schema changes required - existing Prisma schema supports all new features.
 **Validation schemas:** ✅ All endpoints covered  
 **Admin middleware:** ✅ 17/17 routes protected  
 **Reviews API:** ✅ Created and functional  
+**CSRF protection:** ✅ All mutation endpoints protected  
+**Dependency scanning (A06):** ✅ GitHub Actions + Dependabot configured  
+**Admin audit logging (A09):** ✅ All admin mutations logged (`AdminAuditLog` model + `lib/audit-log.ts`)  
 
 **Security Status:** 🟢 **PRODUCTION READY**
 
@@ -287,6 +369,6 @@ No schema changes required - existing Prisma schema supports all new features.
 
 ---
 
-**Last Updated:** December 2024  
-**Next.js Version:** 16.0.2  
-**Security Standard:** OWASP Top 10 compliant
+**Last Updated:** March 2026  
+**Next.js Version:** 16.0.7  
+**Security Standard:** OWASP Top 10 compliant (A06 + A09 gaps resolved)

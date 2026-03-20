@@ -5,6 +5,7 @@ import { strictRateLimit } from '@/lib/rate-limit';
 import { adminOrderUpdateSchema } from '@/lib/validation';
 import { createLogger, getSafeErrorDetails } from '@/lib/logger';
 import { z } from 'zod';
+import { logAdminAction } from '@/lib/audit-log';
 
 const logger = createLogger('api:admin:orders:id');
 
@@ -16,7 +17,7 @@ export const PUT = withApiGuard<z.infer<typeof adminOrderUpdateSchema>, { params
     rateLimit: strictRateLimit,
     bodySchema: adminOrderUpdateSchema,
   },
-  async (_request: NextRequest, context) => {
+  async (request: NextRequest, context) => {
     try {
       const { id } = await context.params;
       const body = context.body!;
@@ -51,6 +52,14 @@ export const PUT = withApiGuard<z.infer<typeof adminOrderUpdateSchema>, { params
         },
       });
 
+      await logAdminAction({
+        action: 'order.update',
+        actor: { id: context.user!.id, email: context.user!.email!, role: context.user!.role },
+        request,
+        target: { type: 'Order', id },
+        metadata: { status: body.status, trackingNumber: body.trackingNumber },
+      });
+
       return NextResponse.json({ order });
     } catch (error) {
       logger.error('Failed to update order', { error: getSafeErrorDetails(error) });
@@ -69,11 +78,18 @@ export const DELETE = withApiGuard<unknown, { params: Promise<{ id: string }> }>
     csrf: true,
     rateLimit: strictRateLimit,
   },
-  async (_request: NextRequest, context) => {
+  async (request: NextRequest, context) => {
     try {
       const { id } = await context.params;
       await prisma.order.delete({
         where: { id },
+      });
+
+      await logAdminAction({
+        action: 'order.delete',
+        actor: { id: context.user!.id, email: context.user!.email!, role: context.user!.role },
+        request,
+        target: { type: 'Order', id },
       });
 
       return NextResponse.json({ message: 'Order deleted successfully' });

@@ -5,6 +5,7 @@ import { strictRateLimit } from '@/lib/rate-limit';
 import { categoryUpdateSchema } from '@/lib/validation';
 import { createLogger, getSafeErrorDetails } from '@/lib/logger';
 import { z } from 'zod';
+import { logAdminAction } from '@/lib/audit-log';
 
 const logger = createLogger('api:admin:categories:id');
 
@@ -16,7 +17,7 @@ export const PUT = withApiGuard<z.infer<typeof categoryUpdateSchema>, { params: 
     rateLimit: strictRateLimit,
     bodySchema: categoryUpdateSchema,
   },
-  async (_request: NextRequest, context) => {
+  async (request: NextRequest, context) => {
     try {
       const { id } = await context.params;
       const body = context.body!;
@@ -29,6 +30,14 @@ export const PUT = withApiGuard<z.infer<typeof categoryUpdateSchema>, { params: 
           ...(body.description !== undefined && { description: body.description }),
           ...(body.image !== undefined && { image: body.image }),
         },
+      });
+
+      await logAdminAction({
+        action: 'category.update',
+        actor: { id: context.user!.id, email: context.user!.email!, role: context.user!.role },
+        request,
+        target: { type: 'Category', id },
+        metadata: { name: category.name },
       });
 
       return NextResponse.json({ category });
@@ -49,7 +58,7 @@ export const DELETE = withApiGuard<unknown, { params: Promise<{ id: string }> }>
     csrf: true,
     rateLimit: strictRateLimit,
   },
-  async (_request: NextRequest, context) => {
+  async (request: NextRequest, context) => {
     try {
       const { id } = await context.params;
       const productsCount = await prisma.product.count({
@@ -65,6 +74,13 @@ export const DELETE = withApiGuard<unknown, { params: Promise<{ id: string }> }>
 
       await prisma.category.delete({
         where: { id },
+      });
+
+      await logAdminAction({
+        action: 'category.delete',
+        actor: { id: context.user!.id, email: context.user!.email!, role: context.user!.role },
+        request,
+        target: { type: 'Category', id },
       });
 
       return NextResponse.json({ message: 'Category deleted successfully' });

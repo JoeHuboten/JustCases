@@ -6,6 +6,7 @@ import { productUpdateSchema } from '@/lib/validation';
 import { createLogger, getSafeErrorDetails } from '@/lib/logger';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
+import { logAdminAction } from '@/lib/audit-log';
 
 const logger = createLogger('api:admin:products:id');
 
@@ -48,7 +49,7 @@ export const PUT = withApiGuard<z.infer<typeof productUpdateSchema>, { params: P
     rateLimit: strictRateLimit,
     bodySchema: productUpdateSchema,
   },
-  async (_request: NextRequest, context) => {
+  async (request: NextRequest, context) => {
     try {
       const { id } = await context.params;
       const body = context.body!;
@@ -78,6 +79,14 @@ export const PUT = withApiGuard<z.infer<typeof productUpdateSchema>, { params: P
         },
       });
 
+      await logAdminAction({
+        action: 'product.update',
+        actor: { id: context.user!.id, email: context.user!.email!, role: context.user!.role },
+        request,
+        target: { type: 'Product', id },
+        metadata: { name: product.name },
+      });
+
       return NextResponse.json({ product });
     } catch (error) {
       logger.error('Failed to update product', { error: getSafeErrorDetails(error) });
@@ -96,11 +105,18 @@ export const DELETE = withApiGuard<unknown, { params: Promise<{ id: string }> }>
     csrf: true,
     rateLimit: strictRateLimit,
   },
-  async (_request: NextRequest, context) => {
+  async (request: NextRequest, context) => {
     try {
       const { id } = await context.params;
       await prisma.product.delete({
         where: { id },
+      });
+
+      await logAdminAction({
+        action: 'product.delete',
+        actor: { id: context.user!.id, email: context.user!.email!, role: context.user!.role },
+        request,
+        target: { type: 'Product', id },
       });
 
       return NextResponse.json({ message: 'Product deleted successfully' });

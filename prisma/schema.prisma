@@ -327,6 +327,28 @@ model NewsletterSubscription {
   @@index([active])
 }
 
+// Audit trail for sensitive admin actions (A09 – Security Logging & Monitoring)
+model AdminAuditLog {
+  id          String   @id @default(cuid())
+  action      String   // e.g. "product.create", "order.update_status"
+  actorUserId String
+  actorEmail  String
+  actorRole   String
+  ipAddress   String?
+  userAgent   String?
+  route       String
+  method      String
+  targetType  String?  // e.g. "product", "order", "category"
+  targetId    String?
+  metadata    Json?    // bounded additional context
+  createdAt   DateTime @default(now())
+
+  @@index([actorUserId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([targetType, targetId])
+}
+
 enum UserRole {
   USER
   ADMIN

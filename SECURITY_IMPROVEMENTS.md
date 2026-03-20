@@ -244,25 +244,153 @@ No schema changes required - existing Prisma schema supports all new features.
 
 ---
 
-## 📈 Next Steps (Optional Enhancements)
+## 🔒 A06 – Vulnerable and Outdated Components
+
+### Automated Dependency Vulnerability Scanning
+
+#### CI Workflows (`.github/workflows/`)
+
+Two GitHub Actions workflows have been added:
+
+**`security-scan.yml`** — runs on every pull request targeting `main`, every push to
+`main`, and on a weekly schedule (Mondays 07:00 UTC):
+- Installs dependencies with `npm ci`.
+- Runs `npm audit --audit-level=high`; the job fails on **high** or **critical** severity
+  vulnerabilities to block merges.
+
+**`dependency-review.yml`** — runs on every pull request targeting `main`:
+- Uses the official `actions/dependency-review-action` to detect newly introduced
+  vulnerable packages in the diff.
+- Fails on **high** severity or above and posts an inline summary comment on the PR.
+
+#### Dependabot (`.github/dependabot.yml`)
+
+Dependabot is configured to:
+- Check `npm` dependencies **weekly** (Mondays 06:00 UTC).
+- Group minor and patch updates into a single PR to reduce noise.
+- Open individual PRs for major-version bumps (excluding `next`, `react`, and
+  `react-dom` majors which should be handled manually).
+- Apply the `dependencies` and `security` labels to all generated PRs.
+
+#### Running Scans Locally
+
+```bash
+# Show all vulnerabilities
+npm audit
+
+# Show only high/critical (matches CI threshold)
+npm audit --audit-level=high
+
+# Attempt automatic fixes (review diff before committing)
+npm audit fix
+```
+
+#### Responding to Alerts
+
+1. **Dependabot PR** — review the changelog, run the test suite, and merge if tests pass.
+2. **`npm audit` failure in CI** — identify the package in the audit output, check whether
+   a non-breaking fix version exists, and update via `npm install <pkg>@latest` or by
+   merging the Dependabot PR.
+3. **No fix available** — evaluate the exploitability in the context of this app, document
+   the risk, and create a tracking issue.
+
+---
+
+## 🔍 A09 – Security Logging and Monitoring Failures
+
+### Admin Audit Logging
+
+#### Data Model (`prisma/schema.prisma`)
+
+A new `AdminAuditLog` model has been added:
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | `String` (cuid) | Primary key |
+| `action` | `String` | Dot-separated action, e.g. `product.create` |
+| `actorUserId` | `String` | ID of the admin who performed the action |
+| `actorEmail` | `String` | Snapshot of the actor's email at the time |
+| `actorRole` | `String` | Snapshot of the actor's role (`ADMIN`) |
+| `ipAddress` | `String?` | Client IP (respects `x-forwarded-for`) |
+| `userAgent` | `String?` | Truncated to 500 chars |
+| `route` | `String` | URL path of the request |
+| `method` | `String` | HTTP method |
+| `targetType` | `String?` | Resource type, e.g. `product`, `order` |
+| `targetId` | `String?` | Resource ID |
+| `metadata` | `Json?` | Bounded additional context (max 20 keys) |
+| `createdAt` | `DateTime` | Auto-set timestamp |
+
+Indexes are defined on `actorUserId`, `action`, `createdAt`, and `(targetType, targetId)`.
+
+Apply the schema change with:
+```bash
+npx prisma db push
+```
+
+#### Utility (`lib/audit-log.ts`)
+
+`writeAuditLog(params: AuditLogParams): Promise<void>`
+
+- **Non-throwing** — any database error is swallowed and emitted through the existing
+  structured logger so that the main request handler is never interrupted.
+- **IP extraction** — honours `x-forwarded-for` (takes the first entry) then `x-real-ip`
+  as a fallback.
+- **Bounded metadata** — only the first 20 keys of the `metadata` object are stored.
+- **User-Agent clamping** — truncated to 500 characters.
+
+#### Covered Admin Actions
+
+| Resource | Actions |
+|---|---|
+| Products | `product.create`, `product.update`, `product.delete` |
+| Categories | `category.create`, `category.update`, `category.delete` |
+| Discount Codes | `discount_code.create`, `discount_code.update`, `discount_code.delete` |
+| Orders | `order.update_status`, `order.delete` |
+
+#### Audit Log Viewer Endpoint
+
+`GET /api/admin/audit-logs` — paginated list of audit log entries, protected by
+`requireAdmin`. Supports query parameters:
+
+| Parameter | Description |
+|---|---|
+| `page` | Page number (default: `1`) |
+| `limit` | Entries per page (default: `50`, max: `100`) |
+| `action` | Filter by action substring |
+| `actorUserId` | Filter by actor's user ID |
+| `targetType` | Filter by target resource type |
+
+#### Privacy and Retention Considerations
+
+- **No secrets** — authentication tokens, passwords, or payment data are never stored in
+  audit log entries.
+- **Minimal PII** — only the actor's email is snapshotted; no customer PII is stored
+  beyond the resource ID.
+- **Metadata bounds** — metadata is capped at 20 keys to prevent oversized payloads.
+- **Retention** — no automatic expiry is enforced at the application level.  For GDPR
+  compliance, implement a scheduled job or database TTL policy to purge entries older than
+  your defined retention window (e.g., 90 days).
+
+---
+
 
 ### High Priority
 1. **Password Hashing Audit:** Verify bcrypt work factor (should be 10-12)
 2. **Session Management:** Add session invalidation on password change
-3. **Audit Logging:** Log all admin actions with timestamps and IP addresses
-4. **CSRF Protection:** Add CSRF tokens for state-changing operations
+3. **Audit Logging:** ✅ Admin audit log implemented (A09)
+4. **CSRF Protection:** ✅ Implemented (A08)
 
 ### Medium Priority
-5. **Email Verification:** Require email confirmation for new accounts
+5. **Email Verification:** ✅ Implemented
 6. **2FA (Two-Factor Auth):** Add TOTP/SMS verification for admin accounts
 7. **IP Whitelisting:** Allow restricting admin access to specific IPs
-8. **Content Security Policy:** Add CSP headers to prevent XSS
+8. **Content Security Policy:** ✅ Implemented in `next.config.ts`
 
 ### Low Priority
 9. **Captcha:** Add reCAPTCHA to signup/login forms
-10. **Webhook Security:** Add signature verification for PayPal webhooks
+10. **Webhook Security:** Add PayPal webhook signature verification (A08 gap)
 11. **Database Encryption:** Encrypt sensitive fields at rest
-12. **Automated Security Scans:** Integrate OWASP ZAP or similar
+12. **Automated Security Scans:** ✅ npm audit CI + Dependency Review (A06)
 
 ---
 
@@ -273,6 +401,8 @@ No schema changes required - existing Prisma schema supports all new features.
 **Validation schemas:** ✅ All endpoints covered  
 **Admin middleware:** ✅ 17/17 routes protected  
 **Reviews API:** ✅ Created and functional  
+**Audit logging (A09):** ✅ AdminAuditLog model + helper + wired into admin mutations  
+**Dependency scanning (A06):** ✅ npm audit CI + Dependency Review workflow + Dependabot  
 
 **Security Status:** 🟢 **PRODUCTION READY**
 
@@ -287,6 +417,6 @@ No schema changes required - existing Prisma schema supports all new features.
 
 ---
 
-**Last Updated:** December 2024  
-**Next.js Version:** 16.0.2  
-**Security Standard:** OWASP Top 10 compliant
+**Last Updated:** March 2026  
+**Next.js Version:** 16.0.7  
+**Security Standard:** OWASP Top 10 compliant (A06 + A09 hardened)

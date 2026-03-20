@@ -300,6 +300,26 @@ model CheckoutSession {
   @@index([providerPaymentId])
 }
 
+model AdminAuditLog {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  action      String
+  actorUserId String
+  actorEmail  String
+  actorRole   String
+  ipAddress   String?
+  userAgent   String?
+  route       String
+  method      String
+  targetType  String?
+  targetId    String?
+  metadata    Json?
+
+  @@index([actorUserId])
+  @@index([createdAt])
+  @@index([action])
+}
+
 model ContactMessage {
   id        String   @id @default(cuid())
   name      String

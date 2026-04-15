@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { FiCheck, FiX, FiAlertCircle, FiInfo, FiShoppingCart, FiHeart } from 'react-icons/fi';
+import { FiCheck, FiX, FiAlertCircle, FiInfo, FiShoppingCart, FiHeart, FiTrash2 } from 'react-icons/fi';
 
 type ToastType = 'success' | 'error' | 'warning' | 'info' | 'cart' | 'wishlist';
 
@@ -12,8 +12,22 @@ interface Toast {
   duration?: number;
 }
 
+interface ConfirmOptions {
+  title?: string;
+  confirmText?: string;
+  cancelText?: string;
+  destructive?: boolean;
+}
+
+interface ConfirmDialog {
+  message: string;
+  onConfirm: () => void;
+  options?: ConfirmOptions;
+}
+
 interface ToastContextType {
   showToast: (message: string, type?: ToastType, duration?: number) => void;
+  showConfirm: (message: string, onConfirm: () => void, options?: ConfirmOptions) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -89,6 +103,7 @@ const ToastItem = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
 
 export const ToastProvider = ({ children }: { children: ReactNode }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialog | null>(null);
 
   const removeToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
@@ -105,8 +120,21 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
     }, duration);
   }, [removeToast]);
 
+  const showConfirm = useCallback((message: string, onConfirm: () => void, options?: ConfirmOptions) => {
+    setConfirmDialog({ message, onConfirm, options });
+  }, []);
+
+  const handleConfirm = () => {
+    confirmDialog?.onConfirm();
+    setConfirmDialog(null);
+  };
+
+  const handleCancel = () => {
+    setConfirmDialog(null);
+  };
+
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={{ showToast, showConfirm }}>
       {children}
       
       {/* Toast Container */}
@@ -117,6 +145,61 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
           </div>
         ))}
       </div>
+
+      {/* Confirm Dialog */}
+      {confirmDialog && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          style={{ animation: 'fadeInOverlay 0.2s ease-out' }}
+        >
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={handleCancel}
+          />
+
+          {/* Dialog card */}
+          <div
+            className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-[#0f1117]/90 backdrop-blur-xl shadow-2xl shadow-black/50 p-6 flex flex-col items-center gap-5"
+            style={{ animation: 'scaleInDialog 0.25s cubic-bezier(0.34,1.56,0.64,1)' }}
+          >
+            {/* Icon */}
+            <div className={`w-14 h-14 rounded-full flex items-center justify-center ${confirmDialog.options?.destructive !== false ? 'bg-red-500/15' : 'bg-amber-500/15'}`}>
+              <FiTrash2 className={`w-7 h-7 ${confirmDialog.options?.destructive !== false ? 'text-red-400' : 'text-amber-400'}`} />
+            </div>
+
+            {/* Title */}
+            <div className="text-center">
+              <h3 className="text-base font-semibold text-white mb-1">
+                {confirmDialog.options?.title ?? 'Потвърди действието'}
+              </h3>
+              <p className="text-sm text-gray-400 leading-relaxed">{confirmDialog.message}</p>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex w-full gap-3">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="flex-1 py-2.5 rounded-xl border border-white/10 bg-white/5 text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-150"
+              >
+                {confirmDialog.options?.cancelText ?? 'Отказ'}
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirm}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-150 shadow-lg ${
+                  confirmDialog.options?.destructive !== false
+                    ? 'bg-red-500 hover:bg-red-600 shadow-red-500/30'
+                    : 'bg-accent hover:bg-accent/90 shadow-accent/30'
+                }`}
+              >
+                {confirmDialog.options?.confirmText ?? 'Потвърди'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       <style jsx global>{`
         @keyframes slideInRight {
@@ -138,6 +221,16 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
             opacity: 0;
             transform: translateX(50%);
           }
+        }
+
+        @keyframes fadeInOverlay {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+
+        @keyframes scaleInDialog {
+          from { transform: scale(0.85); opacity: 0; }
+          to   { transform: scale(1);    opacity: 1; }
         }
       `}</style>
     </ToastContext.Provider>

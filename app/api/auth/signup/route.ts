@@ -65,45 +65,19 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingUser) {
+      // TEMP: email verification disabled — auto-verify existing unverified accounts
       if (!existingUser.emailVerified) {
-        try {
-          const verificationToken = crypto.randomBytes(32).toString('hex');
-          const hashedVerificationToken = crypto
-            .createHash('sha256')
-            .update(verificationToken)
-            .digest('hex');
-          const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-          await prisma.verificationToken.create({
-            data: {
-              identifier: email,
-              token: hashedVerificationToken,
-              expires: expiresAt,
-              type: 'EMAIL_VERIFICATION',
-            },
-          });
-
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-          const verificationUrl = `${appUrl}/auth/verify-email?token=${verificationToken}`;
-
-          await enqueueEmailJob({
-            type: 'EMAIL_VERIFICATION',
-            to: email,
-            payload: {
-              name: existingUser.name || 'there',
-              verificationUrl,
-            },
-          });
-        } catch {
-          // Enumeration-safe response: do not leak delivery outcome.
-        }
+        await prisma.user.update({
+          where: { id: existingUser.id },
+          data: { emailVerified: new Date() },
+        });
       }
 
       return NextResponse.json(
         {
           success: true,
           message: genericSignupMessage,
-          requiresVerification: true,
+          requiresVerification: false,
           requestId,
         },
         { status: 200, headers: { 'x-request-id': requestId } },
@@ -112,58 +86,23 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await hashPassword(password);
 
-    // Create user with emailVerified = null (unverified)
+    // TEMP: auto-verify users on signup (email verification disabled)
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
         name: name || null,
         role: 'USER',
-        emailVerified: null, // User needs to verify email
+        emailVerified: new Date(), // TEMP: auto-verified
       },
     });
 
-    // Generate verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    const hashedVerificationToken = crypto
-      .createHash('sha256')
-      .update(verificationToken)
-      .digest('hex');
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-    // Store verification token
-    await prisma.verificationToken.create({
-      data: {
-        identifier: email,
-        token: hashedVerificationToken,
-        expires: expiresAt,
-        type: 'EMAIL_VERIFICATION',
-      },
-    });
-
-    // Generate verification URL
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const verificationUrl = `${appUrl}/auth/verify-email?token=${verificationToken}`;
-
-    try {
-      await enqueueEmailJob({
-        type: 'EMAIL_VERIFICATION',
-        to: email,
-        payload: {
-          name: name || 'there',
-          verificationUrl,
-        },
-      });
-    } catch {
-      logger.warn('Failed to queue verification email', { userId: user.id });
-    }
-
-    logger.info('User registered successfully', { userId: user.id });
+    logger.info('User registered successfully (auto-verified)', { userId: user.id });
 
     return NextResponse.json({
       success: true,
       message: genericSignupMessage,
-      requiresVerification: true,
+      requiresVerification: false,
       requestId,
     }, { headers: { 'x-request-id': requestId } });
   } catch (error) {

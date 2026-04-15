@@ -175,7 +175,26 @@ export const useCartStore = create<CartStore>()(
       name: 'cart-storage',
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true);
+        if (state) {
+          // Deduplicate items that may have been double-persisted
+          const seen = new Set<string>();
+          const deduped: CartItem[] = [];
+          for (const item of state.items) {
+            const key = `${item.id}-${item.color ?? ''}-${item.size ?? ''}`;
+            if (seen.has(key)) {
+              // Merge quantity into the first occurrence
+              const existing = deduped.find(
+                i => i.id === item.id && i.color === item.color && i.size === item.size
+              );
+              if (existing) existing.quantity += item.quantity;
+            } else {
+              seen.add(key);
+              deduped.push({ ...item });
+            }
+          }
+          state.items = deduped;
+          state.setHasHydrated(true);
+        }
       },
     }
   )

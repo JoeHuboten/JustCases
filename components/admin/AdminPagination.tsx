@@ -61,22 +61,22 @@ export default function AdminPagination({
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-6 border-t border-gray-700/50">
       {/* Info Text */}
       <p className="text-text-secondary text-sm">
-        Showing <span className="text-white font-medium">{start}</span> to{' '}
-        <span className="text-white font-medium">{end}</span> of{' '}
-        <span className="text-white font-medium">{total}</span> results
+        Показване на <span className="text-white font-medium">{start}</span> до{' '}
+        <span className="text-white font-medium">{end}</span> от{' '}
+        <span className="text-white font-medium">{total}</span> резултата
       </p>
       
       {/* Pagination Controls */}
-      <nav className="flex items-center gap-1" aria-label="Pagination">
+      <nav className="flex items-center gap-1" aria-label="Навигация">
         {/* Previous Button */}
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
           className="flex items-center gap-1 px-3 py-2 rounded-lg border border-gray-700 text-text-secondary hover:text-accent hover:border-accent transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-text-secondary disabled:hover:border-gray-700"
-          aria-label="Previous page"
+          aria-label="Предишна страница"
         >
           <FiChevronLeft size={16} />
-          <span className="hidden sm:inline text-sm">Prev</span>
+          <span className="hidden sm:inline text-sm">Предишна</span>
         </button>
 
         {/* Page Numbers */}
@@ -101,7 +101,7 @@ export default function AdminPagination({
                     ? 'bg-accent text-white'
                     : 'border border-gray-700 text-text-secondary hover:border-accent hover:text-accent'
                 }`}
-                aria-label={`Page ${page}`}
+                aria-label={`Страница ${page}`}
                 aria-current={isActive ? 'page' : undefined}
               >
                 {page}
@@ -115,9 +115,9 @@ export default function AdminPagination({
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
           className="flex items-center gap-1 px-3 py-2 rounded-lg border border-gray-700 text-text-secondary hover:text-accent hover:border-accent transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-text-secondary disabled:hover:border-gray-700"
-          aria-label="Next page"
+          aria-label="Следваща страница"
         >
-          <span className="hidden sm:inline text-sm">Next</span>
+          <span className="hidden sm:inline text-sm">Следваща</span>
           <FiChevronRight size={16} />
         </button>
       </nav>

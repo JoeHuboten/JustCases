@@ -131,7 +131,7 @@ export default function CartPage() {
           <div className="lg:col-span-3 space-y-4">
             {items.map((item, index) => (
               <div
-                key={`${item.id}-${item.color || "default"}-${item.size || "default"}`}
+                key={`${item.id}-${item.color || "default"}-${item.size || "default"}-${index}`}
                 className="group bg-white/[0.02] backdrop-blur-xl border border-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:border-teal-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-teal-500/10"
                 style={{ animationDelay: `${index * 100}ms` }}
               >

@@ -86,8 +86,8 @@ export default function AdminAnalytics() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-white">Analytics</h1>
-        <p className="text-text-secondary mt-2">Track your store performance</p>
+        <h1 className="text-3xl font-bold text-white">Анализи</h1>
+        <p className="text-text-secondary mt-2">Проследявайте представянето на вашия магазин</p>
       </div>
 
       {/* Main Stats */}
@@ -95,7 +95,7 @@ export default function AdminAnalytics() {
         <div className="bg-gradient-to-br from-accent/20 to-accent/5 p-6 rounded-lg border border-accent/30">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-text-secondary text-sm">Total Revenue</p>
+              <p className="text-text-secondary text-sm">Общи приходи</p>
               <p className="text-3xl font-bold text-white">${(stats.totalRevenue ?? 0).toFixed(2)}</p>
             </div>
             <div className="bg-accent/20 p-3 rounded-lg">
@@ -105,14 +105,14 @@ export default function AdminAnalytics() {
           <div className="flex items-center gap-2 text-sm">
             <FiTrendingUp className="text-green-500" />
             <span className="text-green-500">+{stats.revenueGrowth}%</span>
-            <span className="text-text-secondary">vs last month</span>
+            <span className="text-text-secondary">спрямо миналия месец</span>
           </div>
         </div>
 
         <div className="bg-gradient-to-br from-teal-500/20 to-teal-500/5 p-6 rounded-lg border border-teal-500/30">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-text-secondary text-sm">Total Orders</p>
+              <p className="text-text-secondary text-sm">Общо поръчки</p>
               <p className="text-3xl font-bold text-white">{stats.totalOrders}</p>
             </div>
             <div className="bg-teal-500/20 p-3 rounded-lg">
@@ -122,14 +122,14 @@ export default function AdminAnalytics() {
           <div className="flex items-center gap-2 text-sm">
             <FiTrendingUp className="text-green-500" />
             <span className="text-green-500">+{stats.ordersGrowth}%</span>
-            <span className="text-text-secondary">vs last month</span>
+            <span className="text-text-secondary">спрямо миналия месец</span>
           </div>
         </div>
 
         <div className="bg-gradient-to-br from-purple-500/20 to-purple-500/5 p-6 rounded-lg border border-purple-500/30">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-text-secondary text-sm">Total Users</p>
+              <p className="text-text-secondary text-sm">Общо потребители</p>
               <p className="text-3xl font-bold text-white">{stats.totalUsers}</p>
             </div>
             <div className="bg-purple-500/20 p-3 rounded-lg">
@@ -139,7 +139,7 @@ export default function AdminAnalytics() {
           <div className="flex items-center gap-2 text-sm">
             <FiTrendingUp className="text-green-500" />
             <span className="text-green-500">+{stats.usersGrowth}%</span>
-            <span className="text-text-secondary">vs last month</span>
+            <span className="text-text-secondary">спрямо миналия месец</span>
           </div>
         </div>
       </div>
@@ -148,41 +148,41 @@ export default function AdminAnalytics() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-background-secondary p-6 rounded-lg border border-gray-800">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">Products</h3>
+            <h3 className="text-lg font-semibold text-white">Продукти</h3>
             <FiPackage className="h-6 w-6 text-accent" />
           </div>
           <p className="text-3xl font-bold text-white mb-2">{stats.totalProducts}</p>
-          <p className="text-text-secondary text-sm">Total products in catalog</p>
+          <p className="text-text-secondary text-sm">Общо продукти в каталога</p>
         </div>
 
         <div className="bg-background-secondary p-6 rounded-lg border border-gray-800">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">Categories</h3>
+            <h3 className="text-lg font-semibold text-white">Категории</h3>
             <FiGrid className="h-6 w-6 text-accent" />
           </div>
           <p className="text-3xl font-bold text-white mb-2">{stats.totalCategories}</p>
-          <p className="text-text-secondary text-sm">Active categories</p>
+          <p className="text-text-secondary text-sm">Активни категории</p>
         </div>
       </div>
 
       {/* Average Order Value */}
       <div className="bg-background-secondary p-6 rounded-lg border border-gray-800">
-        <h3 className="text-lg font-semibold text-white mb-4">Key Metrics</h3>
+        <h3 className="text-lg font-semibold text-white mb-4">Ключови показатели</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <p className="text-text-secondary text-sm mb-2">Average Order Value</p>
+            <p className="text-text-secondary text-sm mb-2">Средна стойност на поръчка</p>
             <p className="text-2xl font-bold text-white">
               ${(stats.totalOrders ?? 0) > 0 ? ((stats.totalRevenue ?? 0) / stats.totalOrders).toFixed(2) : '0.00'}
             </p>
           </div>
           <div>
-            <p className="text-text-secondary text-sm mb-2">Orders per User</p>
+            <p className="text-text-secondary text-sm mb-2">Поръчки на потребител</p>
             <p className="text-2xl font-bold text-white">
               {(stats.totalUsers ?? 0) > 0 ? ((stats.totalOrders ?? 0) / stats.totalUsers).toFixed(2) : '0.00'}
             </p>
           </div>
           <div>
-            <p className="text-text-secondary text-sm mb-2">Products per Category</p>
+            <p className="text-text-secondary text-sm mb-2">Продукти по категория</p>
             <p className="text-2xl font-bold text-white">
               {(stats.totalCategories ?? 0) > 0 ? ((stats.totalProducts ?? 0) / stats.totalCategories).toFixed(1) : '0.0'}
             </p>
@@ -193,8 +193,7 @@ export default function AdminAnalytics() {
       {/* Info Message */}
       <div className="bg-teal-500/10 border border-teal-500/30 rounded-lg p-6">
         <p className="text-teal-400 text-sm">
-          <strong>Note:</strong> Growth percentages are currently mock data. In a production environment, 
-          these would be calculated based on historical data comparison.
+          <strong>Бележка:</strong> Растежът на растежа (процентите) е моментално с калкулативни данни. В производствена среда те ще се изчисляват въз основа на сравнение с исторически данни.
         </p>
       </div>
     </div>

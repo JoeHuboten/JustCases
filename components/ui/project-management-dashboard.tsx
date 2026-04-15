@@ -220,7 +220,7 @@ export function ProjectDashboard({
       "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=96&q=80&auto=format&fit=crop",
   },
   sidebarLinks = [
-    { id: "home", label: "Home", active: true },
+    { id: "home", label: "Начало", active: true },
     { id: "charts", label: "Charts" },
     { id: "calendar", label: "Calendar" },
     { id: "settings", label: "Settings" },
@@ -343,10 +343,10 @@ export function ProjectDashboard({
       } as Record<ProjectStatus, number>
     );
     return [
-      { id: "inProgress", label: "In Progress", value: byStatus.inProgress },
-      { id: "upcoming", label: "Upcoming", value: byStatus.upcoming },
-      { id: "completed", label: "Completed", value: byStatus.completed },
-      { id: "total", label: "Total Projects", value: total },
+      { id: "inProgress", label: "В процес", value: byStatus.inProgress },
+      { id: "upcoming", label: "Предстоящи", value: byStatus.upcoming },
+      { id: "completed", label: "Завършени", value: byStatus.completed },
+      { id: "total", label: "Всичко продукти", value: total },
     ];
   }, [stats, dataProjects]);
 
@@ -838,7 +838,7 @@ export function ProjectDashboard({
               )}
               onClick={() => setCreateOpen(true)}
             >
-              <span className="hidden sm:inline">New Project</span>
+              <span className="hidden sm:inline">Нов проект</span>
               <Plus className="size-5 sm:hidden" />
             </button>
           )}
@@ -998,11 +998,11 @@ export function ProjectDashboard({
                   spacing.button.sm
                 )}
               >
-                <option value="all">All</option>
-                <option value="inProgress">In progress</option>
-                <option value="upcoming">Upcoming</option>
-                <option value="completed">Completed</option>
-                <option value="paused">Paused</option>
+                <option value="all">Всички</option>
+                <option value="inProgress">В процес</option>
+                <option value="upcoming">Предстоящи</option>
+                <option value="completed">Завършени</option>
+                <option value="paused">Спрени</option>
               </select>
 
               <div
@@ -1026,10 +1026,10 @@ export function ProjectDashboard({
                     spacing.button.sm
                   )}
                 >
-                  <option value="manual">Manual</option>
-                  <option value="date">Date</option>
-                  <option value="name">Name</option>
-                  <option value="progress">Progress</option>
+                  <option value="manual">Ръчно</option>
+                  <option value="date">Дата</option>
+                  <option value="name">Наименование</option>
+                  <option value="progress">Прогрес</option>
                 </select>
                 {activeSortBy !== "manual" && (
                   <button
@@ -1068,13 +1068,13 @@ export function ProjectDashboard({
                   setReorderMode(!reorderMode);
                   if (!reorderMode && !canReorder) {
                     announce(
-                      "Switch to Manual sort, clear search, and show All to enable reordering."
+                      "Преминете на Ръчно сортиране и покажете Всички, за да активирате пренареждане."
                     );
                   } else {
                     announce(
                       reorderMode
-                        ? "Reorder mode off."
-                        : "Reorder mode on. Use arrow keys to move items."
+                        ? "Режим на пренареждане: изключен."
+                        : "Режим на пренареждане: включен. Използвайте стрелки ↑/↓."
                     );
                   }
                 }}
@@ -1116,8 +1116,7 @@ export function ProjectDashboard({
 
           {reorderMode && (
             <div className="mb-3 p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-sm text-indigo-700 dark:text-indigo-300">
-              Reorder mode active. Use ↑/↓ arrows to move items, Home/End
-              for first/last position, Escape to exit.
+              Режим на пренареждане активен. Използвайте ↑/↓ стрелки за преместване, Home/End за начало/край, Escape за изход.
             </div>
           )}
 
@@ -1247,7 +1246,7 @@ export function ProjectDashboard({
                             startEdit(p);
                             onProjectAction?.(p.id, "edit");
                           }}
-                          title="Edit"
+                          title="Редактирай"
                           disabled={reorderMode}
                         >
                           ✏️
@@ -1268,7 +1267,7 @@ export function ProjectDashboard({
                               );
                             }
                           }}
-                          title="Delete"
+                          title="Изтрий"
                           disabled={reorderMode}
                         >
                           <Trash2 className="size-4 text-slate-500 dark:text-slate-400" />
@@ -1279,7 +1278,7 @@ export function ProjectDashboard({
                             e.stopPropagation();
                             onProjectAction?.(p.id, "open");
                           }}
-                          title="More options"
+                          title="Повече опции"
                           disabled={reorderMode}
                         >
                           <MoreVertical className="size-4 text-slate-500 dark:text-slate-400" />
@@ -1337,7 +1336,7 @@ export function ProjectDashboard({
                               name: e.target.value,
                             }))
                           }
-                          placeholder="Project name"
+                          placeholder="Наименование на продукта"
                           required
                         />
                         <input
@@ -1353,7 +1352,7 @@ export function ProjectDashboard({
                               subtitle: e.target.value,
                             }))
                           }
-                          placeholder="Subtitle"
+                          placeholder="Подзаглавие"
                         />
                         <div
                           className={cx(
@@ -1365,11 +1364,11 @@ export function ProjectDashboard({
                           <button
                             type="submit"
                             className={cx(
-                              "rounded-lg bg-indigo-600 text-white hover:bg-indigo-500",
+                              "rounded-lg bg-accent text-white hover:bg-accent/90",
                               spacing.button.sm
                             )}
                           >
-                            Save
+                            Запази
                           </button>
                           <button
                             type="button"
@@ -1379,7 +1378,7 @@ export function ProjectDashboard({
                               spacing.button.sm
                             )}
                           >
-                            Cancel
+                            Отказ
                           </button>
                         </div>
                       </form>
@@ -1395,7 +1394,7 @@ export function ProjectDashboard({
                       >
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                            Progress
+                            Прогрес
                           </span>
                           <span className="text-xs text-slate-500 dark:text-slate-400">
                             {p.progress ?? 0}%
@@ -1435,7 +1434,7 @@ export function ProjectDashboard({
                           <button
                             className="size-8 inline-flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 ring-2 ring-white dark:ring-slate-800 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
                             style={{ color: accent }}
-                            title="Add participant"
+                            title="Добави участник"
                             onClick={(e) => {
                               e.stopPropagation();
                               startEdit(p);
@@ -1502,7 +1501,7 @@ export function ProjectDashboard({
                 )}
               >
                 <span>
-                  Page {currentPage} of {totalPages}
+                  Страница {currentPage} от {totalPages}
                 </span>
                 <div
                   className={cx(
@@ -1520,7 +1519,7 @@ export function ProjectDashboard({
                     onClick={() => goToPage(currentPage - 1)}
                     disabled={currentPage <= 1}
                   >
-                    Previous
+                    Предишна
                   </button>
                   <button
                     className={cx(
@@ -1532,7 +1531,7 @@ export function ProjectDashboard({
                     onClick={() => goToPage(currentPage + 1)}
                     disabled={currentPage >= totalPages}
                   >
-                    Next
+                    Следваща
                   </button>
                 </div>
               </div>
@@ -1561,7 +1560,7 @@ export function ProjectDashboard({
             )}
           >
             <p className="text-base font-semibold text-slate-900 dark:text-slate-100">
-              Client Messages
+              Последни поръчки
             </p>
             <button
               className="md:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -1657,7 +1656,7 @@ export function ProjectDashboard({
             )}
           >
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
-              New Project
+              Нов проект
             </h2>
             <form className="space-y-3" onSubmit={submitCreate}>
               <input
@@ -1666,7 +1665,7 @@ export function ProjectDashboard({
                   "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100",
                   spacing.button.sm
                 )}
-                placeholder="Project name"
+                placeholder="Наименование на продукта"
                 value={createDraft.name}
                 onChange={(e) =>
                   setCreateDraft((d) => ({
@@ -1682,7 +1681,7 @@ export function ProjectDashboard({
                   "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100",
                   spacing.button.sm
                 )}
-                placeholder="Subtitle"
+                placeholder="Подзаглавие"
                 value={createDraft.subtitle}
                 onChange={(e) =>
                   setCreateDraft((d) => ({
@@ -1725,14 +1724,14 @@ export function ProjectDashboard({
                   }))
                 }
               >
-                <option value="inProgress">In progress</option>
-                <option value="upcoming">Upcoming</option>
-                <option value="completed">Completed</option>
-                <option value="paused">Paused</option>
+                <option value="inProgress">В процес</option>
+                <option value="upcoming">Предстоящи</option>
+                <option value="completed">Завършени</option>
+                <option value="paused">Спрени</option>
               </select>
               <label className="block">
                 <span className="text-sm text-slate-600 dark:text-slate-300 mb-1 block">
-                  Progress: {createDraft.progress ?? 0}%
+                  Прогрес: {createDraft.progress ?? 0}%
                 </span>
                 <input
                   type="range"
@@ -1757,12 +1756,12 @@ export function ProjectDashboard({
               >
                 <button
                   className={cx(
-                    "rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors",
+                    "rounded-lg bg-accent text-white hover:bg-accent/90 transition-colors",
                     spacing.button.md
                   )}
                   type="submit"
                 >
-                  Create Project
+                  Създай
                 </button>
                 <button
                   type="button"
@@ -1773,7 +1772,7 @@ export function ProjectDashboard({
                   )}
                   onClick={() => setCreateOpen(false)}
                 >
-                  Cancel
+                  Отказ
                 </button>
               </div>
             </form>
@@ -1813,15 +1812,15 @@ export function ProjectDashboard({
             <div className="mt-6 space-y-3">
               <div className="flex items-center justify-between py-2 border-b border-slate-200 dark:border-slate-700">
                 <span className="text-sm text-slate-600 dark:text-slate-300">
-                  Date
+                  Дата
                 </span>
                 <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                  {detailProject.date || "Not set"}
+                  {detailProject.date || "Не е зададена"}
                 </span>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-slate-200 dark:border-slate-700">
                 <span className="text-sm text-slate-600 dark:text-slate-300">
-                  Status
+                  Статус
                 </span>
                 <span
                   className={cx(
@@ -1830,13 +1829,13 @@ export function ProjectDashboard({
                     "text-slate-600 dark:text-slate-300 bg-white/70 dark:bg-slate-900/40"
                   )}
                 >
-                  {detailProject.status || "In progress"}
+                  {detailProject.status || "В процес"}
                 </span>
               </div>
               <div className="py-2 border-b border-slate-200 dark:border-slate-700">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-slate-600 dark:text-slate-300">
-                    Progress
+                    Прогрес
                   </span>
                   <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
                     {detailProject.progress ?? 0}%
@@ -1857,7 +1856,7 @@ export function ProjectDashboard({
                 detailProject.participants.length > 0 && (
                   <div className="py-2">
                     <span className="text-sm text-slate-600 dark:text-slate-300 block mb-2">
-                      Participants
+                      Участници
                     </span>
                     <div className="flex -space-x-2">
                       {detailProject.participants.map((url, i) => (
@@ -1889,7 +1888,7 @@ export function ProjectDashboard({
                   setDetailProject(null);
                 }}
               >
-                Edit Project
+                Редактирай
               </button>
               <button
                 className={cx(
@@ -1899,7 +1898,7 @@ export function ProjectDashboard({
                 )}
                 onClick={() => setDetailProject(null)}
               >
-                Close
+                Затвори
               </button>
             </div>
           </div>

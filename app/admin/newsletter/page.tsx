@@ -113,7 +113,7 @@ export default function NewsletterPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Newsletter Management</h1>
+        <h1 className="text-3xl font-bold text-white mb-2">Управление на бюлетин</h1>
         <p className="text-text-secondary">Управление на бюлетин и абонати</p>
       </div>
 
@@ -154,7 +154,7 @@ export default function NewsletterPage() {
       <div className="bg-background-secondary border border-gray-800 rounded-lg p-6">
         <h2 className="text-xl font-bold text-white mb-6 flex items-center">
           <FiMail className="mr-2" />
-          Изпрати Newsletter
+          Изпрати бюлетин
         </h2>
 
         {sendResult && (

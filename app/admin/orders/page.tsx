@@ -71,6 +71,14 @@ const statusIcons = {
   CANCELLED: FiXCircle,
 };
 
+const statusLabels: Record<string, string> = {
+  PENDING: 'Чакаща',
+  PROCESSING: 'Обработва се',
+  SHIPPED: 'Изпратена',
+  DELIVERED: 'Доставена',
+  CANCELLED: 'Отказана',
+};
+
 export default function AdminOrders() {
   const [data, setData] = useState<PaginatedResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -181,8 +189,8 @@ export default function AdminOrders() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-white">Orders</h1>
-        <p className="text-text-secondary mt-2">Manage customer orders</p>
+        <h1 className="text-3xl font-bold text-white">Поръчки</h1>
+        <p className="text-text-secondary mt-2">Управление на клиентски поръчки</p>
       </div>
 
       {/* Filters */}
@@ -191,7 +199,7 @@ export default function AdminOrders() {
           <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" />
           <input
             type="text"
-            placeholder="Search orders..."
+            placeholder="Търси поръчки..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-12 pr-4 py-3 bg-background-secondary border border-gray-800 rounded-lg text-white focus:outline-none focus:border-accent"
@@ -202,12 +210,12 @@ export default function AdminOrders() {
           onChange={(e) => handleStatusChange(e.target.value)}
           className="px-4 py-3 bg-background-secondary border border-gray-800 rounded-lg text-white focus:outline-none focus:border-accent"
         >
-          <option value="ALL">All Status</option>
-          <option value="PENDING">Pending</option>
-          <option value="PROCESSING">Processing</option>
-          <option value="SHIPPED">Shipped</option>
-          <option value="DELIVERED">Delivered</option>
-          <option value="CANCELLED">Cancelled</option>
+          <option value="ALL">Всички статуси</option>
+          <option value="PENDING">Чакаща</option>
+          <option value="PROCESSING">Обработва се</option>
+          <option value="SHIPPED">Изпратена</option>
+          <option value="DELIVERED">Доставена</option>
+          <option value="CANCELLED">Отказана</option>
         </select>
       </div>
 
@@ -218,25 +226,25 @@ export default function AdminOrders() {
             <thead className="bg-gray-800/50">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                  Order ID
+                  Номер на поръчка
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                  Customer
+                  Клиент
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                  Items
+                  Продукти
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                  Total
+                  Общо
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                  Status
+                  Статус
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                  Date
+                  Дата
                 </th>
                 <th className="px-6 py-4 text-right text-xs font-medium text-text-secondary uppercase tracking-wider">
-                  Actions
+                  Действия
                 </th>
               </tr>
             </thead>
@@ -253,7 +261,7 @@ export default function AdminOrders() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-white">
-                          {order.user.name || 'Guest'}
+                          {order.user.name || 'Гост'}
                         </div>
                         <div className="text-sm text-text-secondary">
                           {order.user.email}
@@ -262,7 +270,7 @@ export default function AdminOrders() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm text-white">
-                        {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                        {order.items.length} продукт{order.items.length !== 1 ? 'а' : ''}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -277,12 +285,12 @@ export default function AdminOrders() {
                         }`}
                       >
                         {StatusIcon && <StatusIcon size={14} />}
-                        {order.status}
+                        {statusLabels[order.status] ?? order.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm text-text-secondary">
-                        {new Date(order.createdAt).toLocaleDateString()}
+                        {new Date(order.createdAt).toLocaleDateString('bg-BG')}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -321,7 +329,7 @@ export default function AdminOrders() {
           <div className="bg-background-secondary rounded-lg border border-gray-800 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-800 flex items-center justify-between sticky top-0 bg-background-secondary">
               <h2 className="text-xl font-bold text-white">
-                Order #{selectedOrder.id.slice(0, 8)}
+                Поръчка #{selectedOrder.id.slice(0, 8)}
               </h2>
               <button
                 onClick={() => setShowModal(false)}
@@ -334,16 +342,16 @@ export default function AdminOrders() {
             <div className="p-6 space-y-6">
               {/* Customer Info */}
               <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Customer Information</h3>
+                <h3 className="text-lg font-semibold text-white mb-3">Информация за клиента</h3>
                 <div className="bg-background p-4 rounded-lg space-y-2">
-                  <p className="text-white">{selectedOrder.user.name || 'Guest'}</p>
+                  <p className="text-white">{selectedOrder.user.name || 'Гост'}</p>
                   <p className="text-text-secondary">{selectedOrder.user.email}</p>
                 </div>
               </div>
 
               {/* Order Items */}
               <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Order Items</h3>
+                <h3 className="text-lg font-semibold text-white mb-3">Продукти в поръчката</h3>
                 <div className="space-y-3">
                   {selectedOrder.items.map((item) => (
                     <div
@@ -361,9 +369,9 @@ export default function AdminOrders() {
                       <div className="flex-1">
                         <p className="text-white font-medium">{item.product.name}</p>
                         <p className="text-text-secondary text-sm">
-                          Quantity: {item.quantity}
-                          {item.color && ` • Color: ${item.color}`}
-                          {item.size && ` • Size: ${item.size}`}
+                          Количество: {item.quantity}
+                          {item.color && ` • Цвят: ${item.color}`}
+                          {item.size && ` • Размер: ${item.size}`}
                         </p>
                       </div>
                       <p className="text-white font-semibold">
@@ -376,24 +384,24 @@ export default function AdminOrders() {
 
               {/* Order Summary */}
               <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Order Summary</h3>
+                <h3 className="text-lg font-semibold text-white mb-3">Общество на поръчката</h3>
                 <div className="bg-background p-4 rounded-lg space-y-2">
                   <div className="flex justify-between text-text-secondary">
-                    <span>Subtotal:</span>
+                    <span>Подобщо:</span>
                     <span>${(selectedOrder.subtotal ?? 0).toFixed(2)}</span>
                   </div>
                   {(selectedOrder.discount ?? 0) > 0 && (
                     <div className="flex justify-between text-green-500">
-                      <span>Discount:</span>
+                      <span>Отстъпка:</span>
                       <span>-${(selectedOrder.discount ?? 0).toFixed(2)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-text-secondary">
-                    <span>Delivery Fee:</span>
+                    <span>Такса доставка:</span>
                     <span>${(selectedOrder.deliveryFee ?? 0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-white font-semibold text-lg pt-2 border-t border-gray-700">
-                    <span>Total:</span>
+                    <span>Общо:</span>
                     <span>${(selectedOrder.total ?? 0).toFixed(2)}</span>
                   </div>
                 </div>
@@ -401,47 +409,47 @@ export default function AdminOrders() {
 
               {/* Status Management */}
               <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Order Status</h3>
+                <h3 className="text-lg font-semibold text-white mb-3">Статус на поръчката</h3>
                 <select
                   value={selectedOrder.status}
                   onChange={(e) => {
-                    const notes = prompt('Add a note (optional):');
+                    const notes = prompt('Добавете бележка (по избор):');
                     handleUpdateStatus(selectedOrder.id, e.target.value, notes || undefined);
                   }}
                   className="w-full px-4 py-2 bg-background border border-gray-800 rounded-lg text-white focus:outline-none focus:border-accent"
                 >
-                  <option value="PENDING">Pending</option>
-                  <option value="PROCESSING">Processing</option>
-                  <option value="SHIPPED">Shipped</option>
-                  <option value="DELIVERED">Delivered</option>
-                  <option value="CANCELLED">Cancelled</option>
+                  <option value="PENDING">Чакаща</option>
+                  <option value="PROCESSING">Обработва се</option>
+                  <option value="SHIPPED">Изпратена</option>
+                  <option value="DELIVERED">Доставена</option>
+                  <option value="CANCELLED">Отказана</option>
                 </select>
               </div>
 
               {/* Tracking Number */}
               <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Tracking Number</h3>
+                <h3 className="text-lg font-semibold text-white mb-3">Номер за проследяване</h3>
                 <input
                   type="text"
                   defaultValue={selectedOrder.trackingNumber || ''}
                   onBlur={(e) => handleUpdateOrder(selectedOrder.id, { trackingNumber: e.target.value })}
-                  placeholder="Enter tracking number"
+                  placeholder="Въведете номер за проследяване"
                   className="w-full px-4 py-2 bg-background border border-gray-800 rounded-lg text-white focus:outline-none focus:border-accent"
                 />
               </div>
 
               {/* Courier Service */}
               <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Courier Service</h3>
+                <h3 className="text-lg font-semibold text-white mb-3">Куриерска служба</h3>
                 <select
                   defaultValue={selectedOrder.courierService || ''}
                   onChange={(e) => handleUpdateOrder(selectedOrder.id, { courierService: e.target.value })}
                   className="w-full px-4 py-2 bg-background border border-gray-800 rounded-lg text-white focus:outline-none focus:border-accent"
                 >
-                  <option value="">Select courier</option>
+                  <option value="">Изберете куриер</option>
                   <option value="Speedy">Speedy</option>
                   <option value="Econt">Econt</option>
-                  <option value="Bulgarian Posts">Bulgarian Posts</option>
+                  <option value="Bulgarian Posts">Български пощи</option>
                   <option value="DHL">DHL</option>
                   <option value="FedEx">FedEx</option>
                 </select>
@@ -449,7 +457,7 @@ export default function AdminOrders() {
 
               {/* Estimated Delivery */}
               <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Estimated Delivery Date</h3>
+                <h3 className="text-lg font-semibold text-white mb-3">Очаквана дата на доставка</h3>
                 <input
                   type="datetime-local"
                   defaultValue={selectedOrder.estimatedDelivery ? new Date(selectedOrder.estimatedDelivery).toISOString().slice(0, 16) : ''}
@@ -460,11 +468,11 @@ export default function AdminOrders() {
 
               {/* Admin Notes */}
               <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Admin Notes</h3>
+                <h3 className="text-lg font-semibold text-white mb-3">Бележки на администратора</h3>
                 <textarea
                   defaultValue={selectedOrder.adminNotes || ''}
                   onBlur={(e) => handleUpdateOrder(selectedOrder.id, { adminNotes: e.target.value })}
-                  placeholder="Internal notes about this order..."
+                  placeholder="Вътрешни бележки за тази поръчка..."
                   rows={3}
                   className="w-full px-4 py-2 bg-background border border-gray-800 rounded-lg text-white focus:outline-none focus:border-accent resize-none"
                 />
@@ -473,7 +481,7 @@ export default function AdminOrders() {
               {/* Status History */}
               {selectedOrder.statusHistory && selectedOrder.statusHistory.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold text-white mb-3">Status History</h3>
+                  <h3 className="text-lg font-semibold text-white mb-3">История на статусите</h3>
                   <div className="bg-background rounded-lg p-4 max-h-48 overflow-y-auto">
                     <div className="space-y-3">
                       {selectedOrder.statusHistory.map((history, index) => {
@@ -485,9 +493,9 @@ export default function AdminOrders() {
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
-                                <span className="text-white font-medium text-sm">{history.status}</span>
+                                <span className="text-white font-medium text-sm">{statusLabels[history.status] ?? history.status}</span>
                                 <span className="text-text-secondary text-xs">
-                                  {new Date(history.createdAt).toLocaleString()}
+                                  {new Date(history.createdAt).toLocaleString('bg-BG')}
                                 </span>
                               </div>
                               {history.notes && (

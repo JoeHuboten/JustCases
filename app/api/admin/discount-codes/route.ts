@@ -4,6 +4,7 @@ import { withApiGuard } from '@/lib/api-guard';
 import { apiRateLimit, strictRateLimit } from '@/lib/rate-limit';
 import { discountCodeSchema } from '@/lib/validation';
 import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+import { logAdminAction } from '@/lib/audit-log';
 
 const logger = createLogger('api:admin:discount-codes');
 
@@ -40,7 +41,7 @@ export const POST = withApiGuard(
     rateLimit: strictRateLimit,
     bodySchema: discountCodeSchema,
   },
-  async (_request: NextRequest, { body }) => {
+  async (request: NextRequest, { body, user }) => {
     try {
       const existing = await prisma.discountCode.findUnique({
         where: { code: body!.code.toUpperCase() },
@@ -61,6 +62,14 @@ export const POST = withApiGuard(
           maxUses: body!.maxUses || null,
           active: body!.active !== undefined ? body!.active : true,
         },
+      });
+
+      await logAdminAction({
+        action: 'DISCOUNT_CODE_CREATE',
+        actor: user!,
+        request,
+        target: { type: 'DiscountCode', id: discountCode.id },
+        metadata: { code: discountCode.code, percentage: discountCode.percentage },
       });
 
       return NextResponse.json(discountCode, { status: 201 });

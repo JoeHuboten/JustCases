@@ -1,0 +1,72 @@
+version: 2
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    target-branch: "main"
+
+    # Enable automatic security updates in addition to version updates
+    # (security updates ignore the schedule and open PRs immediately)
+    ignore: []
+
+    # Group related packages to reduce PR spam
+    groups:
+      react-ecosystem:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      next-ecosystem:
+        patterns:
+          - "next"
+          - "next-themes"
+          - "@next/*"
+      prisma-ecosystem:
+        patterns:
+          - "prisma"
+          - "@prisma/*"
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
+      stripe:
+        patterns:
+          - "stripe"
+          - "@stripe/*"
+      tailwind:
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "tailwind-merge"
+          - "tailwindcss-animate"
+          - "tw-animate-css"
+      testing:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "@testing-library/*"
+          - "@vitejs/*"
+          - "jsdom"
+      eslint:
+        patterns:
+          - "eslint"
+          - "@eslint/*"
+          - "eslint-*"
+          - "typescript-eslint"
+
+    # Always open security update PRs right away, regardless of the group schedule
+    # (handled automatically by Dependabot when security-updates are enabled)
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore(dev)"
+      include: "scope"
+
+    labels:
+      - "dependencies"
+      - "automated"

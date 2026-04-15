@@ -3,6 +3,8 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { apiFetch } from '@/lib/client-api';
+import { useCartStore } from '@/store/cartStore';
 
 export default function PaymentSuccessPage() {
   return (
@@ -20,11 +22,46 @@ function PaymentSuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { t } = useLanguage();
+  const { clearCart } = useCartStore();
   const orderId = searchParams.get('orderId');
+  const paypalToken = searchParams.get('token');
+  const paypalPayerId = searchParams.get('PayerID');
+  const paypalCheckoutSessionId = searchParams.get('checkoutSessionId');
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [captureError, setCaptureError] = useState('');
 
   useEffect(() => {
+    // PayPal redirect flow: token + PayerID present means PayPal sent the user back
+    if (paypalToken && paypalPayerId && paypalCheckoutSessionId && !orderId) {
+      const capturePayPalOrder = async () => {
+        try {
+          const res = await apiFetch('/api/payment/paypal/capture-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              checkoutSessionId: paypalCheckoutSessionId,
+              providerPaymentId: paypalToken,
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            if (data.stockErrors && Array.isArray(data.stockErrors)) {
+              throw new Error(data.stockErrors.join('. '));
+            }
+            throw new Error(data.message || data.error || 'Payment capture failed');
+          }
+          clearCart();
+          router.replace(`/payment/success?orderId=${data.orderId}`);
+        } catch (err: any) {
+          setCaptureError(err.message || 'Payment capture failed');
+          setLoading(false);
+        }
+      };
+      capturePayPalOrder();
+      return;
+    }
+
     if (!orderId) {
       router.push('/');
       return;
@@ -46,12 +83,36 @@ function PaymentSuccessContent() {
     };
 
     fetchOrder();
-  }, [orderId, router]);
+  }, [orderId, paypalToken, paypalPayerId, paypalCheckoutSessionId, router, clearCart]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin h-12 w-12 border-4 border-accent border-t-transparent rounded-full" />
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin h-12 w-12 border-4 border-accent border-t-transparent rounded-full" />
+          {paypalToken && !orderId && (
+            <p className="text-white/60 text-sm">Finalizing your PayPal payment...</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (captureError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="bg-primary border border-gray-800 rounded-xl p-8 text-center max-w-md">
+          <div className="flex justify-center mb-6">
+            <div className="bg-red-500/10 rounded-full p-4">
+              <svg className="w-12 h-12 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-3">Payment Failed</h1>
+          <p className="text-gray-400 mb-6">{captureError}</p>
+          <a href="/checkout" className="btn-primary inline-block">Try Again</a>
+        </div>
       </div>
     );
   }

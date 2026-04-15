@@ -357,3 +357,42 @@ enum CheckoutSessionStatus {
   COMPLETED
   EXPIRED
 }
+
+// --- OWASP A09: Security Logging & Monitoring ---
+// Persists a tamper-evident record of every admin mutation so that
+// security incidents can be investigated after the fact.
+model AdminAuditLog {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+
+  // What happened (e.g. "PRODUCT_CREATE", "ORDER_STATUS_UPDATE")
+  action      String
+
+  // Snapshot of the actor at the time of the action (denormalised so the
+  // record remains accurate even if the user is later deleted/renamed).
+  actorUserId String
+  actorEmail  String
+  actorRole   String
+
+  // Request context — collected on a best-effort basis.
+  // IP addresses can be spoofed; treat them as informational only.
+  ipAddress   String?
+  userAgent   String?
+
+  // Which route handled the request
+  route       String
+  method      String
+
+  // Optional target resource (e.g. type="Product", id="clx…")
+  targetType  String?
+  targetId    String?
+
+  // Small bounded JSON payload — IDs and scalar summaries only; never raw
+  // request bodies, tokens, passwords, or payment data.
+  metadata    Json?
+
+  @@index([actorUserId])
+  @@index([createdAt])
+  @@index([action])
+  @@index([targetType, targetId])
+}

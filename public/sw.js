@@ -1,6 +1,6 @@
 // Service Worker for JustCases
 // Increment version on each deployment to force cache invalidation
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const CACHE_NAME = `justcases-${CACHE_VERSION}`;
 const STATIC_CACHE = `justcases-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `justcases-dynamic-${CACHE_VERSION}`;
@@ -88,8 +88,8 @@ self.addEventListener('fetch', (event) => {
     // API requests - network first, then cache
     event.respondWith(handleApiRequest(request));
   } else if (url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/_next/image')) {
-    // Static assets - cache first
-    event.respondWith(handleStaticRequest(request));
+    // Static assets - network first so dev/deploy changes take effect immediately
+    event.respondWith(handlePageRequest(request));
   } else {
     // All HTML pages - network first so users always get fresh content after deploys
     event.respondWith(handlePageRequest(request));

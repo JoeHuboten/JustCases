@@ -67,12 +67,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!user.emailVerified) {
-      return NextResponse.json(
-        { error: 'Please verify your email before signing in.' },
-        { status: 403 }
-      );
-    }
+    // TEMP: email verification disabled
+    // if (!user.emailVerified) {
+    //   return NextResponse.json(
+    //     { error: 'Please verify your email before signing in.' },
+    //     { status: 403 }
+    //   );
+    // }
 
     const token = await createToken(user.id, user.email!, user.role, user.tokenVersion);
 

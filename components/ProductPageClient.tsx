@@ -9,8 +9,11 @@ import ProductReviews from '@/components/ProductReviews';
 import ProductImageGallery from '@/components/ProductImageGallery';
 import RecentlyViewed from '@/components/RecentlyViewed';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import dynamic from 'next/dynamic';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRecentlyViewedStore } from '@/store/recentlyViewedStore';
+
+const PhoneCaseViewer = dynamic(() => import('@/components/PhoneCaseViewer'), { ssr: false });
 import {
   localizeProductDescription,
   localizeSpecificationKey,
@@ -96,8 +99,16 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
 
       <div className="container-custom pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Product Image Gallery */}
-          <ProductImageGallery images={productImages} productName={product.name} />
+          {/* Product Image Gallery or 3D Viewer */}
+          {product.specifications?.viewer3d ? (
+            <PhoneCaseViewer
+              caseName={product.name}
+              caseColor={product.specifications.caseColor || '#e05c00'}
+              phoneColor={product.specifications.phoneColor || '#2c2c2e'}
+            />
+          ) : (
+            <ProductImageGallery images={productImages} productName={product.name} />
+          )}
 
           {/* Product Info */}
           <div className="space-y-6">

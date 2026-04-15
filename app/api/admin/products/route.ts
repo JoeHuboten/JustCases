@@ -5,6 +5,7 @@ import { apiRateLimit, strictRateLimit } from '@/lib/rate-limit';
 import { productSchema } from '@/lib/validation';
 import { Prisma } from '@prisma/client';
 import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+import { logAdminAction } from '@/lib/audit-log';
 
 const logger = createLogger('api:admin:products');
 
@@ -90,7 +91,7 @@ export const POST = withApiGuard(
     rateLimit: strictRateLimit,
     bodySchema: productSchema,
   },
-  async (_request: NextRequest, { body }) => {
+  async (request: NextRequest, { body, user }) => {
     try {
       const existingProduct = await prisma.product.findUnique({
         where: { slug: body!.slug },
@@ -105,6 +106,14 @@ export const POST = withApiGuard(
 
       const product = await prisma.product.create({
         data: body!,
+      });
+
+      await logAdminAction({
+        action: 'PRODUCT_CREATE',
+        actor: user!,
+        request,
+        target: { type: 'Product', id: product.id },
+        metadata: { name: product.name, slug: product.slug },
       });
 
       return NextResponse.json({ product }, { status: 201 });

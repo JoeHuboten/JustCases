@@ -63,8 +63,8 @@ export default function NewProductPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Add New Product</h1>
-          <p className="text-text-secondary mt-2">Create a new product for your catalog</p>
+          <h1 className="text-3xl font-bold text-white">Добавяне на нов продукт</h1>
+          <p className="text-text-secondary mt-2">Създайте нов продукт за вашия каталог</p>
         </div>
         <button
           onClick={() => router.back()}
@@ -77,12 +77,12 @@ export default function NewProductPage() {
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-background-secondary rounded-lg border border-gray-800 p-6">
-          <h2 className="text-xl font-semibold text-white mb-6">Basic Information</h2>
+          <h2 className="text-xl font-semibold text-white mb-6">Основна информация</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Product Name *
+                Име на продукта *
               </label>
               <input
                 type="text"
@@ -91,7 +91,7 @@ export default function NewProductPage() {
                 onChange={handleChange}
                 required
                 className="w-full bg-background border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-accent"
-                placeholder="Enter product name"
+                placeholder="Въведете име на продукта"
               />
             </div>
 
@@ -106,13 +106,13 @@ export default function NewProductPage() {
                 onChange={handleChange}
                 required
                 className="w-full bg-background border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-accent"
-                placeholder="product-slug"
+                placeholder="slug-na-produkta"
               />
             </div>
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-white mb-2">
-                Description
+                Описание
               </label>
               <textarea
                 name="description"
@@ -120,13 +120,13 @@ export default function NewProductPage() {
                 onChange={handleChange}
                 rows={4}
                 className="w-full bg-background border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-accent"
-                placeholder="Enter product description"
+                placeholder="Въведете описание на продукта"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Price *
+                Цена *
               </label>
               <input
                 type="number"
@@ -142,7 +142,7 @@ export default function NewProductPage() {
 
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Old Price
+                Стара цена
               </label>
               <input
                 type="number"
@@ -157,7 +157,7 @@ export default function NewProductPage() {
 
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Discount (%)
+                Отстъпка (%)
               </label>
               <input
                 type="number"
@@ -173,7 +173,7 @@ export default function NewProductPage() {
 
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Image URL *
+                URL на изображение *
               </label>
               <input
                 type="url"
@@ -188,7 +188,7 @@ export default function NewProductPage() {
 
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Additional Images
+                Допълнителни изображения
               </label>
               <input
                 type="text"
@@ -196,13 +196,13 @@ export default function NewProductPage() {
                 value={formData.images}
                 onChange={handleChange}
                 className="w-full bg-background border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-accent"
-                placeholder="Comma-separated image URLs"
+                placeholder="URL-и на изображения, разделени със запетая"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Colors
+                Цветове
               </label>
               <input
                 type="text"
@@ -210,13 +210,13 @@ export default function NewProductPage() {
                 value={formData.colors}
                 onChange={handleChange}
                 className="w-full bg-background border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-accent"
-                placeholder="Black, White, Blue"
+                placeholder="Черен, Бял, Син"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Sizes
+                Размери
               </label>
               <input
                 type="text"
@@ -224,13 +224,13 @@ export default function NewProductPage() {
                 value={formData.sizes}
                 onChange={handleChange}
                 className="w-full bg-background border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-accent"
-                placeholder="Small, Medium, Large"
+                placeholder="Малък, Среден, Голям"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Rating
+                Рейтинг
               </label>
               <input
                 type="number"
@@ -247,7 +247,7 @@ export default function NewProductPage() {
 
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Reviews Count
+                Брой отзиви
               </label>
               <input
                 type="number"
@@ -270,7 +270,7 @@ export default function NewProductPage() {
                 onChange={handleChange}
                 className="w-4 h-4 text-accent bg-background border-gray-700 rounded focus:ring-accent"
               />
-              <span className="ml-2 text-white">In Stock</span>
+              <span className="ml-2 text-white">В наличност</span>
             </label>
 
             <label className="flex items-center">
@@ -281,7 +281,7 @@ export default function NewProductPage() {
                 onChange={handleChange}
                 className="w-4 h-4 text-accent bg-background border-gray-700 rounded focus:ring-accent"
               />
-              <span className="ml-2 text-white">Featured Product</span>
+              <span className="ml-2 text-white">Препоръчан продукт</span>
             </label>
           </div>
         </div>
@@ -293,7 +293,7 @@ export default function NewProductPage() {
             onClick={() => router.back()}
             className="px-6 py-2 border border-gray-700 text-white rounded-lg hover:bg-gray-800 transition"
           >
-            Cancel
+            Отказ
           </button>
           <button
             type="submit"
@@ -301,7 +301,7 @@ export default function NewProductPage() {
             className="bg-accent text-white px-6 py-2 rounded-lg hover:bg-accent-light transition flex items-center gap-2 disabled:opacity-50"
           >
             <FiSave size={20} />
-            {isLoading ? 'Creating...' : 'Create Product'}
+            {isLoading ? 'Създаване...' : 'Създай продукт'}
           </button>
         </div>
       </form>

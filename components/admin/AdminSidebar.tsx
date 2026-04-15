@@ -19,16 +19,16 @@ import {
 import { useState } from 'react';
 
 const navLinks = [
-  { href: '/admin', label: 'Dashboard', icon: Home },
-  { href: '/admin/products', label: 'Products', icon: Package },
-  { href: '/admin/categories', label: 'Categories', icon: Tag },
-  { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
-  { href: '/admin/users', label: 'Users', icon: Users },
-  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/admin/messages', label: 'Messages', icon: MessageCircle },
-  { href: '/admin/discount-codes', label: 'Discounts', icon: Ticket },
-  { href: '/admin/newsletter', label: 'Newsletter', icon: Mail },
-  { href: '/admin/settings', label: 'Settings', icon: Settings },
+  { href: '/admin', label: 'Табло', icon: Home },
+  { href: '/admin/products', label: 'Продукти', icon: Package },
+  { href: '/admin/categories', label: 'Категории', icon: Tag },
+  { href: '/admin/orders', label: 'Поръчки', icon: ShoppingCart },
+  { href: '/admin/users', label: 'Потребители', icon: Users },
+  { href: '/admin/analytics', label: 'Анализи', icon: BarChart3 },
+  { href: '/admin/messages', label: 'Съобщения', icon: MessageCircle },
+  { href: '/admin/discount-codes', label: 'Отстъпки', icon: Ticket },
+  { href: '/admin/newsletter', label: 'Бюлетин', icon: Mail },
+  { href: '/admin/settings', label: 'Настройки', icon: Settings },
 ];
 
 export default function AdminSidebar() {
@@ -39,9 +39,9 @@ export default function AdminSidebar() {
     <>
       {/* Mobile toggle */}
       <button
-        className="lg:hidden fixed top-3 left-3 z-50 p-2 rounded-lg bg-slate-900 text-white shadow-lg"
+        className="lg:hidden fixed top-3 left-3 z-50 p-2 rounded-lg bg-background-secondary text-white shadow-lg border border-gray-800"
         onClick={() => setMobileOpen(true)}
-        aria-label="Open navigation"
+        aria-label="Отвори навигацията"
       >
         <Menu className="size-5" />
       </button>
@@ -58,13 +58,13 @@ export default function AdminSidebar() {
       <aside
         className={`
           fixed inset-y-0 left-0 z-50 w-64 
-          bg-slate-900 border-r border-slate-700
+          bg-background-secondary border-r border-gray-800
           transform transition-transform duration-300
           lg:translate-x-0
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
-        <div className="flex items-center justify-between px-4 py-4 border-b border-slate-700">
+        <div className="flex items-center justify-between px-4 py-4 border-b border-gray-800">
           <Link href="/admin" className="flex items-center gap-3">
             <svg viewBox="0 0 512 512" className="size-9 rounded-lg" xmlns="http://www.w3.org/2000/svg">
               <rect width="512" height="512" rx="96" fill="#0d2d2a"/>
@@ -77,9 +77,9 @@ export default function AdminSidebar() {
             <span className="text-lg font-semibold text-white">JustCases</span>
           </Link>
           <button
-            className="lg:hidden p-1.5 rounded-lg hover:bg-slate-800 text-slate-400"
+            className="lg:hidden p-1.5 rounded-lg hover:bg-gray-800 text-text-secondary"
             onClick={() => setMobileOpen(false)}
-            aria-label="Close navigation"
+            aria-label="Затвори навигацията"
           >
             <X className="size-5" />
           </button>
@@ -99,8 +99,8 @@ export default function AdminSidebar() {
                 className={`
                   flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
                   ${isActive
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    ? 'bg-accent text-white'
+                    : 'text-text-secondary hover:bg-gray-800 hover:text-white'
                   }
                 `}
               >

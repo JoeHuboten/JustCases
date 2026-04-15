@@ -164,6 +164,188 @@ export async function getCheckoutSessionForUser(userId: string, checkoutSessionI
   });
 }
 
+export async function finalizeCodOrder(params: {
+  userId: string;
+  checkoutSessionId: string;
+  courierService: string;
+}) {
+  const { userId, checkoutSessionId, courierService } = params;
+
+  const existingBySession = await prisma.order.findFirst({
+    where: { checkoutSessionId },
+    select: { id: true },
+  });
+  if (existingBySession) {
+    return { orderId: existingBySession.id, idempotent: true };
+  }
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const session = await tx.checkoutSession.findFirst({
+        where: { id: checkoutSessionId, userId },
+      });
+
+      if (!session) {
+        throw new Error('Checkout session not found');
+      }
+
+      if (session.status === 'COMPLETED') {
+        const existingOrder = await tx.order.findFirst({
+          where: { checkoutSessionId },
+          select: { id: true },
+        });
+        if (existingOrder) return { orderId: existingOrder.id, idempotent: true };
+      }
+
+      if (session.expiresAt <= new Date()) {
+        await tx.checkoutSession.update({
+          where: { id: session.id },
+          data: { status: 'EXPIRED' },
+        });
+        throw new Error('Checkout session expired');
+      }
+
+      const items = (session.items as unknown as CheckoutLineItem[]) || [];
+      if (items.length === 0) {
+        throw new Error('Checkout session is empty');
+      }
+
+      for (const item of items) {
+        const updated = await tx.product.updateMany({
+          where: {
+            id: item.productId,
+            inStock: true,
+            stock: { gte: item.quantity },
+          },
+          data: {
+            stock: { decrement: item.quantity },
+          },
+        });
+
+        if (updated.count !== 1) {
+          throw new Error(`Insufficient stock for ${item.name}`);
+        }
+      }
+
+      await tx.product.updateMany({
+        where: {
+          id: { in: items.map((i) => i.productId) },
+          stock: { lte: 0 },
+        },
+        data: { inStock: false },
+      });
+
+      let shippingAddressId: string | undefined;
+      const shippingAddress = session.shippingAddress as Record<string, unknown> | null;
+      if (shippingAddress && shippingAddress.firstName) {
+        const created = await tx.address.create({
+          data: {
+            userId,
+            firstName: String(shippingAddress.firstName || ''),
+            lastName: String(shippingAddress.lastName || ''),
+            phone: String(shippingAddress.phone || ''),
+            address1: String(shippingAddress.address || ''),
+            city: String(shippingAddress.city || ''),
+            state: String(shippingAddress.state || ''),
+            postalCode: String(shippingAddress.postalCode || ''),
+            country: String(shippingAddress.country || 'България'),
+            isDefault: false,
+          },
+        });
+        shippingAddressId = created.id;
+      }
+
+      if (session.discountCodeId) {
+        const code = await tx.discountCode.findUnique({
+          where: { id: session.discountCodeId },
+          select: {
+            id: true,
+            active: true,
+            expiresAt: true,
+            maxUses: true,
+            currentUses: true,
+          },
+        });
+        if (
+          code &&
+          code.active &&
+          (!code.expiresAt || code.expiresAt > new Date()) &&
+          (code.maxUses === null || code.currentUses < code.maxUses)
+        ) {
+          await tx.discountCode.update({
+            where: { id: code.id },
+            data: { currentUses: { increment: 1 } },
+          });
+        }
+      }
+
+      const order = await tx.order.create({
+        data: {
+          userId,
+          total: session.total,
+          subtotal: session.subtotal,
+          discount: session.discount,
+          deliveryFee: 0,
+          status: 'PENDING',
+          paymentType: 'CASH_ON_DELIVERY',
+          paymentId: null,
+          paymentIntentId: null,
+          discountCodeId: session.discountCodeId || null,
+          checkoutSessionId: session.id,
+          courierService,
+          trackingNumber: `COD${Date.now()}`,
+          shippingAddressId,
+          customerNotes: shippingAddress?.notes ? String(shippingAddress.notes) : null,
+          items: {
+            create: items.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              price: item.unitPrice,
+              color: item.color || null,
+              size: item.size || null,
+            })),
+          },
+        },
+        select: { id: true },
+      });
+
+      await tx.orderStatusHistory.create({
+        data: {
+          orderId: order.id,
+          status: 'PENDING',
+          notes: `Cash on delivery via ${courierService}`,
+          createdBy: userId,
+        },
+      });
+
+      await tx.checkoutSession.update({
+        where: { id: session.id },
+        data: {
+          status: 'COMPLETED',
+          provider: 'CASH_ON_DELIVERY',
+          providerPaymentId: `COD-${order.id}`,
+          finalizedAt: new Date(),
+        },
+      });
+
+      return { orderId: order.id, idempotent: false };
+    });
+
+    return result;
+  } catch (error: unknown) {
+    if (error && typeof error === 'object' && 'code' in error && (error as { code?: string }).code === 'P2002') {
+      const existing = await prisma.order.findFirst({
+        where: { checkoutSessionId },
+        select: { id: true },
+      });
+      if (existing) {
+        return { orderId: existing.id, idempotent: true };
+      }
+    }
+    throw error;
+  }
+}
+
 export async function finalizeCheckoutSession(params: {
   userId: string;
   checkoutSessionId: string;

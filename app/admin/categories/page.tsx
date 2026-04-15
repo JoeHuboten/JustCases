@@ -64,16 +64,16 @@ export default function AdminCategories() {
         handleCloseModal();
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to save category');
+        alert(error.error || 'Неуспешно запазване на категорията');
       }
     } catch (error) {
       console.error('Error saving category:', error);
-      alert('Failed to save category');
+      alert('Неуспешно запазване на категорията');
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this category?')) return;
+    if (!confirm('Сигурни ли сте, че искате да изтриете тази категория?')) return;
 
     try {
       const response = await fetch(`/api/admin/categories/${id}`, {
@@ -84,11 +84,11 @@ export default function AdminCategories() {
         await fetchCategories();
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to delete category');
+        alert(error.error || 'Неуспешно изтриване на категорията');
       }
     } catch (error) {
       console.error('Error deleting category:', error);
-      alert('Failed to delete category');
+      alert('Неуспешно изтриване на категорията');
     }
   };
 
@@ -127,15 +127,15 @@ export default function AdminCategories() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Categories</h1>
-          <p className="text-text-secondary mt-2">Manage product categories</p>
+          <h1 className="text-3xl font-bold text-white">Категории</h1>
+          <p className="text-text-secondary mt-2">Управление на продуктови категории</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
           className="btn-primary flex items-center gap-2"
         >
           <FiPlus size={20} />
-          Add Category
+          Добави категория
         </button>
       </div>
 
@@ -184,7 +184,7 @@ export default function AdminCategories() {
               )}
               <div className="flex items-center gap-2 text-sm text-text-secondary">
                 <FiPackage size={16} />
-                <span>{category._count.products} products</span>
+                <span>{category._count.products} продукта</span>
               </div>
             </div>
           </div>
@@ -197,7 +197,7 @@ export default function AdminCategories() {
           <div className="bg-background-secondary rounded-lg border border-gray-800 max-w-lg w-full">
             <div className="p-6 border-b border-gray-800 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white">
-                {editingCategory ? 'Edit Category' : 'Add New Category'}
+                {editingCategory ? 'Редактирай категория' : 'Добави нова категория'}
               </h2>
               <button onClick={handleCloseModal} className="text-text-secondary hover:text-white">
                 <FiX size={24} />
@@ -205,7 +205,7 @@ export default function AdminCategories() {
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-white mb-2">Category Name *</label>
+                <label className="block text-sm font-medium text-white mb-2">Наименование на категорията *</label>
                 <input
                   type="text"
                   required
@@ -227,7 +227,7 @@ export default function AdminCategories() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white mb-2">Description</label>
+                <label className="block text-sm font-medium text-white mb-2">Описание</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -237,7 +237,7 @@ export default function AdminCategories() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white mb-2">Image URL</label>
+                <label className="block text-sm font-medium text-white mb-2">URL на изображение</label>
                 <input
                   type="url"
                   value={formData.image}
@@ -252,10 +252,10 @@ export default function AdminCategories() {
                   onClick={handleCloseModal}
                   className="btn-secondary"
                 >
-                  Cancel
+                  Отказ
                 </button>
                 <button type="submit" className="btn-primary">
-                  {editingCategory ? 'Update Category' : 'Create Category'}
+                  {editingCategory ? 'Обнови категория' : 'Създай категория'}
                 </button>
               </div>
             </form>

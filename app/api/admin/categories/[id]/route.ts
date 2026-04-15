@@ -4,6 +4,7 @@ import { withApiGuard } from '@/lib/api-guard';
 import { strictRateLimit } from '@/lib/rate-limit';
 import { categoryUpdateSchema } from '@/lib/validation';
 import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+import { logAdminAction } from '@/lib/audit-log';
 import { z } from 'zod';
 
 const logger = createLogger('api:admin:categories:id');
@@ -16,7 +17,7 @@ export const PUT = withApiGuard<z.infer<typeof categoryUpdateSchema>, { params: 
     rateLimit: strictRateLimit,
     bodySchema: categoryUpdateSchema,
   },
-  async (_request: NextRequest, context) => {
+  async (request: NextRequest, context) => {
     try {
       const { id } = await context.params;
       const body = context.body!;
@@ -29,6 +30,14 @@ export const PUT = withApiGuard<z.infer<typeof categoryUpdateSchema>, { params: 
           ...(body.description !== undefined && { description: body.description }),
           ...(body.image !== undefined && { image: body.image }),
         },
+      });
+
+      await logAdminAction({
+        action: 'CATEGORY_UPDATE',
+        actor: context.user!,
+        request,
+        target: { type: 'Category', id },
+        metadata: { name: category.name, slug: category.slug },
       });
 
       return NextResponse.json({ category });
@@ -49,7 +58,7 @@ export const DELETE = withApiGuard<unknown, { params: Promise<{ id: string }> }>
     csrf: true,
     rateLimit: strictRateLimit,
   },
-  async (_request: NextRequest, context) => {
+  async (request: NextRequest, context) => {
     try {
       const { id } = await context.params;
       const productsCount = await prisma.product.count({
@@ -65,6 +74,13 @@ export const DELETE = withApiGuard<unknown, { params: Promise<{ id: string }> }>
 
       await prisma.category.delete({
         where: { id },
+      });
+
+      await logAdminAction({
+        action: 'CATEGORY_DELETE',
+        actor: context.user!,
+        request,
+        target: { type: 'Category', id },
       });
 
       return NextResponse.json({ message: 'Category deleted successfully' });

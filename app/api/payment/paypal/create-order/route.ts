@@ -119,7 +119,7 @@ export const POST = withApiGuard(
           brand_name: 'Just Cases',
           shipping_preference: 'NO_SHIPPING',
           user_action: 'PAY_NOW',
-          return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/payment/success`,
+          return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/payment/success?checkoutSessionId=${session.id}`,
           cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/checkout`,
         },
       }),
@@ -138,6 +138,7 @@ export const POST = withApiGuard(
       providerPaymentId: orderData.id,
       checkoutSessionId: session.id,
       configured: true,
+      approveUrl: (orderData.links as Array<{ rel: string; href: string }> | undefined)?.find((l) => l.rel === 'approve')?.href ?? null,
     });
   },
 );

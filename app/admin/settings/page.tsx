@@ -42,19 +42,19 @@ export default function AdminSettings() {
     <div className="space-y-6 max-w-4xl">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-white">Settings</h1>
-        <p className="text-text-secondary mt-2">Configure your store settings</p>
+        <h1 className="text-3xl font-bold text-white">Настройки</h1>
+        <p className="text-text-secondary mt-2">Конфигурирайте настройките на вашия магазин</p>
       </div>
 
       {/* General Settings */}
       <div className="bg-background-secondary rounded-lg border border-gray-800 p-6">
         <div className="flex items-center gap-3 mb-6">
           <FiGlobe className="text-accent" size={24} />
-          <h2 className="text-xl font-semibold text-white">General Settings</h2>
+          <h2 className="text-xl font-semibold text-white">Общи настройки</h2>
         </div>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-white mb-2">Site Name</label>
+            <label className="block text-sm font-medium text-white mb-2">Наименование на сайта</label>
             <input
               type="text"
               value={settings.siteName}
@@ -63,7 +63,7 @@ export default function AdminSettings() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-white mb-2">Site Description</label>
+            <label className="block text-sm font-medium text-white mb-2">Описание на сайта</label>
             <textarea
               value={settings.siteDescription}
               onChange={(e) => setSettings({ ...settings, siteDescription: e.target.value })}
@@ -72,7 +72,7 @@ export default function AdminSettings() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-white mb-2">Site URL</label>
+            <label className="block text-sm font-medium text-white mb-2">URL на сайта</label>
             <input
               type="url"
               value={settings.siteUrl}
@@ -81,7 +81,7 @@ export default function AdminSettings() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-white mb-2">Contact Email</label>
+            <label className="block text-sm font-medium text-white mb-2">Имейл за контакт</label>
             <input
               type="email"
               value={settings.contactEmail}
@@ -96,24 +96,24 @@ export default function AdminSettings() {
       <div className="bg-background-secondary rounded-lg border border-gray-800 p-6">
         <div className="flex items-center gap-3 mb-6">
           <FiDollarSign className="text-accent" size={24} />
-          <h2 className="text-xl font-semibold text-white">Currency Settings</h2>
+          <h2 className="text-xl font-semibold text-white">Настройки за валута</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-white mb-2">Currency</label>
+            <label className="block text-sm font-medium text-white mb-2">Валута</label>
             <select
               value={settings.currency}
               onChange={(e) => setSettings({ ...settings, currency: e.target.value })}
               className="w-full px-4 py-2 bg-background border border-gray-800 rounded-lg text-white focus:outline-none focus:border-accent"
             >
-              <option value="USD">USD - US Dollar</option>
-              <option value="EUR">EUR - Euro</option>
-              <option value="GBP">GBP - British Pound</option>
-              <option value="BGN">BGN - Bulgarian Lev</option>
+              <option value="USD">USD - Щатски долар</option>
+              <option value="EUR">EUR - Евро</option>
+              <option value="GBP">GBP - Британска лира</option>
+              <option value="BGN">BGN - Български лев</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-white mb-2">Currency Symbol</label>
+            <label className="block text-sm font-medium text-white mb-2">Символ на валутата</label>
             <input
               type="text"
               value={settings.currencySymbol}
@@ -128,12 +128,12 @@ export default function AdminSettings() {
       <div className="bg-background-secondary rounded-lg border border-gray-800 p-6">
         <div className="flex items-center gap-3 mb-6">
           <FiTruck className="text-accent" size={24} />
-          <h2 className="text-xl font-semibold text-white">Shipping Settings</h2>
+          <h2 className="text-xl font-semibold text-white">Настройки за доставка</h2>
         </div>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-white mb-2">
-              Free Shipping Threshold ($)
+              Праг за безплатна доставка (лв.)
             </label>
             <input
               type="number"
@@ -146,7 +146,7 @@ export default function AdminSettings() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Standard Shipping Fee ($)
+                Стандартна такса доставка (лв.)
               </label>
               <input
                 type="number"
@@ -158,7 +158,7 @@ export default function AdminSettings() {
             </div>
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Express Shipping Fee ($)
+                Експресна такса доставка (лв.)
               </label>
               <input
                 type="number"
@@ -176,7 +176,7 @@ export default function AdminSettings() {
       <div className="bg-background-secondary rounded-lg border border-gray-800 p-6">
         <div className="flex items-center gap-3 mb-6">
           <FiShield className="text-accent" size={24} />
-          <h2 className="text-xl font-semibold text-white">Tax Settings</h2>
+          <h2 className="text-xl font-semibold text-white">Данъчни настройки</h2>
         </div>
         <div className="space-y-4">
           <div>
@@ -187,12 +187,12 @@ export default function AdminSettings() {
                 onChange={(e) => setSettings({ ...settings, taxEnabled: e.target.checked })}
                 className="mr-3"
               />
-              <span className="text-white">Enable Tax Calculation</span>
+              <span className="text-white">Активирай изчисляване на данъци</span>
             </label>
           </div>
           {settings.taxEnabled && (
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Tax Rate (%)</label>
+              <label className="block text-sm font-medium text-white mb-2">Данъчна ставка (%)</label>
               <input
                 type="number"
                 step="0.01"
@@ -209,7 +209,7 @@ export default function AdminSettings() {
       <div className="bg-background-secondary rounded-lg border border-gray-800 p-6">
         <div className="flex items-center gap-3 mb-6">
           <FiMail className="text-accent" size={24} />
-          <h2 className="text-xl font-semibold text-white">Email Notifications</h2>
+          <h2 className="text-xl font-semibold text-white">Имейл известия</h2>
         </div>
         <div className="space-y-4">
           <div>
@@ -220,7 +220,7 @@ export default function AdminSettings() {
                 onChange={(e) => setSettings({ ...settings, emailNotifications: e.target.checked })}
                 className="mr-3"
               />
-              <span className="text-white">Enable Email Notifications</span>
+              <span className="text-white">Активирай имейл известия</span>
             </label>
           </div>
           {settings.emailNotifications && (
@@ -233,7 +233,7 @@ export default function AdminSettings() {
                     onChange={(e) => setSettings({ ...settings, orderConfirmationEmail: e.target.checked })}
                     className="mr-3"
                   />
-                  <span className="text-white">Send Order Confirmation Emails</span>
+                  <span className="text-white">Изпращай имейли за потвърждение на поръчка</span>
                 </label>
               </div>
               <div>
@@ -244,7 +244,7 @@ export default function AdminSettings() {
                     onChange={(e) => setSettings({ ...settings, shippingUpdateEmail: e.target.checked })}
                     className="mr-3"
                   />
-                  <span className="text-white">Send Shipping Update Emails</span>
+                  <span className="text-white">Изпращай имейли за актуализация на доставка</span>
                 </label>
               </div>
             </>
@@ -255,22 +255,21 @@ export default function AdminSettings() {
       {/* Save Button */}
       <div className="flex items-center justify-end gap-4">
         {saved && (
-          <span className="text-green-500 text-sm">Settings saved successfully!</span>
+          <span className="text-green-500 text-sm">Настройките са запазени успешно!</span>
         )}
         <button
           onClick={handleSave}
           className="btn-primary flex items-center gap-2"
         >
           <FiSave size={20} />
-          Save Settings
+          Запази настройките
         </button>
       </div>
 
       {/* Info Message */}
       <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-6">
         <p className="text-yellow-400 text-sm">
-          <strong>Note:</strong> These settings are currently for display purposes only. 
-          In a production environment, these would be saved to the database and applied across the site.
+          <strong>Бележка:</strong> Тези настройки са само за показване. В производствена среда ще се запазват в базата данни и ще се прилагат във целия сайт.
         </p>
       </div>
     </div>

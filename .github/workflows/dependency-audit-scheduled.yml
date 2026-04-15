@@ -1,0 +1,49 @@
+name: Scheduled Dependency Audit
+
+on:
+  schedule:
+    # Runs every Monday at 08:00 UTC
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  npm-audit-scheduled:
+    name: npm Audit (Scheduled)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Report all vulnerabilities regardless of severity for scheduled runs.
+      # A non-zero exit from "npm audit" is captured; the job is informational
+      # unless the --audit-level threshold is breached.
+      - name: Run full npm audit (report only)
+        run: npm audit || true
+
+      - name: Fail on high/critical vulnerabilities
+        run: npm audit --audit-level=high
+
+      - name: Save full audit report as artifact
+        if: always()
+        run: npm audit --json > npm-audit-report.json || true
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scheduled-npm-audit-report
+          path: npm-audit-report.json
+          retention-days: 90

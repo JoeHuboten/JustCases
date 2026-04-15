@@ -160,7 +160,7 @@ export default function AdminProducts() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    if (!confirm('Сигурни ли сте, че искате да изтриете този продукт?')) return;
 
     try {
       const response = await fetch(`/api/admin/products/${id}`, {
@@ -241,15 +241,15 @@ export default function AdminProducts() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Products</h1>
-          <p className="text-text-secondary mt-2">Manage your product catalog</p>
+          <h1 className="text-3xl font-bold text-white">Продукти</h1>
+          <p className="text-text-secondary mt-2">Управление на продуктовия каталог</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
           className="btn-primary flex items-center gap-2"
         >
           <FiPlus size={20} />
-          Add Product
+          Добави продукт
         </button>
       </div>
 
@@ -258,7 +258,7 @@ export default function AdminProducts() {
         <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" />
         <input
           type="text"
-          placeholder="Search products..."
+          placeholder="Търси продукти..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full pl-12 pr-4 py-3 bg-background-secondary border border-gray-800 rounded-lg text-white focus:outline-none focus:border-accent"
@@ -272,22 +272,22 @@ export default function AdminProducts() {
             <thead className="bg-gray-800/50">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                  Product
+                  Продукт
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                  Category
+                  Категория
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                  Price
+                  Цена
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                  Stock
+                  Наличност
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                  Status
+                  Статус
                 </th>
                 <th className="px-6 py-4 text-right text-xs font-medium text-text-secondary uppercase tracking-wider">
-                  Actions
+                  Действия
                 </th>
               </tr>
             </thead>
@@ -328,10 +328,10 @@ export default function AdminProducts() {
                           ? 'text-yellow-400' 
                           : 'text-green-400'
                       }`}>
-                        {product.stock} units
+                        {product.stock} бр.
                       </span>
                       {product.stock <= product.lowStockThreshold && product.stock > 0 && (
-                        <span className="text-xs text-yellow-400">Low stock</span>
+                        <span className="text-xs text-yellow-400">Малко наличност</span>
                       )}
                     </div>
                   </td>
@@ -344,11 +344,11 @@ export default function AdminProducts() {
                             : 'bg-red-100 text-red-800'
                         }`}
                       >
-                        {product.inStock ? 'In Stock' : 'Out of Stock'}
+                        {product.inStock ? 'В наличност' : 'Изчерпан'}
                       </span>
                       {product.featured && (
                         <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-accent/20 text-accent">
-                          Featured
+                          Препоръчан
                         </span>
                       )}
                     </div>
@@ -358,14 +358,14 @@ export default function AdminProducts() {
                       <button
                         onClick={() => handleEdit(product)}
                         className="text-accent hover:text-accent/80"
-                        aria-label={`Edit ${product.name}`}
+                        aria-label={`Редактиране на ${product.name}`}
                       >
                         <FiEdit2 size={18} />
                       </button>
                       <button
                         onClick={() => handleDelete(product.id)}
                         className="text-red-500 hover:text-red-400"
-                        aria-label={`Delete ${product.name}`}
+                        aria-label={`Изтриване на ${product.name}`}
                       >
                         <FiTrash2 size={18} />
                       </button>
@@ -376,7 +376,7 @@ export default function AdminProducts() {
               {products.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-6 py-10 text-center text-text-secondary">
-                    No products found.
+                    Няма намерени продукти.
                   </td>
                 </tr>
               )}
@@ -402,7 +402,7 @@ export default function AdminProducts() {
           <div className="bg-background-secondary rounded-lg border border-gray-800 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-800 flex items-center justify-between sticky top-0 bg-background-secondary">
               <h2 className="text-xl font-bold text-white">
-                {editingProduct ? 'Edit Product' : 'Add New Product'}
+                {editingProduct ? 'Редактирай продукт' : 'Добави нов продукт'}
               </h2>
               <button onClick={handleCloseModal} className="text-text-secondary hover:text-white">
                 <FiX size={24} />
@@ -411,7 +411,7 @@ export default function AdminProducts() {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">Product Name *</label>
+                  <label className="block text-sm font-medium text-white mb-2">Наименование на продукта *</label>
                   <input
                     type="text"
                     required
@@ -433,7 +433,7 @@ export default function AdminProducts() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white mb-2">Description</label>
+                  <label className="block text-sm font-medium text-white mb-2">Описание</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -444,7 +444,7 @@ export default function AdminProducts() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">Price *</label>
+                  <label className="block text-sm font-medium text-white mb-2">Цена *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -455,7 +455,7 @@ export default function AdminProducts() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">Old Price</label>
+                  <label className="block text-sm font-medium text-white mb-2">Стара цена</label>
                   <input
                     type="number"
                     step="0.01"
@@ -465,7 +465,7 @@ export default function AdminProducts() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">Discount %</label>
+                  <label className="block text-sm font-medium text-white mb-2">Отстъпка %</label>
                   <input
                     type="number"
                     value={formData.discount}
@@ -476,14 +476,14 @@ export default function AdminProducts() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white mb-2">Category *</label>
+                <label className="block text-sm font-medium text-white mb-2">Категория *</label>
                 <select
                   required
                   value={formData.categoryId}
                   onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                   className="w-full px-4 py-2 bg-background border border-gray-800 rounded-lg text-white focus:outline-none focus:border-accent"
                 >
-                  <option value="">Select a category</option>
+                  <option value="">Изберете категория</option>
                   {categories.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.name}
@@ -493,7 +493,7 @@ export default function AdminProducts() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white mb-2">Image URL *</label>
+                <label className="block text-sm font-medium text-white mb-2">URL на изображение *</label>
                 <input
                   type="url"
                   required
@@ -505,7 +505,7 @@ export default function AdminProducts() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">Colors (JSON)</label>
+                  <label className="block text-sm font-medium text-white mb-2">Цветове (JSON)</label>
                   <input
                     type="text"
                     value={formData.colors}
@@ -515,7 +515,7 @@ export default function AdminProducts() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">Sizes (JSON)</label>
+                  <label className="block text-sm font-medium text-white mb-2">Размери (JSON)</label>
                   <input
                     type="text"
                     value={formData.sizes}
@@ -534,7 +534,7 @@ export default function AdminProducts() {
                     onChange={(e) => setFormData({ ...formData, inStock: e.target.checked })}
                     className="mr-2"
                   />
-                  <span className="text-sm text-white">In Stock</span>
+                  <span className="text-sm text-white">В наличност</span>
                 </label>
                 <label className="flex items-center">
                   <input
@@ -543,7 +543,7 @@ export default function AdminProducts() {
                     onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
                     className="mr-2"
                   />
-                  <span className="text-sm text-white">Featured</span>
+                  <span className="text-sm text-white">Препоръчан</span>
                 </label>
               </div>
 
@@ -553,10 +553,10 @@ export default function AdminProducts() {
                   onClick={handleCloseModal}
                   className="btn-secondary"
                 >
-                  Cancel
+                  Отказ
                 </button>
                 <button type="submit" className="btn-primary">
-                  {editingProduct ? 'Update Product' : 'Create Product'}
+                  {editingProduct ? 'Обнови продукт' : 'Създай продукт'}
                 </button>
               </div>
             </form>

@@ -4,6 +4,7 @@ import { withApiGuard } from '@/lib/api-guard';
 import { strictRateLimit } from '@/lib/rate-limit';
 import { discountCodeUpdateSchema } from '@/lib/validation';
 import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+import { logAdminAction } from '@/lib/audit-log';
 import { z } from 'zod';
 
 const logger = createLogger('api:admin:discount-codes:id');
@@ -16,7 +17,7 @@ export const PUT = withApiGuard<z.infer<typeof discountCodeUpdateSchema>, { para
     rateLimit: strictRateLimit,
     bodySchema: discountCodeUpdateSchema,
   },
-  async (_request: NextRequest, context) => {
+  async (request: NextRequest, context) => {
     try {
       const { id } = await context.params;
       const body = context.body!;
@@ -45,6 +46,14 @@ export const PUT = withApiGuard<z.infer<typeof discountCodeUpdateSchema>, { para
         },
       });
 
+      await logAdminAction({
+        action: 'DISCOUNT_CODE_UPDATE',
+        actor: context.user!,
+        request,
+        target: { type: 'DiscountCode', id },
+        metadata: { code: discountCode.code, percentage: discountCode.percentage },
+      });
+
       return NextResponse.json(discountCode);
     } catch (error) {
       logger.error('Failed to update discount code', { error: getSafeErrorDetails(error) });
@@ -63,12 +72,19 @@ export const DELETE = withApiGuard<unknown, { params: Promise<{ id: string }> }>
     csrf: true,
     rateLimit: strictRateLimit,
   },
-  async (_request: NextRequest, context) => {
+  async (request: NextRequest, context) => {
     try {
       const { id } = await context.params;
 
       await prisma.discountCode.delete({
         where: { id },
+      });
+
+      await logAdminAction({
+        action: 'DISCOUNT_CODE_DELETE',
+        actor: context.user!,
+        request,
+        target: { type: 'DiscountCode', id },
       });
 
       return NextResponse.json({ success: true });

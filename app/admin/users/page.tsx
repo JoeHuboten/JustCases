@@ -54,8 +54,8 @@ export default function AdminUsers() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-white">Users</h1>
-        <p className="text-text-secondary mt-2">Manage customer accounts</p>
+        <h1 className="text-3xl font-bold text-white">Потребители</h1>
+        <p className="text-text-secondary mt-2">Управление на клиентски акаунти</p>
       </div>
 
       {/* Search */}
@@ -63,7 +63,7 @@ export default function AdminUsers() {
         <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" />
         <input
           type="text"
-          placeholder="Search users..."
+          placeholder="Търси потребители..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full pl-12 pr-4 py-3 bg-background-secondary border border-gray-800 rounded-lg text-white focus:outline-none focus:border-accent"
@@ -73,17 +73,17 @@ export default function AdminUsers() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-background-secondary p-6 rounded-lg border border-gray-800">
-          <p className="text-text-secondary text-sm">Total Users</p>
+          <p className="text-text-secondary text-sm">Общо потребители</p>
           <p className="text-3xl font-bold text-white mt-2">{users.length}</p>
         </div>
         <div className="bg-background-secondary p-6 rounded-lg border border-gray-800">
-          <p className="text-text-secondary text-sm">Total Orders</p>
+          <p className="text-text-secondary text-sm">Общо поръчки</p>
           <p className="text-3xl font-bold text-white mt-2">
             {users.reduce((sum, user) => sum + user._count.orders, 0)}
           </p>
         </div>
         <div className="bg-background-secondary p-6 rounded-lg border border-gray-800">
-          <p className="text-text-secondary text-sm">Active Carts</p>
+          <p className="text-text-secondary text-sm">Активни кошници</p>
           <p className="text-3xl font-bold text-white mt-2">
             {users.filter(user => user._count.cartItems > 0).length}
           </p>
@@ -97,19 +97,19 @@ export default function AdminUsers() {
             <thead className="bg-gray-800/50">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                  User
+                  Потребител
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                  Contact
+                  Контакт
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                  Orders
+                  Поръчки
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                  Cart Items
+                  Артикули в кошница
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                  Joined
+                  Регистриран
                 </th>
               </tr>
             </thead>
@@ -125,7 +125,7 @@ export default function AdminUsers() {
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-white">
-                          {user.name || 'Unnamed User'}
+                          {user.name || 'Безименен потребител'}
                         </div>
                         <div className="text-sm text-text-secondary">
                           ID: {user.id.slice(0, 8)}
@@ -161,7 +161,7 @@ export default function AdminUsers() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2 text-sm text-text-secondary">
                       <FiCalendar size={14} />
-                      <span>{new Date(user.createdAt).toLocaleDateString()}</span>
+                      <span>{new Date(user.createdAt).toLocaleDateString('bg-BG')}</span>
                     </div>
                   </td>
                 </tr>

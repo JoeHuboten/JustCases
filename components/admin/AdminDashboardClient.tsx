@@ -58,7 +58,7 @@ function getAccentColor(status: string): string {
     case 'paused': return '#ef4444';
     case 'upcoming': return '#f59e0b';
     case 'completed': return '#10b981';
-    default: return '#6366f1';
+    default: return '#14b8a6';
   }
 }
 
@@ -67,12 +67,20 @@ function getBgClass(status: string): string {
     case 'paused': return 'bg-red-50 dark:bg-red-900/20';
     case 'upcoming': return 'bg-amber-50 dark:bg-amber-900/20';
     case 'completed': return 'bg-emerald-50 dark:bg-emerald-900/20';
-    default: return 'bg-indigo-50 dark:bg-indigo-900/20';
+    default: return 'bg-accent/10 dark:bg-accent/10';
   }
 }
 
+const statusLabels: Record<string, string> = {
+  PENDING: 'Чакаща',
+  PROCESSING: 'Обработва се',
+  SHIPPED: 'Изпратена',
+  DELIVERED: 'Доставена',
+  CANCELLED: 'Отказана',
+};
+
 function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-US', {
+  return new Date(dateStr).toLocaleDateString('bg-BG', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -99,7 +107,7 @@ export default function AdminDashboardClient({
       status,
       accentColor: getAccentColor(status),
       bgColorClass: getBgClass(status),
-      daysLeft: p.stock === 0 ? 'Out of Stock' : `${p.stock} in stock`,
+      daysLeft: p.stock === 0 ? 'Изчерпан' : `${p.stock} бр. наличност`,
       participants: [],
     };
   });
@@ -107,47 +115,47 @@ export default function AdminDashboardClient({
   // Map orders to Message format
   const messageData: Message[] = recentOrders.map((o) => ({
     id: o.id,
-    name: o.userName || o.userEmail || 'Customer',
-    avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(o.userName || o.userEmail || 'C')}&backgroundColor=6366f1`,
-    text: `Order #${o.id.slice(0, 8)} — $${o.total.toFixed(2)} — ${o.status}`,
+    name: o.userName || o.userEmail || 'Клиент',
+    avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(o.userName || o.userEmail || 'C')}&backgroundColor=14b8a6`,
+    text: `Поръчка #${o.id.slice(0, 8)} — $${o.total.toFixed(2)} — ${statusLabels[o.status] ?? o.status}`,
     date: formatDate(o.createdAt),
     starred: o.status === 'PENDING',
   }));
 
   // Stats
   const dashboardStats: Stat[] = [
-    { id: 'products', label: 'Products', value: stats.totalProducts },
-    { id: 'orders', label: 'Orders', value: stats.totalOrders },
-    { id: 'users', label: 'Users', value: stats.totalUsers },
-    { id: 'revenue', label: 'Revenue', value: `$${stats.totalRevenue.toLocaleString()}` },
+    { id: 'products', label: 'Продукти', value: stats.totalProducts },
+    { id: 'orders', label: 'Поръчки', value: stats.totalOrders },
+    { id: 'users', label: 'Потребители', value: stats.totalUsers },
+    { id: 'revenue', label: 'Приходи', value: `$${stats.totalRevenue.toLocaleString()}` },
   ];
 
   // Sidebar links
   const sidebarLinks: SidebarLink[] = [
-    { id: 'dashboard', label: 'Dashboard', href: '/admin', active: true },
-    { id: 'products', label: 'Products', href: '/admin/products' },
-    { id: 'orders', label: 'Orders', href: '/admin/orders' },
-    { id: 'users', label: 'Users', href: '/admin/users' },
-    { id: 'analytics', label: 'Analytics', href: '/admin/analytics' },
-    { id: 'messages', label: 'Messages', href: '/admin/messages' },
-    { id: 'settings', label: 'Settings', href: '/admin/settings' },
+    { id: 'dashboard', label: 'Табло', href: '/admin', active: true },
+    { id: 'products', label: 'Продукти', href: '/admin/products' },
+    { id: 'orders', label: 'Поръчки', href: '/admin/orders' },
+    { id: 'users', label: 'Потребители', href: '/admin/users' },
+    { id: 'analytics', label: 'Анализи', href: '/admin/analytics' },
+    { id: 'messages', label: 'Съобщения', href: '/admin/messages' },
+    { id: 'settings', label: 'Настройки', href: '/admin/settings' },
   ];
 
   const [data, setData] = useState<Project[]>(projectData);
 
   return (
     <ProjectDashboard
-      title="Admin Dashboard"
-      user={{ name: 'Admin', avatarUrl: 'https://api.dicebear.com/7.x/initials/svg?seed=Admin&backgroundColor=6366f1' }}
+      title="Администраторско табло"
+      user={{ name: 'Admin', avatarUrl: 'https://api.dicebear.com/7.x/initials/svg?seed=Admin&backgroundColor=14b8a6' }}
       sidebarLinks={sidebarLinks}
       stats={dashboardStats}
       projects={data}
       messages={messageData}
       persistKey="admin-dashboard"
       defaultView="grid"
-      searchPlaceholder="Search products..."
-      emptyProjectsLabel="No products match your search."
-      emptyMessagesLabel="No recent orders."
+      searchPlaceholder="Търси продукти..."
+      emptyProjectsLabel="Няма продукти, съответстващи на търсенето."
+      emptyMessagesLabel="Няма скорошни поръчки."
       allowCreate={false}
       showThemeToggle={true}
       defaultTheme="dark"

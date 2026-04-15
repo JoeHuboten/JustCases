@@ -1012,6 +1012,36 @@ async function main() {
         }
       },
     }),
+    // 3D Preview Phone Case
+    prisma.product.create({
+      data: {
+        name: 'AuraCase Cosmic Orange — iPhone 17 Pro',
+        slug: 'auracase-cosmic-orange-iphone-17-pro',
+        description: 'Премиум калъф за iPhone 17 Pro с прецизно формован поликарбонат и мек матов финиш. Разгледайте го в интерактивен 3D изглед — завъртете, приближете и изберете цвят.',
+        price: 39.99,
+        oldPrice: 49.99,
+        discount: 20,
+        image: '/products/phone-cases/case-1.jpg',
+        images: '/products/phone-cases/case-1.jpg',
+        categoryId: categories[0].id,
+        colors: 'Cosmic Orange, Midnight, Clear, Ocean, Violet',
+        sizes: 'iPhone 17 Pro',
+        rating: 4.9,
+        reviews: 87,
+        inStock: true,
+        stock: 120,
+        lowStockThreshold: 15,
+        featured: true,
+        specifications: {
+          material: 'Polycarbonate + Soft-Touch Matte',
+          protection: 'MagSafe Compatible, MIL-STD 810H',
+          features: ['3D Preview', 'MagSafe Charging', 'Raised Camera Lip', 'Anti-Slip Grip'],
+          viewer3d: true,
+          phoneColor: '#2c2c2e',
+          caseColor: '#e05c00',
+        }
+      },
+    }),
   ]);
 
   console.log(`✅ Created ${products.length} products`);

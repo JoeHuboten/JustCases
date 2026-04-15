@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiPercent, FiCalendar, FiToggleLeft, FiToggleRight, FiCopy, FiCheck } from 'react-icons/fi';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { apiFetch } from '@/lib/client-api';
+import { useToast } from '@/components/Toast';
 
 interface DiscountCode {
   id: string;
@@ -18,11 +20,13 @@ interface DiscountCode {
 
 export default function AdminDiscountCodesPage() {
   const { t, formatDate: formatLocalizedDate } = useLanguage();
+  const { showConfirm, showToast } = useToast();
   const [codes, setCodes] = useState<DiscountCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingCode, setEditingCode] = useState<DiscountCode | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     code: '',
     percentage: 10,
@@ -59,7 +63,7 @@ export default function AdminDiscountCodesPage() {
       
       const method = editingCode ? 'PUT' : 'POST';
       
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -83,26 +87,35 @@ export default function AdminDiscountCodesPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm(t('admin.discount.confirmDelete', 'Сигурни ли сте, че искате да изтриете този код за отстъпка?'))) return;
-
-    // Optimistic removal
-    const prevCodes = codes;
-    setCodes((prev) => prev.filter((c) => c.id !== id));
-
-    try {
-      const response = await fetch(`/api/admin/discount-codes/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        // Rollback on failure
-        setCodes(prevCodes);
-      }
-    } catch (error) {
-      console.error('Error deleting discount code:', error);
-      setCodes(prevCodes);
-    }
+  const handleDelete = (id: string, codeName: string) => {
+    showConfirm(
+      `${t('admin.discount.deleteConfirmMessage', 'Сигурен ли си, че искаш да изтриеш код')} "${codeName}"?`,
+      async () => {
+        setDeletingId(id);
+        try {
+          const response = await apiFetch(`/api/admin/discount-codes/${id}`, {
+            method: 'DELETE',
+          });
+          if (response.ok) {
+            setCodes((prev) => prev.filter((c) => c.id !== id));
+            showToast(t('admin.discount.deleteSuccess', 'Кодът беше изтрит успешно'), 'success');
+          } else {
+            const data = await response.json().catch(() => ({}));
+            showToast(data.error || t('admin.discount.deleteFailed', 'Неуспешно изтриване'), 'error');
+          }
+        } catch {
+          showToast(t('admin.discount.deleteFailed', 'Неуспешно изтриване'), 'error');
+        } finally {
+          setDeletingId(null);
+        }
+      },
+      {
+        title: t('admin.discount.deleteTitle', 'Изтриване на код'),
+        confirmText: t('common.delete', 'Изтрий'),
+        cancelText: t('common.cancel', 'Отказ'),
+        destructive: true,
+      },
+    );
   };
 
   const handleToggleActive = async (code: DiscountCode) => {
@@ -113,7 +126,7 @@ export default function AdminDiscountCodesPage() {
     );
 
     try {
-      const response = await fetch(`/api/admin/discount-codes/${code.id}`, {
+      const response = await apiFetch(`/api/admin/discount-codes/${code.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...code, active: !code.active }),
@@ -317,16 +330,24 @@ export default function AdminDiscountCodesPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleEdit(code)}
-                    className="flex-1 btn-secondary text-sm py-2"
+                    disabled={deletingId === code.id}
+                    className="flex-1 btn-secondary text-sm py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <FiEdit2 className="inline mr-1" size={16} />
                     {t('common.edit', 'Редактирай')}
                   </button>
+
                   <button
-                    onClick={() => handleDelete(code.id)}
-                    className="px-4 py-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition"
+                    type="button"
+                    onClick={() => handleDelete(code.id, code.code)}
+                    disabled={deletingId === code.id}
+                    className="px-4 py-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <FiTrash2 size={16} />
+                    {deletingId === code.id ? (
+                      <div className="w-4 h-4 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
+                    ) : (
+                      <FiTrash2 size={16} />
+                    )}
                   </button>
                 </div>
               </div>

@@ -60,9 +60,9 @@ export default function AdminMessagesPage() {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Contact Messages</h1>
+        <h1 className="text-3xl font-bold text-white">Контактни съобщения</h1>
         <p className="text-text-secondary mt-2">
-          View and manage customer inquiries
+          Преглед и управление на запитвания от клиенти
         </p>
       </div>
 
@@ -72,7 +72,7 @@ export default function AdminMessagesPage() {
           {messages.length === 0 ? (
             <div className="bg-background-secondary rounded-lg p-8 text-center">
               <FiMail className="mx-auto text-5xl text-gray-600 mb-4" />
-              <p className="text-text-secondary">No messages yet</p>
+              <p className="text-text-secondary">Все още няма съобщения</p>
             </div>
           ) : (
             messages.map((message) => (
@@ -93,7 +93,7 @@ export default function AdminMessagesPage() {
                     </span>
                     {!message.read && (
                       <span className="bg-accent text-white text-xs px-2 py-1 rounded">
-                        New
+                        Ново
                       </span>
                     )}
                   </div>
@@ -119,13 +119,13 @@ export default function AdminMessagesPage() {
                       <FiCircle className="text-gray-500" />
                     )}
                     <span className="text-text-secondary">
-                      {message.read ? 'Read' : 'Unread'}
+                      {message.read ? 'Прочетено' : 'Непрочетено'}
                     </span>
                   </div>
                   {message.replied && (
                     <div className="flex items-center gap-1 text-teal-500">
                       <FiCheckCircle />
-                      <span>Replied</span>
+                      <span>Отговорено</span>
                     </div>
                   )}
                 </div>
@@ -169,16 +169,16 @@ export default function AdminMessagesPage() {
                   href={`mailto:${selectedMessage.email}?subject=Re: ${selectedMessage.subject}`}
                   className="btn-primary flex-1 text-center"
                 >
-                  Reply via Email
+                  Отговори по имейл
                 </a>
-                <button className="btn-secondary">Mark as Read</button>
+                <button className="btn-secondary">Маркирай като прочетено</button>
               </div>
             </div>
           ) : (
             <div className="text-center py-12">
               <FiMail className="mx-auto text-5xl text-gray-600 mb-4" />
               <p className="text-text-secondary">
-                Select a message to view details
+                Изберете съобщение за преглед
               </p>
             </div>
           )}

@@ -4,9 +4,9 @@ import { useCartStore } from '@/store/cartStore';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter } from 'next/navigation';
-import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
+
 import Image from 'next/image';
-import { FiUser, FiMapPin, FiPhone, FiMail, FiFileText, FiTruck, FiShield, FiCheckCircle, FiCreditCard } from 'react-icons/fi';
+import { FiUser, FiMapPin, FiPhone, FiMail, FiFileText, FiTruck, FiShield, FiCheckCircle, FiCreditCard, FiPackage } from 'react-icons/fi';
 import dynamic from 'next/dynamic';
 import { apiFetch } from '@/lib/client-api';
 
@@ -128,6 +128,10 @@ export default function CheckoutPage() {
   const [selectedSavedAddressId, setSelectedSavedAddressId] = useState('');
   const [checkoutSessionId, setCheckoutSessionId] = useState<string | null>(null);
   const [checkoutTotals, setCheckoutTotals] = useState<{ subtotal: number; discount: number; total: number } | null>(null);
+  const [selectedCourier, setSelectedCourier] = useState<'SPEEDY' | 'ECONT' | ''>('');
+  const [courierError, setCourierError] = useState('');
+  const [isPlacingCod, setIsPlacingCod] = useState(false);
+  const [isPayPalLoading, setIsPayPalLoading] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/auth/signin');
@@ -240,6 +244,12 @@ export default function CheckoutPage() {
       setIsValidating(false);
       return;
     }
+    if (!selectedCourier) {
+      setCourierError(t('checkout.validation.courierRequired'));
+      setIsValidating(false);
+      return;
+    }
+    setCourierError('');
 
     try {
       const res = await apiFetch('/api/checkout/session', {
@@ -277,56 +287,63 @@ export default function CheckoutPage() {
     setIsValidating(false);
   };
 
-  const createOrder = async () => {
+  const handlePayPalRedirect = async () => {
     if (!checkoutSessionId) {
-      throw new Error('Checkout session is missing. Please go back and try again.');
+      setError('Checkout session is missing. Please go back and try again.');
+      return;
     }
-
-    const res = await apiFetch('/api/payment/paypal/create-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        checkoutSessionId,
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      // Handle stock errors
-      if (data.stockErrors && Array.isArray(data.stockErrors)) {
-        throw new Error(data.stockErrors.join('. '));
-      }
-      throw new Error(data.message || data.error || t('checkout.error.createOrder'));
-    }
-    return data.providerPaymentId;
-  };
-
-  const onApprove = async (data: any) => {
+    setIsPayPalLoading(true);
+    setError('');
     try {
-      if (!checkoutSessionId) {
-        throw new Error('Checkout session is missing. Please try again.');
-      }
-
-      const res = await apiFetch('/api/payment/paypal/capture-order', {
+      const res = await apiFetch('/api/payment/paypal/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          checkoutSessionId,
-          providerPaymentId: data.orderID,
-        }),
+        body: JSON.stringify({ checkoutSessionId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.stockErrors && Array.isArray(data.stockErrors)) {
+          throw new Error(data.stockErrors.join('. '));
+        }
+        throw new Error(data.message || data.error || t('checkout.error.createOrder'));
+      }
+      if (!data.approveUrl) {
+        throw new Error('Could not get PayPal checkout URL.');
+      }
+      window.location.href = data.approveUrl;
+    } catch (err: any) {
+      setError(err.message || t('checkout.error.unknown'));
+      setIsPayPalLoading(false);
+    }
+  };
+
+  const handleCodOrder = async () => {
+    if (!checkoutSessionId) {
+      setError('Checkout session is missing. Please go back and try again.');
+      return;
+    }
+    if (!selectedCourier) {
+      setError(t('checkout.validation.courierRequired'));
+      return;
+    }
+    setIsPlacingCod(true);
+    try {
+      const res = await apiFetch('/api/payment/cod', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ checkoutSessionId, courierService: selectedCourier }),
       });
       const result = await res.json();
       if (!res.ok) {
-        // Handle stock errors
-        if (result.stockErrors && Array.isArray(result.stockErrors)) {
-          throw new Error(result.stockErrors.join('. '));
-        }
-        throw new Error(result.message || result.error || t('checkout.error.paymentFailed'));
+        throw new Error(result.error || t('checkout.error.createOrder'));
       }
       setPaymentComplete(true);
       clearCart();
       router.push(`/payment/success?orderId=${result.orderId}`);
     } catch (err: any) {
-      setError(t('checkout.error.paymentFailed') + ': ' + (err.message || t('checkout.error.unknown')));
+      setError(err.message || t('checkout.error.unknown'));
+    } finally {
+      setIsPlacingCod(false);
     }
   };
 
@@ -341,20 +358,7 @@ export default function CheckoutPage() {
   const checkoutContent = (
       <div className="min-h-screen bg-[#0a0a0f] py-6 sm:py-8 md:py-12">
         <div className="container mx-auto px-4 max-w-6xl">
-          {/* Email Verification Warning */}
-          {user && !user.emailVerified && (
-            <div className="mb-4 sm:mb-6 bg-yellow-500/10 border border-yellow-500/50 rounded-lg p-3 sm:p-4">
-              <div className="flex items-start gap-2 sm:gap-3">
-                <FiMail className="text-yellow-500 mt-0.5 flex-shrink-0" size={18} />
-                <div>
-                  <p className="text-yellow-500 font-medium mb-1 text-sm sm:text-base font-body">{t('checkout.emailNotVerified')}</p>
-                  <p className="text-yellow-400 text-xs sm:text-sm font-body">
-                    {t('checkout.emailNotVerifiedDesc')}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Email Verification Warning - TEMP: disabled */}
 
           {/* Header with Steps */}
           <div className="mb-6 sm:mb-8">
@@ -407,25 +411,32 @@ export default function CheckoutPage() {
                         {t('checkout.savedAddress')}
                       </label>
                       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                        <select
-                          value={selectedSavedAddressId}
-                          onChange={(e) => handleSelectSavedAddress(e.target.value)}
-                          disabled={loadingSavedAddresses || savedAddresses.length === 0}
-                          className="flex-1 px-4 py-3 bg-white/[0.03] border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all font-body disabled:opacity-60"
-                        >
-                          {savedAddresses.length === 0 ? (
-                            <option value="">{t('checkout.noSavedAddresses')}</option>
-                          ) : (
-                            <>
-                              <option value="">{t('checkout.selectSaved')}</option>
-                              {savedAddresses.map((address) => (
-                                <option key={address.id} value={address.id}>
-                                  {address.firstName} {address.lastName} - {address.address1}, {address.city}
-                                </option>
-                              ))}
-                            </>
-                          )}
-                        </select>
+                        {loadingSavedAddresses ? (
+                          <div className="flex-1 px-4 py-3 bg-white/[0.03] border border-white/10 rounded-lg text-white/40 font-body animate-pulse">
+                            Зареждане...
+                          </div>
+                        ) : savedAddresses.length === 0 ? (
+                          <div className="flex-1 flex items-center gap-3 px-4 py-3 bg-white/[0.02] border border-white/10 rounded-lg">
+                            <svg className="w-4 h-4 text-white/30 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span className="text-white/40 text-sm font-body">{t('checkout.noSavedAddresses')}</span>
+                          </div>
+                        ) : (
+                          <select
+                            value={selectedSavedAddressId}
+                            onChange={(e) => handleSelectSavedAddress(e.target.value)}
+                            className="flex-1 px-4 py-3 bg-white/[0.03] border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all font-body"
+                          >
+                            <option value="">{t('checkout.selectSaved')}</option>
+                            {savedAddresses.map((address) => (
+                              <option key={address.id} value={address.id}>
+                                {address.firstName} {address.lastName} - {address.address1}, {address.city}
+                              </option>
+                            ))}
+                          </select>
+                        )}
 
                         <button
                           type="button"
@@ -532,6 +543,34 @@ export default function CheckoutPage() {
                     />
                   </div>
 
+                  {/* Courier selection */}
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-white/70 mb-2 font-body">
+                      <span className="flex items-center gap-2">
+                        <FiTruck size={16} className="text-teal-400" />
+                        {t('checkout.courier')} <span className="text-red-400">*</span>
+                      </span>
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {(['SPEEDY', 'ECONT'] as const).map((courier) => (
+                        <button
+                          key={courier}
+                          type="button"
+                          onClick={() => { setSelectedCourier(courier); setCourierError(''); }}
+                          className={`flex items-center justify-center gap-2 px-4 py-3 border rounded-lg font-body transition-all ${
+                            selectedCourier === courier
+                              ? 'border-teal-500 bg-teal-500/10 text-teal-400'
+                              : 'border-white/10 text-white/60 hover:border-white/30 hover:text-white'
+                          }`}
+                        >
+                          <FiPackage size={16} />
+                          {courier === 'SPEEDY' ? t('checkout.courierSpeedy') : t('checkout.courierEcont')}
+                        </button>
+                      ))}
+                    </div>
+                    {courierError && <p className="text-red-400 text-sm mt-1 font-body">{courierError}</p>}
+                  </div>
+
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-white/70 mb-2 font-body">
                       <span className="flex items-center gap-2">
@@ -581,6 +620,12 @@ export default function CheckoutPage() {
                       <p>{shippingAddress.postalCode} {shippingAddress.city}, {shippingAddress.country}</p>
                       <p>{shippingAddress.phone}</p>
                       <p>{shippingAddress.email}</p>
+                      {selectedCourier && (
+                        <p className="flex items-center gap-1 text-teal-400 mt-1">
+                          <FiPackage size={13} />
+                          {selectedCourier === 'SPEEDY' ? t('checkout.courierSpeedy') : t('checkout.courierEcont')}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -626,33 +671,63 @@ export default function CheckoutPage() {
                     {isPayPalEnabled ? (
                       <>
                         {/* Divider */}
-                        <div className="relative my-6">
+                        <div className="relative my-8">
                           <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-white/10"></div>
                           </div>
                           <div className="relative flex justify-center text-sm">
-                            <span className="px-4 bg-[#0a0a0f] text-white/40 font-body">{t('checkout.orPayWithPaypal')}</span>
+                            <span className="px-4 bg-[#0a0a0f] text-white/40 font-body tracking-wide uppercase text-xs">{t('checkout.orPayWithPaypal')}</span>
                           </div>
                         </div>
-                        
-                        <div className="bg-white/[0.03] p-4 rounded-lg mb-4">
-                          <p className="text-white/50 text-sm mb-4 font-body">
-                            {t('checkout.paypalSecure')}
-                          </p>
-                        </div>
 
-                        <PayPalButtons 
-                          createOrder={createOrder} 
-                          onApprove={onApprove} 
-                          onError={(err) => setError('PayPal: ' + err)}
-                          style={{ layout: 'vertical', shape: 'rect' }}
-                        />
+                        <button
+                          onClick={handlePayPalRedirect}
+                          disabled={isPayPalLoading}
+                          className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl font-semibold font-body text-sm transition-all bg-[#FFC439] hover:bg-[#f0b429] disabled:opacity-60 disabled:cursor-not-allowed text-[#003087]"
+                        >
+                          {isPayPalLoading ? (
+                            <>
+                              <span className="inline-block w-4 h-4 border-2 border-[#003087]/40 border-t-[#003087] rounded-full animate-spin" />
+                              <span>Connecting to PayPal...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="font-bold text-[#003087] text-base tracking-tight">Pay<span className="text-[#009cde]">Pal</span></span>
+                              <span>Pay with PayPal</span>
+                            </>
+                          )}
+                        </button>
                       </>
-                    ) : (
-                      <div className="bg-white/[0.03] p-4 rounded-lg mb-4">
-                        <p className="text-white/50 text-sm font-body">{t('checkout.paypalNotConfiguredDesc')}</p>
+                    ) : null}
+
+                    {/* Divider */}
+                    <div className="relative my-6">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-white/10"></div>
                       </div>
-                    )}
+                      <div className="relative flex justify-center text-sm">
+                        <span className="px-4 bg-[#0a0a0f] text-white/40 font-body">{t('checkout.orCashOnDelivery')}</span>
+                      </div>
+                    </div>
+
+                    {/* Cash on Delivery */}
+                    <div className="bg-white/[0.03] border border-white/10 rounded-xl p-5">
+                      <div className="flex items-center gap-3 mb-3">
+                        <FiPackage className="text-amber-400" size={22} />
+                        <div>
+                          <p className="text-white font-medium font-body">{t('checkout.codTitle')}</p>
+                          <p className="text-white/50 text-sm font-body">{t('checkout.codDescPrefix')}{selectedCourier === 'SPEEDY' ? t('checkout.courierSpeedy') : t('checkout.courierEcont')}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleCodOrder}
+                        disabled={isPlacingCod}
+                        className="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors font-body flex items-center justify-center gap-2"
+                      >
+                        <FiPackage size={18} />
+                        {isPlacingCod ? t('checkout.placingOrder') : t('checkout.placeCodOrder')}
+                      </button>
+                    </div>
 
                     <button 
                       onClick={() => setStep('shipping')}
@@ -733,14 +808,6 @@ export default function CheckoutPage() {
         </div>
       </div>
   );
-
-  if (isPayPalEnabled) {
-    return (
-      <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, currency: 'EUR' }}>
-        {checkoutContent}
-      </PayPalScriptProvider>
-    );
-  }
 
   return checkoutContent;
 }

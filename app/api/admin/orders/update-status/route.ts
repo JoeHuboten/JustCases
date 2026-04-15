@@ -5,6 +5,7 @@ import { adminOrderStatusUpdateSchema } from '@/lib/validation';
 import { sendOrderStatusUpdateEmail } from '@/lib/email';
 import { apiRateLimit, strictRateLimit } from '@/lib/rate-limit';
 import { createLogger, getSafeErrorDetails } from '@/lib/logger';
+import { logAdminAction } from '@/lib/audit-log';
 import { z } from 'zod';
 
 const logger = createLogger('api:admin:orders:update-status');
@@ -16,7 +17,7 @@ export const POST = withApiGuard<z.infer<typeof adminOrderStatusUpdateSchema>>(
     rateLimit: strictRateLimit,
     bodySchema: adminOrderStatusUpdateSchema,
   },
-  async (_request: NextRequest, context) => {
+  async (request: NextRequest, context) => {
     try {
       const body = context.body!;
       const user = context.user!;
@@ -86,6 +87,14 @@ export const POST = withApiGuard<z.infer<typeof adminOrderStatusUpdateSchema>>(
       } catch (emailError) {
         logger.warn('Failed to send status update email', { error: getSafeErrorDetails(emailError) });
       }
+
+      await logAdminAction({
+        action: 'ORDER_STATUS_UPDATE',
+        actor: user,
+        request,
+        target: { type: 'Order', id: orderId },
+        metadata: { status, trackingNumber: trackingNumber ?? '', courierService: courierService ?? '' },
+      });
 
       return NextResponse.json({
         success: true,

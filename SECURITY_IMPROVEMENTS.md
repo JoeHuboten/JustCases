@@ -249,8 +249,8 @@ No schema changes required - existing Prisma schema supports all new features.
 ### High Priority
 1. **Password Hashing Audit:** Verify bcrypt work factor (should be 10-12)
 2. **Session Management:** Add session invalidation on password change
-3. **Audit Logging:** Log all admin actions with timestamps and IP addresses
-4. **CSRF Protection:** Add CSRF tokens for state-changing operations
+3. ~~**Audit Logging:** Log all admin actions~~ ✅ **Done — see A09 section above**
+4. ~~**CSRF Protection:** Add CSRF tokens~~ ✅ **Done**
 
 ### Medium Priority
 5. **Email Verification:** Require email confirmation for new accounts
@@ -275,6 +275,149 @@ No schema changes required - existing Prisma schema supports all new features.
 **Reviews API:** ✅ Created and functional  
 
 **Security Status:** 🟢 **PRODUCTION READY**
+
+---
+
+## 🛡️ A06 — Vulnerable and Outdated Components
+
+### Problem
+No automated process existed to detect newly introduced or already-present
+vulnerable npm packages.
+
+### Solution
+
+#### 1. GitHub Actions — PR Dependency Audit (`.github/workflows/dependency-audit-pr.yml`)
+Runs on every pull request targeting `main`, `master`, or `develop`:
+
+- **GitHub Dependency Review action** (`actions/dependency-review-action@v4`) — diffs the dependency graph and flags any newly introduced package with a known CVE at _high_ or higher severity. Posts a summary comment directly on the PR.
+- **`npm audit --audit-level=high`** — fails the PR if any high/critical vulnerability exists in the full dependency tree. The JSON report is saved as a workflow artifact for 30 days.
+
+#### 2. GitHub Actions — Scheduled Audit (`.github/workflows/dependency-audit-scheduled.yml`)
+Runs every Monday at 08:00 UTC and on manual `workflow_dispatch`:
+
+- Prints the full audit report (all severities) for visibility.
+- Fails the job if any high/critical vulnerability is present.
+- Saves the JSON report for 90 days.
+
+#### 3. Dependabot (`.github/dependabot.yml`)
+- Weekly update PRs against `main` (Monday 08:00 UTC).
+- Packages grouped by ecosystem to reduce PR noise (`react-ecosystem`, `next-ecosystem`, `prisma-ecosystem`, `stripe`, `tailwind`, `testing`, `eslint`, `radix-ui`).
+- Security updates are opened immediately regardless of schedule.
+
+### Running checks locally
+
+```bash
+# Quick check — fails on high/critical
+npm audit --audit-level=high
+
+# Full report (all severities)
+npm audit
+
+# JSON output for tooling
+npm audit --json
+```
+
+### Responding to CI failures
+
+1. Read the artifact or PR comment to identify the vulnerable package + CVE.
+2. If a patched version exists: `npm update <package>` or bump in `package.json`.
+3. If no patch is available: assess exploitability in context; consider a temporary `npm audit --omit=dev` exception for dev-only packages, or add a structured `npm audit` override after team review.
+4. For Dependabot PRs: review the changelog, run tests, and merge if green.
+
+---
+
+## 📋 A09 — Security Logging & Monitoring
+
+### Problem
+Admin mutations (create/update/delete for products, categories, discount codes,
+orders) left no durable record of who did what and when. Incidents could not be
+investigated after the fact.
+
+### Solution
+
+#### 1. Prisma model — `AdminAuditLog`
+Added to `prisma/schema.prisma`. Fields:
+
+| Field | Purpose |
+|---|---|
+| `id`, `createdAt` | Identity and timestamp |
+| `action` | `SCREAMING_SNAKE` event name (e.g. `PRODUCT_CREATE`) |
+| `actorUserId`, `actorEmail`, `actorRole` | Denormalised actor snapshot |
+| `ipAddress`, `userAgent` | Best-effort request context |
+| `route`, `method` | Which endpoint handled the request |
+| `targetType`, `targetId` | Optional resource reference |
+| `metadata` | Bounded JSON (scalar primitives only) |
+
+Migration: `prisma/migrations/20260320000001_add_admin_audit_log/migration.sql`
+
+Apply in development:
+```bash
+npx prisma migrate dev
+# or, for the existing db-push workflow:
+npx prisma db push
+```
+
+Apply in production:
+```bash
+npx prisma migrate deploy
+```
+
+#### 2. Audit logging utility — `lib/audit-log.ts`
+Exposes `logAdminAction({ action, actor, request, target?, metadata? })`.
+
+Design guarantees:
+- **Never throws** — DB failures are caught and forwarded to the application logger; the originating request is never broken.
+- **IP extraction** — prefers `x-forwarded-for` (first hop), falls back to `x-real-ip`.
+- **Metadata bounding** — only scalar primitives (`string`, `number`, `boolean`, `null`) are stored. Nested objects and arrays are silently dropped. Strings are capped at 200 characters.
+- **No secrets** — never pass tokens, passwords, card numbers, or raw request bodies as metadata.
+
+#### 3. Events logged
+
+All audit calls happen **after** the DB mutation succeeds.
+
+| Route | Event name |
+|---|---|
+| `POST /api/admin/products` | `PRODUCT_CREATE` |
+| `PUT /api/admin/products/[id]` | `PRODUCT_UPDATE` |
+| `DELETE /api/admin/products/[id]` | `PRODUCT_DELETE` |
+| `POST /api/admin/categories` | `CATEGORY_CREATE` |
+| `PUT /api/admin/categories/[id]` | `CATEGORY_UPDATE` |
+| `DELETE /api/admin/categories/[id]` | `CATEGORY_DELETE` |
+| `POST /api/admin/discount-codes` | `DISCOUNT_CODE_CREATE` |
+| `PUT /api/admin/discount-codes/[id]` | `DISCOUNT_CODE_UPDATE` |
+| `DELETE /api/admin/discount-codes/[id]` | `DISCOUNT_CODE_DELETE` |
+| `PUT /api/admin/orders/[id]` | `ORDER_UPDATE` |
+| `DELETE /api/admin/orders/[id]` | `ORDER_DELETE` |
+| `POST /api/admin/orders/update-status` | `ORDER_STATUS_UPDATE` |
+
+#### 4. Viewing logs — `GET /api/admin/audit-logs`
+
+Admin-only, paginated, newest-first. Query params:
+
+| Param | Default | Description |
+|---|---|---|
+| `page` | 1 | Page number |
+| `limit` | 25 (max 50) | Records per page |
+| `action` | — | Filter by action (partial, case-insensitive) |
+| `actorUserId` | — | Filter by admin user ID |
+| `from` | — | ISO date, inclusive lower bound |
+| `to` | — | ISO date, inclusive upper bound |
+
+`userAgent` and `metadata` are omitted from list responses to keep payloads small.
+
+#### Privacy & retention considerations
+
+- **IP addresses** are collected on a best-effort basis (proxy headers can be spoofed) and must be treated as informational only.
+- **User-agent strings** are stored (truncated to 500 chars) to assist incident investigation; they are not exposed in list responses.
+- **Retention**: no automatic expiry is currently configured. For GDPR compliance, define a data-retention policy and add a scheduled job or Prisma TTL to purge records older than the agreed window (e.g. 90 days for operational logs, 1 year for security logs, per your DPA).
+- Logs are **append-only** by design (no update/delete route is exposed).
+
+#### 5. Tests
+
+| File | What it covers |
+|---|---|
+| `tests/lib/audit-log.test.ts` | Unit tests for `logAdminAction` (write, IP extraction, metadata bounding, no-throw on failure) |
+| `tests/api/admin-products-audit.test.ts` | Integration: verifies `PRODUCT_CREATE` audit entry is written on successful create; no entry on duplicate-slug rejection or DB error |
 
 ---
 

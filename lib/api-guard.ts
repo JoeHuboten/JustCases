@@ -78,12 +78,13 @@ export function withApiGuard<
           return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        if (options.requireVerifiedEmail && !user.emailVerified) {
-          return NextResponse.json(
-            { error: 'Email verification required' },
-            { status: 403 },
-          );
-        }
+        // TEMP: email verification disabled
+        // if (options.requireVerifiedEmail && !user.emailVerified) {
+        //   return NextResponse.json(
+        //     { error: 'Email verification required' },
+        //     { status: 403 },
+        //   );
+        // }
       }
 
       let body: TBody | undefined;

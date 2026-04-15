@@ -11,10 +11,6 @@ updates:
     open-pull-requests-limit: 10
     target-branch: "main"
 
-    # Enable automatic security updates in addition to version updates
-    # (security updates ignore the schedule and open PRs immediately)
-    ignore: []
-
     # Group related packages to reduce PR spam
     groups:
       react-ecosystem:

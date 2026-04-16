@@ -6,7 +6,7 @@ import { finalizeCodOrder } from '@/lib/checkout';
 
 const codOrderSchema = z.object({
   checkoutSessionId: z.string().cuid('Invalid checkout session ID'),
-  courierService: z.enum(['SPEEDY', 'ECONT'], { required_error: 'Courier service is required' }),
+  courierService: z.enum(['SPEEDY', 'ECONT'], { message: 'Courier service is required' }),
 });
 
 export const POST = withApiGuard(

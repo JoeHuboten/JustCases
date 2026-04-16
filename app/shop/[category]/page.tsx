@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import { getCategoryBySlug, getProductsByCategory } from '@/lib/database';
 import CategoryPageClient from './client';
 
+export const dynamic = 'force-dynamic';
+
 interface CategoryPageProps {
   params: Promise<{
     category: string;

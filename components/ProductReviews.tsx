@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { FiStar, FiThumbsUp, FiEdit3, FiTrash2, FiUser, FiSend, FiCheckCircle } from 'react-icons/fi';
 import { useLanguage } from '@/contexts/LanguageContext';
 import ScrollAnimation from './ScrollAnimation';
+import { apiFetch } from '@/lib/client-api';
 
 interface Review {
   id: string;
@@ -76,7 +77,7 @@ export default function ProductReviews({ productId, productName }: ProductReview
 
       const data = await response.json();
       setReviews(data.reviews || []);
-      setTotalPages(data.pagination?.pages || 0);
+      setTotalPages(data.pagination?.totalPages || 0);
       setAverageRating(data.averageRating || 0);
       setTotalReviews(data.totalReviews || 0);
     } catch (error) {
@@ -96,12 +97,11 @@ export default function ProductReviews({ productId, productName }: ProductReview
     setSubmitError('');
     
     try {
-      const response = await fetch('/api/reviews', {
+      const response = await apiFetch('/api/reviews', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
         body: JSON.stringify({
           productId,
           rating: formData.rating,
@@ -119,9 +119,11 @@ export default function ProductReviews({ productId, productName }: ProductReview
       setSubmitSuccess(true);
       setFormData({ rating: 5, title: '', comment: '' });
       setShowForm(false);
-      
-      // Reset success message after 5 seconds
-      setTimeout(() => setSubmitSuccess(false), 5000);
+      setPage(1);
+      await fetchReviews();
+
+      // Reset success message after 8 seconds
+      setTimeout(() => setSubmitSuccess(false), 8000);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : t('product.reviews.failedSubmit', 'Неуспешно публикуване на отзива'));
     } finally {

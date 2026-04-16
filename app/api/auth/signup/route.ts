@@ -65,19 +65,12 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingUser) {
-      // TEMP: email verification disabled — auto-verify existing unverified accounts
-      if (!existingUser.emailVerified) {
-        await prisma.user.update({
-          where: { id: existingUser.id },
-          data: { emailVerified: new Date() },
-        });
-      }
-
+      // Don't reveal that user exists - return same generic message
       return NextResponse.json(
         {
           success: true,
           message: genericSignupMessage,
-          requiresVerification: false,
+          requiresVerification: true,
           requestId,
         },
         { status: 200, headers: { 'x-request-id': requestId } },
@@ -86,23 +79,47 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await hashPassword(password);
 
-    // TEMP: auto-verify users on signup (email verification disabled)
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
         name: name || null,
         role: 'USER',
-        emailVerified: new Date(), // TEMP: auto-verified
+        emailVerified: null,
       },
     });
 
-    logger.info('User registered successfully (auto-verified)', { userId: user.id });
+    // Create verification token
+    await prisma.verificationToken.create({
+      data: {
+        identifier: email,
+        token: verificationToken,
+        expires: tokenExpiry,
+        type: 'EMAIL_VERIFICATION',
+      },
+    });
+
+    const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/verify-email?token=${verificationToken}`;
+
+    // Send verification email
+    await enqueueEmailJob({
+      type: 'EMAIL_VERIFICATION',
+      to: email,
+      payload: {
+        name: name || email.split('@')[0],
+        verificationUrl,
+      },
+    });
+
+    logger.info('User registered, verification email sent', { userId: user.id });
 
     return NextResponse.json({
       success: true,
       message: genericSignupMessage,
-      requiresVerification: false,
+      requiresVerification: true,
       requestId,
     }, { headers: { 'x-request-id': requestId } });
   } catch (error) {

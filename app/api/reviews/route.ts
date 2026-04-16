@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
     const sanitizedTitle = title ? sanitizeInput(title) : null;
     const sanitizedComment = comment ? sanitizeInput(comment) : null;
 
-    // Create review (not verified by default)
+    // Create review (auto-verified)
     const review = await prisma.review.create({
       data: {
         productId,
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
         rating: parseInt(rating),
         comment: sanitizedComment,
         title: sanitizedTitle,
-        verified: false, // Require admin verification
+        verified: true,
       },
     });
 

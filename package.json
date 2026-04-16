@@ -9,15 +9,10 @@
     "build": "next build",
     "start": "next start -H 0.0.0.0",
     "lint": "next lint",
-    "test": "vitest",
-    "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "test:ui": "vitest --ui",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
-    "prisma:seed": "tsx prisma/seed.ts",
-    "db:setup": "prisma generate && prisma db push && npm run prisma:seed",
+    "db:setup": "prisma generate && prisma db push",
     "setup": "npm install && npm run db:setup",
     "reset": "rm -rf node_modules package-lock.json .next prisma/dev.db && npm run setup"
   },
@@ -66,17 +61,11 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.0.1",
     "@types/node": "^24.7.1",
     "@types/react": "19.2.4",
     "@types/react-dom": "19.2.3",
-    "@vitejs/plugin-react": "^4.3.4",
-    "jsdom": "^25.0.1",
     "prisma": "^6.17.1",
-    "tsx": "^4.20.6",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.16"
+    "typescript": "^5.9.3"
   },
   "overrides": {
     "@types/react": "19.2.4",

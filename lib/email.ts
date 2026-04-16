@@ -27,15 +27,16 @@ const NODEMAILER_CONFIGURED = Boolean(
 const transporter = NODEMAILER_CONFIGURED ? nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+  secure: process.env.SMTP_SECURE === 'true',
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
 }) : null;
 
-const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@justcases.bg';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
 
 function getNewsletterUnsubscribeUrl(email: string): string {
   const token = createNewsletterUnsubscribeToken(email);
@@ -48,9 +49,351 @@ interface EmailTemplate {
   text: string;
 }
 
-// Email templates
+// ─── Shared Design System ───────────────────────────────────────────────────
+// Premium dark theme matching AuraCase brand
+
+function emailWrapper(content: string, options?: { unsubscribeUrl?: string }): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="supported-color-schemes" content="dark">
+  <!--[if mso]>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <![endif]-->
+</head>
+<body style="margin:0;padding:0;background-color:#08080d;font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#08080d;padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#111118;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+          <!-- Wordmark Header -->
+          <tr>
+            <td style="padding:28px 32px 24px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06);background:linear-gradient(135deg,rgba(20,184,166,0.08) 0%,rgba(139,92,246,0.06) 100%);">
+              <a href="${SITE_URL}" target="_blank" style="text-decoration:none;">
+                <span style="font-size:11px;font-weight:600;letter-spacing:4px;text-transform:uppercase;color:#14b8a6;display:block;margin-bottom:4px;">JUST</span>
+                <span style="font-size:28px;font-weight:800;color:#ffffff;letter-spacing:-1px;display:block;">CASES<span style="color:#14b8a6;">.</span></span>
+              </a>
+            </td>
+          </tr>
+          ${content}
+          <!-- Footer -->
+          <tr>
+            <td style="padding:24px 32px 28px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;">
+              <p style="margin:0 0 8px;font-size:13px;color:#6b7280;">© ${new Date().getFullYear()} Just Cases — Premium Mobile Accessories</p>
+              <p style="margin:0;font-size:12px;">
+                <a href="${SITE_URL}" style="color:#14b8a6;text-decoration:none;">justcases.bg</a>
+                <span style="color:#374151;margin:0 8px;">·</span>
+                <a href="${SITE_URL}/support" style="color:#6b7280;text-decoration:none;">Support</a>
+                <span style="color:#374151;margin:0 8px;">·</span>
+                <a href="${SITE_URL}/privacy" style="color:#6b7280;text-decoration:none;">Privacy</a>
+              </p>
+              ${options?.unsubscribeUrl ? `<p style="margin:12px 0 0;font-size:11px;color:#4b5563;"><a href="${options.unsubscribeUrl}" style="color:#4b5563;text-decoration:underline;">Unsubscribe</a></p>` : ''}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+function heroSection(emoji: string, title: string, subtitle?: string): string {
+  return `
+  <tr>
+    <td style="padding:40px 32px 24px;text-align:center;background:linear-gradient(135deg,rgba(20,184,166,0.08) 0%,rgba(139,92,246,0.08) 100%);">
+      <div style="font-size:48px;margin-bottom:16px;">${emoji}</div>
+      <h1 style="margin:0 0 8px;font-size:26px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">${title}</h1>
+      ${subtitle ? `<p style="margin:0;font-size:16px;color:#9ca3af;line-height:1.5;">${subtitle}</p>` : ''}
+    </td>
+  </tr>`;
+}
+
+function ctaButton(label: string, url: string): string {
+  return `
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:28px auto;">
+    <tr>
+      <td style="border-radius:10px;background:linear-gradient(135deg,#14b8a6 0%,#0d9488 100%);">
+        <a href="${url}" target="_blank" style="display:inline-block;padding:14px 36px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;letter-spacing:0.3px;">${label}</a>
+      </td>
+    </tr>
+  </table>`;
+}
+
+function infoCard(content: string): string {
+  return `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;">
+    <tr>
+      <td style="background-color:#1a1a24;border-radius:12px;padding:24px;border:1px solid rgba(255,255,255,0.06);">
+        ${content}
+      </td>
+    </tr>
+  </table>`;
+}
+
+function warningBox(content: string): string {
+  return `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;">
+    <tr>
+      <td style="background-color:rgba(251,191,36,0.08);border-left:3px solid #f59e0b;border-radius:0 8px 8px 0;padding:16px 20px;">
+        <p style="margin:0;font-size:14px;color:#d4d4d8;line-height:1.5;">${content}</p>
+      </td>
+    </tr>
+  </table>`;
+}
+
+// ─── Email Templates ────────────────────────────────────────────────────────
+
 export const emailTemplates = {
-  // Order Confirmation Email
+  // ═══════════════════════════════════════════════════════════════════════════
+  // EMAIL VERIFICATION
+  // ═══════════════════════════════════════════════════════════════════════════
+  emailVerification: (data: {
+    name: string;
+    verificationUrl: string;
+    language?: 'bg' | 'en';
+  }): EmailTemplate => {
+    const bg = data.language !== 'en';
+    const name = data.name || (bg ? 'там' : 'there');
+
+    const subject = bg
+      ? '✉️ Потвърдете имейл адреса си — Just Cases'
+      : '✉️ Verify Your Email — Just Cases';
+
+    const html = emailWrapper(`
+      ${heroSection(
+        '🔐',
+        bg ? 'Потвърдете имейла си' : 'Verify Your Email',
+        bg ? 'Само една стъпка ви дели от пълен достъп' : 'Just one step away from full access'
+      )}
+      <tr>
+        <td style="padding:28px 32px 36px;">
+          <p style="margin:0 0 20px;font-size:16px;color:#d4d4d8;line-height:1.6;">
+            ${bg ? 'Здравейте' : 'Hi'} <strong style="color:#ffffff;">${name}</strong>,
+          </p>
+          <p style="margin:0 0 8px;font-size:15px;color:#9ca3af;line-height:1.6;">
+            ${bg
+              ? 'Благодарим ви, че се регистрирахте в Just Cases! Натиснете бутона по-долу, за да потвърдите имейл адреса си и да отключите пълен достъп.'
+              : 'Thanks for signing up for Just Cases! Click the button below to verify your email and unlock full access to our store.'}
+          </p>
+
+          ${ctaButton(
+            bg ? '✓ Потвърди имейл адреса' : '✓ Verify My Email',
+            data.verificationUrl
+          )}
+
+          <p style="margin:0 0 4px;font-size:13px;color:#6b7280;text-align:center;">
+            ${bg ? 'Или копирайте този линк:' : 'Or copy this link:'}
+          </p>
+          <p style="margin:0;text-align:center;word-break:break-all;">
+            <a href="${data.verificationUrl}" style="font-size:12px;color:#14b8a6;text-decoration:none;">${data.verificationUrl}</a>
+          </p>
+
+          ${warningBox(
+            `⏰ ${bg
+              ? 'Този линк е валиден <strong style="color:#f59e0b;">24 часа</strong>. Ако не сте създали акаунт, игнорирайте този имейл.'
+              : 'This link expires in <strong style="color:#f59e0b;">24 hours</strong>. If you didn\'t create an account, you can safely ignore this email.'}`
+          )}
+
+          ${infoCard(`
+            <p style="margin:0 0 12px;font-size:14px;font-weight:600;color:#ffffff;">
+              ${bg ? '🎁 Какво ви очаква:' : '🎁 What you\'ll unlock:'}
+            </p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding:6px 0;font-size:14px;color:#9ca3af;">✦ ${bg ? 'Достъп до пълния каталог' : 'Full product catalog access'}</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 0;font-size:14px;color:#9ca3af;">✦ ${bg ? 'Проследяване на поръчки' : 'Order tracking'}</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 0;font-size:14px;color:#9ca3af;">✦ ${bg ? 'Списък с желания и отзиви' : 'Wishlist & reviews'}</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 0;font-size:14px;color:#9ca3af;">✦ ${bg ? 'Ексклузивни оферти за членове' : 'Exclusive member offers'}</td>
+              </tr>
+            </table>
+          `)}
+        </td>
+      </tr>
+    `);
+
+    const text = `
+${bg ? 'Потвърдете имейла си — Just Cases' : 'Verify Your Email — Just Cases'}
+
+${bg ? 'Здравейте' : 'Hi'} ${name},
+
+${bg ? 'Благодарим ви, че се регистрирахте! Потвърдете имейла си тук:' : 'Thanks for signing up! Verify your email here:'}
+${data.verificationUrl}
+
+${bg ? 'Линкът е валиден 24 часа.' : 'This link expires in 24 hours.'}
+
+Just Cases
+    `.trim();
+
+    return { subject, html, text };
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // EMAIL VERIFICATION SUCCESS
+  // ═══════════════════════════════════════════════════════════════════════════
+  emailVerificationSuccess: (data: {
+    name: string;
+    language?: 'bg' | 'en';
+  }): EmailTemplate => {
+    const bg = data.language !== 'en';
+    const name = data.name || (bg ? 'там' : 'there');
+
+    const subject = bg
+      ? '✅ Имейлът е потвърден — Just Cases'
+      : '✅ Email Verified — Just Cases';
+
+    const html = emailWrapper(`
+      ${heroSection(
+        '🎉',
+        bg ? 'Имейлът е потвърден!' : 'Email Verified!',
+        bg ? 'Вече имате пълен достъп до Just Cases' : 'You now have full access to Just Cases'
+      )}
+      <tr>
+        <td style="padding:28px 32px 36px;">
+          <p style="margin:0 0 20px;font-size:16px;color:#d4d4d8;line-height:1.6;">
+            ${bg ? 'Здравейте' : 'Hi'} <strong style="color:#ffffff;">${name}</strong>,
+          </p>
+          <p style="margin:0 0 24px;font-size:15px;color:#9ca3af;line-height:1.6;">
+            ${bg
+              ? 'Вашият имейл беше успешно потвърден. Вече можете да пазарувате, оставяте отзиви и проследявате поръчки.'
+              : 'Your email has been successfully verified. You can now shop, leave reviews, and track orders.'}
+          </p>
+
+          ${infoCard(`
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding:8px 0;font-size:14px;color:#d4d4d8;">
+                  <span style="color:#14b8a6;font-weight:600;">✓</span>&nbsp;&nbsp;${bg ? 'Разглеждане и покупка на продукти' : 'Browse and purchase products'}
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:8px 0;font-size:14px;color:#d4d4d8;">
+                  <span style="color:#14b8a6;font-weight:600;">✓</span>&nbsp;&nbsp;${bg ? 'Проследяване на поръчки' : 'Track your orders'}
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:8px 0;font-size:14px;color:#d4d4d8;">
+                  <span style="color:#14b8a6;font-weight:600;">✓</span>&nbsp;&nbsp;${bg ? 'Оставяне на отзиви и оценки' : 'Leave reviews and ratings'}
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:8px 0;font-size:14px;color:#d4d4d8;">
+                  <span style="color:#14b8a6;font-weight:600;">✓</span>&nbsp;&nbsp;${bg ? 'Запазване в списък с желания' : 'Save to your wishlist'}
+                </td>
+              </tr>
+            </table>
+          `)}
+
+          ${ctaButton(
+            bg ? '🛍️ Започнете пазаруването' : '🛍️ Start Shopping',
+            `${SITE_URL}/shop`
+          )}
+        </td>
+      </tr>
+    `);
+
+    const text = `
+${bg ? 'Имейлът е потвърден!' : 'Email Verified!'}
+
+${bg ? 'Здравейте' : 'Hi'} ${name},
+
+${bg ? 'Имейлът ви беше успешно потвърден. Вече имате пълен достъп.' : 'Your email has been verified. You now have full access.'}
+
+${bg ? 'Започнете пазаруването:' : 'Start shopping:'} ${SITE_URL}/shop
+
+Just Cases
+    `.trim();
+
+    return { subject, html, text };
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PASSWORD RESET
+  // ═══════════════════════════════════════════════════════════════════════════
+  passwordReset: (data: {
+    name: string;
+    resetToken: string;
+    language?: 'bg' | 'en';
+  }): EmailTemplate => {
+    const bg = data.language !== 'en';
+    const resetUrl = `${SITE_URL}/auth/reset-password?token=${data.resetToken}`;
+
+    const subject = bg
+      ? '🔑 Нулиране на парола — Just Cases'
+      : '🔑 Reset Your Password — Just Cases';
+
+    const html = emailWrapper(`
+      ${heroSection(
+        '🔑',
+        bg ? 'Нулиране на парола' : 'Reset Your Password',
+        bg ? 'Заявка за промяна на паролата' : 'Password change request'
+      )}
+      <tr>
+        <td style="padding:28px 32px 36px;">
+          <p style="margin:0 0 20px;font-size:16px;color:#d4d4d8;line-height:1.6;">
+            ${bg ? 'Здравейте' : 'Hello'} <strong style="color:#ffffff;">${data.name}</strong>,
+          </p>
+          <p style="margin:0 0 8px;font-size:15px;color:#9ca3af;line-height:1.6;">
+            ${bg
+              ? 'Получихме заявка за нулиране на паролата за вашия акаунт. Натиснете бутона по-долу, за да зададете нова парола.'
+              : 'We received a request to reset the password for your account. Click the button below to set a new password.'}
+          </p>
+
+          ${ctaButton(
+            bg ? '🔐 Нулирай паролата' : '🔐 Reset Password',
+            resetUrl
+          )}
+
+          <p style="margin:0 0 4px;font-size:13px;color:#6b7280;text-align:center;">
+            ${bg ? 'Или копирайте този линк:' : 'Or copy this link:'}
+          </p>
+          <p style="margin:0 0 24px;text-align:center;word-break:break-all;">
+            <a href="${resetUrl}" style="font-size:12px;color:#14b8a6;text-decoration:none;">${resetUrl}</a>
+          </p>
+
+          ${warningBox(
+            `⚠️ <strong style="color:#f59e0b;">${bg ? 'Важно:' : 'Important:'}</strong> ${bg
+              ? 'Този линк е валиден само <strong style="color:#f59e0b;">1 час</strong>. Ако не сте заявили тази промяна, игнорирайте този имейл — паролата ви няма да бъде променена.'
+              : 'This link is valid for <strong style="color:#f59e0b;">1 hour</strong> only. If you didn\'t request this, ignore this email — your password will remain unchanged.'}`
+          )}
+        </td>
+      </tr>
+    `);
+
+    const text = `
+${bg ? 'Нулиране на парола — Just Cases' : 'Reset Your Password — Just Cases'}
+
+${bg ? 'Здравейте' : 'Hello'} ${data.name},
+
+${bg ? 'Натиснете тук за да нулирате паролата:' : 'Click here to reset your password:'}
+${resetUrl}
+
+${bg ? 'Този линк е валиден само 1 час.' : 'This link is valid for 1 hour only.'}
+
+Just Cases
+    `.trim();
+
+    return { subject, html, text };
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ORDER CONFIRMATION
+  // ═══════════════════════════════════════════════════════════════════════════
   orderConfirmation: (data: {
     orderId: string;
     customerName: string;
@@ -59,109 +402,100 @@ export const emailTemplates = {
     trackingNumber?: string;
     language?: 'bg' | 'en';
   }): EmailTemplate => {
-    const isBulgarian = data.language === 'bg';
+    const bg = data.language !== 'en';
     const currency = '€';
-    
-    const subject = isBulgarian 
-      ? `Потвърждение на поръчка #${data.orderId}` 
-      : `Order Confirmation #${data.orderId}`;
 
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background: #f4f4f4; margin: 0; padding: 0; }
-    .container { max-width: 600px; margin: 20px auto; background: #fff; border-radius: 8px; overflow: hidden; }
-    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 30px; text-align: center; }
-    .content { padding: 30px; }
-    .order-details { background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0; }
-    .item { border-bottom: 1px solid #e9ecef; padding: 15px 0; }
-    .item:last-child { border-bottom: none; }
-    .total { font-size: 20px; font-weight: bold; color: #667eea; margin-top: 20px; text-align: right; }
-    .button { display: inline-block; background: #667eea; color: #fff; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
-    .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #666; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>${isBulgarian ? '✅ Поръчката е потвърдена!' : '✅ Order Confirmed!'}</h1>
-      <p>${isBulgarian ? 'Благодарим Ви за поръчката!' : 'Thank you for your order!'}</p>
-    </div>
-    
-    <div class="content">
-      <p>${isBulgarian ? 'Здравейте' : 'Hello'} ${data.customerName},</p>
-      
-      <p>${isBulgarian 
-        ? 'Вашата поръчка беше успешно приета и се обработва.' 
-        : 'Your order has been successfully received and is being processed.'}</p>
-      
-      <div class="order-details">
-        <h2>${isBulgarian ? 'Детайли на поръчката' : 'Order Details'}</h2>
-        <p><strong>${isBulgarian ? 'Номер на поръчка:' : 'Order Number:'}</strong> #${data.orderId}</p>
-        ${data.trackingNumber ? `<p><strong>${isBulgarian ? 'Номер за проследяване:' : 'Tracking Number:'}</strong> ${data.trackingNumber}</p>` : ''}
-        
-        <h3 style="margin-top: 20px;">${isBulgarian ? 'Продукти' : 'Items'}</h3>
-        ${data.items.map(item => `
-          <div class="item">
-            <strong>${item.name}</strong><br>
-            ${isBulgarian ? 'Количество:' : 'Quantity:'} ${item.quantity} × ${item.price.toFixed(2)} ${currency}
-          </div>
-        `).join('')}
-        
-        <div class="total">
-          ${isBulgarian ? 'Обща сума:' : 'Total:'} ${data.total.toFixed(2)} ${currency}
-        </div>
-      </div>
-      
-      <center>
-        <a href="${SITE_URL}/orders" class="button">
-          ${isBulgarian ? 'Виж поръчката' : 'View Order'}
-        </a>
-      </center>
-      
-      <p style="margin-top: 30px; color: #666; font-size: 14px;">
-        ${isBulgarian 
-          ? 'Ще получите ново имейл уведомление, когато поръчката Ви бъде изпратена.' 
-          : 'You will receive another email notification when your order is shipped.'}
-      </p>
-    </div>
-    
-    <div class="footer">
-      <p>Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}</p>
-      <p><a href="${SITE_URL}" style="color: #667eea;">www.justcases.bg</a></p>
-    </div>
-  </div>
-</body>
-</html>
-    `;
+    const subject = bg
+      ? `✅ Поръчка #${data.orderId} е потвърдена`
+      : `✅ Order #${data.orderId} Confirmed`;
+
+    const itemRows = data.items.map(item => `
+      <tr>
+        <td style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <p style="margin:0 0 4px;font-size:15px;font-weight:600;color:#ffffff;">${item.name}</p>
+          <p style="margin:0;font-size:13px;color:#6b7280;">${bg ? 'Кол.' : 'Qty'}: ${item.quantity}</p>
+        </td>
+        <td style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.06);text-align:right;vertical-align:top;">
+          <p style="margin:0;font-size:15px;font-weight:600;color:#14b8a6;">${(item.price * item.quantity).toFixed(2)} ${currency}</p>
+        </td>
+      </tr>
+    `).join('');
+
+    const html = emailWrapper(`
+      ${heroSection(
+        '✅',
+        bg ? 'Поръчката е потвърдена!' : 'Order Confirmed!',
+        bg ? 'Благодарим ви за покупката' : 'Thank you for your purchase'
+      )}
+      <tr>
+        <td style="padding:28px 32px 36px;">
+          <p style="margin:0 0 20px;font-size:16px;color:#d4d4d8;line-height:1.6;">
+            ${bg ? 'Здравейте' : 'Hello'} <strong style="color:#ffffff;">${data.customerName}</strong>,
+          </p>
+          <p style="margin:0 0 24px;font-size:15px;color:#9ca3af;line-height:1.6;">
+            ${bg
+              ? 'Поръчката ви е приета и се обработва. Ще получите имейл, когато бъде изпратена.'
+              : 'Your order has been received and is being processed. You\'ll get an email when it ships.'}
+          </p>
+
+          ${infoCard(`
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06);">
+                  <p style="margin:0 0 4px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">${bg ? 'Номер на поръчка' : 'Order Number'}</p>
+                  <p style="margin:0;font-size:18px;font-weight:700;color:#14b8a6;">#${data.orderId}</p>
+                </td>
+              </tr>
+              ${data.trackingNumber ? `
+              <tr>
+                <td style="padding:12px 0 16px;border-bottom:1px solid rgba(255,255,255,0.06);">
+                  <p style="margin:0 0 4px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">${bg ? 'Номер за проследяване' : 'Tracking Number'}</p>
+                  <p style="margin:0;font-size:16px;font-weight:600;color:#ffffff;">${data.trackingNumber}</p>
+                </td>
+              </tr>` : ''}
+              ${itemRows}
+              <tr>
+                <td colspan="2" style="padding:20px 0 4px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="font-size:16px;font-weight:600;color:#9ca3af;">${bg ? 'Общо' : 'Total'}</td>
+                      <td style="text-align:right;font-size:22px;font-weight:700;color:#14b8a6;">${data.total.toFixed(2)} ${currency}</td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          `)}
+
+          ${ctaButton(
+            bg ? '📦 Виж поръчката' : '📦 View Order',
+            `${SITE_URL}/orders`
+          )}
+        </td>
+      </tr>
+    `);
 
     const text = `
-${isBulgarian ? 'Здравейте' : 'Hello'} ${data.customerName},
+${bg ? 'Поръчка потвърдена!' : 'Order Confirmed!'}
 
-${isBulgarian ? 'Поръчката Ви е потвърдена!' : 'Your order has been confirmed!'}
+${bg ? 'Здравейте' : 'Hello'} ${data.customerName},
 
-${isBulgarian ? 'Номер на поръчка:' : 'Order Number:'} #${data.orderId}
-${data.trackingNumber ? `${isBulgarian ? 'Номер за проследяване:' : 'Tracking Number:'} ${data.trackingNumber}` : ''}
+${bg ? 'Номер на поръчка:' : 'Order:'} #${data.orderId}
+${data.items.map(i => `- ${i.name} (${i.quantity} × ${i.price.toFixed(2)} ${currency})`).join('\n')}
 
-${isBulgarian ? 'Продукти:' : 'Items:'}
-${data.items.map(item => `- ${item.name} (${item.quantity} × ${item.price.toFixed(2)} ${currency})`).join('\n')}
+${bg ? 'Общо:' : 'Total:'} ${data.total.toFixed(2)} ${currency}
 
-${isBulgarian ? 'Обща сума:' : 'Total:'} ${data.total.toFixed(2)} ${currency}
+${bg ? 'Виж поръчката:' : 'View order:'} ${SITE_URL}/orders
 
-${isBulgarian ? 'Виж поръчката:' : 'View your order:'} ${SITE_URL}/orders
-
-${isBulgarian ? 'Благодарим Ви!' : 'Thank you!'}
 Just Cases
     `.trim();
 
     return { subject, html, text };
   },
 
-  // Order Status Update Email
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ORDER STATUS UPDATE
+  // ═══════════════════════════════════════════════════════════════════════════
   orderStatusUpdate: (data: {
     orderId: string;
     customerName: string;
@@ -171,82 +505,85 @@ Just Cases
     estimatedDelivery?: string;
     language?: 'bg' | 'en';
   }): EmailTemplate => {
-    const isBulgarian = data.language === 'bg';
-    
-    const statusLabels: Record<string, { bg: string; en: string; emoji: string }> = {
-      PENDING: { bg: 'В очакване', en: 'Pending', emoji: '⏳' },
-      PROCESSING: { bg: 'В обработка', en: 'Processing', emoji: '📦' },
-      SHIPPED: { bg: 'Изпратена', en: 'Shipped', emoji: '🚚' },
-      DELIVERED: { bg: 'Доставена', en: 'Delivered', emoji: '✅' },
-      CANCELLED: { bg: 'Отказана', en: 'Cancelled', emoji: '❌' },
+    const bg = data.language !== 'en';
+
+    const statusLabels: Record<string, { bg: string; en: string; emoji: string; color: string }> = {
+      PENDING: { bg: 'В очакване', en: 'Pending', emoji: '⏳', color: '#f59e0b' },
+      PROCESSING: { bg: 'В обработка', en: 'Processing', emoji: '⚙️', color: '#3b82f6' },
+      SHIPPED: { bg: 'Изпратена', en: 'Shipped', emoji: '🚚', color: '#8b5cf6' },
+      DELIVERED: { bg: 'Доставена', en: 'Delivered', emoji: '✅', color: '#10b981' },
+      CANCELLED: { bg: 'Отказана', en: 'Cancelled', emoji: '❌', color: '#ef4444' },
     };
 
     const statusInfo = statusLabels[data.status] || statusLabels.PENDING;
-    const statusText = isBulgarian ? statusInfo.bg : statusInfo.en;
-    
-    const subject = isBulgarian 
-      ? `${statusInfo.emoji} Актуализация на поръчка #${data.orderId}` 
-      : `${statusInfo.emoji} Order Update #${data.orderId}`;
+    const statusText = bg ? statusInfo.bg : statusInfo.en;
 
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background: #f4f4f4; margin: 0; padding: 0; }
-    .container { max-width: 600px; margin: 20px auto; background: #fff; border-radius: 8px; overflow: hidden; }
-    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 30px; text-align: center; }
-    .content { padding: 30px; }
-    .status-box { background: #f0f4ff; border-left: 4px solid #667eea; padding: 20px; margin: 20px 0; border-radius: 4px; }
-    .button { display: inline-block; background: #667eea; color: #fff; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
-    .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #666; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>${statusInfo.emoji} ${isBulgarian ? 'Актуализация на поръчката' : 'Order Update'}</h1>
-    </div>
-    
-    <div class="content">
-      <p>${isBulgarian ? 'Здравейте' : 'Hello'} ${data.customerName},</p>
-      
-      <p>${isBulgarian ? 'Има нова актуализация за поръчка #' : 'There is a new update for order #'}${data.orderId}</p>
-      
-      <div class="status-box">
-        <h2 style="margin-top: 0;">${isBulgarian ? 'Нов статус:' : 'New Status:'} ${statusText}</h2>
-        ${data.trackingNumber ? `<p><strong>${isBulgarian ? 'Номер за проследяване:' : 'Tracking Number:'}</strong> ${data.trackingNumber}</p>` : ''}
-        ${data.courierService ? `<p><strong>${isBulgarian ? 'Куриер:' : 'Courier:'}</strong> ${data.courierService}</p>` : ''}
-        ${data.estimatedDelivery ? `<p><strong>${isBulgarian ? 'Очаквана доставка:' : 'Estimated Delivery:'}</strong> ${new Date(data.estimatedDelivery).toLocaleDateString(isBulgarian ? 'bg-BG' : 'en-US')}</p>` : ''}
-      </div>
-      
-      <center>
-        <a href="${SITE_URL}/orders/track?trackingNumber=${data.trackingNumber || data.orderId}" class="button">
-          ${isBulgarian ? 'Проследи поръчката' : 'Track Order'}
-        </a>
-      </center>
-    </div>
-    
-    <div class="footer">
-      <p>Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}</p>
-      <p><a href="${SITE_URL}" style="color: #667eea;">www.justcases.bg</a></p>
-    </div>
-  </div>
-</body>
-</html>
-    `;
+    const subject = bg
+      ? `${statusInfo.emoji} Поръчка #${data.orderId} — ${statusText}`
+      : `${statusInfo.emoji} Order #${data.orderId} — ${statusText}`;
+
+    const html = emailWrapper(`
+      ${heroSection(
+        statusInfo.emoji,
+        bg ? 'Актуализация на поръчката' : 'Order Update',
+        `${bg ? 'Поръчка' : 'Order'} #${data.orderId}`
+      )}
+      <tr>
+        <td style="padding:28px 32px 36px;">
+          <p style="margin:0 0 24px;font-size:16px;color:#d4d4d8;line-height:1.6;">
+            ${bg ? 'Здравейте' : 'Hello'} <strong style="color:#ffffff;">${data.customerName}</strong>,
+          </p>
+
+          ${infoCard(`
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding-bottom:16px;">
+                  <p style="margin:0 0 8px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">${bg ? 'Нов статус' : 'New Status'}</p>
+                  <p style="margin:0;font-size:20px;font-weight:700;color:${statusInfo.color};">${statusInfo.emoji} ${statusText}</p>
+                </td>
+              </tr>
+              ${data.trackingNumber ? `
+              <tr>
+                <td style="padding:12px 0;border-top:1px solid rgba(255,255,255,0.06);">
+                  <p style="margin:0 0 4px;font-size:13px;color:#6b7280;">${bg ? 'Номер за проследяване' : 'Tracking Number'}</p>
+                  <p style="margin:0;font-size:16px;font-weight:600;color:#ffffff;">${data.trackingNumber}</p>
+                </td>
+              </tr>` : ''}
+              ${data.courierService ? `
+              <tr>
+                <td style="padding:12px 0;border-top:1px solid rgba(255,255,255,0.06);">
+                  <p style="margin:0 0 4px;font-size:13px;color:#6b7280;">${bg ? 'Куриер' : 'Courier'}</p>
+                  <p style="margin:0;font-size:15px;color:#ffffff;">${data.courierService}</p>
+                </td>
+              </tr>` : ''}
+              ${data.estimatedDelivery ? `
+              <tr>
+                <td style="padding:12px 0;border-top:1px solid rgba(255,255,255,0.06);">
+                  <p style="margin:0 0 4px;font-size:13px;color:#6b7280;">${bg ? 'Очаквана доставка' : 'Estimated Delivery'}</p>
+                  <p style="margin:0;font-size:15px;color:#ffffff;">${new Date(data.estimatedDelivery).toLocaleDateString(bg ? 'bg-BG' : 'en-US')}</p>
+                </td>
+              </tr>` : ''}
+            </table>
+          `)}
+
+          ${ctaButton(
+            bg ? '📍 Проследи поръчката' : '📍 Track Order',
+            `${SITE_URL}/orders/track?trackingNumber=${data.trackingNumber || data.orderId}`
+          )}
+        </td>
+      </tr>
+    `);
 
     const text = `
-${isBulgarian ? 'Здравейте' : 'Hello'} ${data.customerName},
+${statusInfo.emoji} ${bg ? 'Актуализация на поръчка' : 'Order Update'} #${data.orderId}
 
-${isBulgarian ? 'Актуализация на поръчка #' : 'Order update #'}${data.orderId}
+${bg ? 'Здравейте' : 'Hello'} ${data.customerName},
 
-${isBulgarian ? 'Нов статус:' : 'New Status:'} ${statusText}
-${data.trackingNumber ? `${isBulgarian ? 'Номер за проследяване:' : 'Tracking Number:'} ${data.trackingNumber}` : ''}
-${data.courierService ? `${isBulgarian ? 'Куриер:' : 'Courier:'} ${data.courierService}` : ''}
+${bg ? 'Нов статус:' : 'New Status:'} ${statusText}
+${data.trackingNumber ? `${bg ? 'Проследяване:' : 'Tracking:'} ${data.trackingNumber}` : ''}
+${data.courierService ? `${bg ? 'Куриер:' : 'Courier:'} ${data.courierService}` : ''}
 
-${isBulgarian ? 'Проследи поръчката:' : 'Track your order:'} ${SITE_URL}/orders/track?trackingNumber=${data.trackingNumber || data.orderId}
+${bg ? 'Проследи:' : 'Track:'} ${SITE_URL}/orders/track?trackingNumber=${data.trackingNumber || data.orderId}
 
 Just Cases
     `.trim();
@@ -254,96 +591,9 @@ Just Cases
     return { subject, html, text };
   },
 
-  // Password Reset Email
-  passwordReset: (data: {
-    name: string;
-    resetToken: string;
-    language?: 'bg' | 'en';
-  }): EmailTemplate => {
-    const isBulgarian = data.language === 'bg';
-    const resetUrl = `${SITE_URL}/auth/reset-password?token=${data.resetToken}`;
-    
-    const subject = isBulgarian 
-      ? 'Нулиране на парола - Just Cases' 
-      : 'Reset Your Password - Just Cases';
-
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background: #f4f4f4; margin: 0; padding: 0; }
-    .container { max-width: 600px; margin: 20px auto; background: #fff; border-radius: 8px; overflow: hidden; }
-    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 30px; text-align: center; }
-    .content { padding: 30px; }
-    .button { display: inline-block; background: #667eea; color: #fff; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
-    .warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px; }
-    .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #666; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>🔐 ${isBulgarian ? 'Нулиране на парола' : 'Reset Password'}</h1>
-    </div>
-    
-    <div class="content">
-      <p>${isBulgarian ? 'Здравейте' : 'Hello'} ${data.name},</p>
-      
-      <p>${isBulgarian 
-        ? 'Получихме заявка за нулиране на паролата за Вашия акаунт в Just Cases.' 
-        : 'We received a request to reset the password for your Just Cases account.'}</p>
-      
-      <center>
-        <a href="${resetUrl}" class="button">
-          ${isBulgarian ? 'Нулирай паролата' : 'Reset Password'}
-        </a>
-      </center>
-      
-      <p style="font-size: 14px; color: #666;">
-        ${isBulgarian ? 'Или копирайте този линк:' : 'Or copy this link:'}<br>
-        <a href="${resetUrl}" style="word-break: break-all; color: #667eea;">${resetUrl}</a>
-      </p>
-      
-      <div class="warning">
-        <strong>⚠️ ${isBulgarian ? 'Важно:' : 'Important:'}</strong><br>
-        ${isBulgarian 
-          ? 'Този линк е валиден само 1 час. Ако не сте заявили тази промяна, моля игнорирайте този имейл.' 
-          : 'This link is valid for 1 hour only. If you did not request this change, please ignore this email.'}
-      </div>
-    </div>
-    
-    <div class="footer">
-      <p>Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}</p>
-      <p><a href="${SITE_URL}" style="color: #667eea;">www.justcases.bg</a></p>
-    </div>
-  </div>
-</body>
-</html>
-    `;
-
-    const text = `
-${isBulgarian ? 'Здравейте' : 'Hello'} ${data.name},
-
-${isBulgarian 
-  ? 'Получихме заявка за нулиране на паролата за Вашия акаунт.' 
-  : 'We received a request to reset your password.'}
-
-${isBulgarian ? 'Натиснете тук за да нулирате паролата:' : 'Click here to reset your password:'}
-${resetUrl}
-
-${isBulgarian 
-  ? 'Този линк е валиден само 1 час.' 
-  : 'This link is valid for 1 hour only.'}
-
-Just Cases
-    `.trim();
-
-    return { subject, html, text };
-  },
-
-  // Discount Code Email
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DISCOUNT CODE
+  // ═══════════════════════════════════════════════════════════════════════════
   discountCode: (data: {
     name: string;
     code: string;
@@ -351,80 +601,59 @@ Just Cases
     expiresAt?: string;
     language?: 'bg' | 'en';
   }): EmailTemplate => {
-    const isBulgarian = data.language === 'bg';
-    
-    const subject = isBulgarian 
-      ? `🎉 Вашият ${data.percentage}% код за отстъпка` 
-      : `🎉 Your ${data.percentage}% Discount Code`;
+    const bg = data.language !== 'en';
 
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background: #f4f4f4; margin: 0; padding: 0; }
-    .container { max-width: 600px; margin: 20px auto; background: #fff; border-radius: 8px; overflow: hidden; }
-    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 30px; text-align: center; }
-    .content { padding: 30px; }
-    .code-box { background: #f0f4ff; border: 2px dashed #667eea; padding: 30px; margin: 20px 0; border-radius: 8px; text-align: center; }
-    .code { font-size: 32px; font-weight: bold; color: #667eea; letter-spacing: 2px; }
-    .button { display: inline-block; background: #667eea; color: #fff; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
-    .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #666; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>🎉 ${isBulgarian ? 'Специална отстъпка за Вас!' : 'Special Discount for You!'}</h1>
-    </div>
-    
-    <div class="content">
-      <p>${isBulgarian ? 'Здравейте' : 'Hello'} ${data.name},</p>
-      
-      <p>${isBulgarian 
-        ? `Радваме се да Ви предложим <strong>${data.percentage}% отстъпка</strong> за следващата Ви поръчка!` 
-        : `We're excited to offer you a <strong>${data.percentage}% discount</strong> on your next purchase!`}</p>
-      
-      <div class="code-box">
-        <p style="margin: 0 0 10px 0; color: #666;">${isBulgarian ? 'Вашият код:' : 'Your code:'}</p>
-        <div class="code">${data.code}</div>
-      </div>
-      
-      ${data.expiresAt ? `
-        <p style="text-align: center; color: #666;">
-          ⏰ ${isBulgarian ? 'Валиден до:' : 'Valid until:'} ${new Date(data.expiresAt).toLocaleDateString(isBulgarian ? 'bg-BG' : 'en-US')}
-        </p>
-      ` : ''}
-      
-      <center>
-        <a href="${SITE_URL}/shop" class="button">
-          ${isBulgarian ? 'Пазарувай сега' : 'Shop Now'}
-        </a>
-      </center>
-    </div>
-    
-    <div class="footer">
-      <p>Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}</p>
-      <p><a href="${SITE_URL}" style="color: #667eea;">www.justcases.bg</a></p>
-    </div>
-  </div>
-</body>
-</html>
-    `;
+    const subject = bg
+      ? `🎁 ${data.percentage}% отстъпка специално за вас!`
+      : `🎁 ${data.percentage}% Off — Just for You!`;
+
+    const html = emailWrapper(`
+      ${heroSection(
+        '🎁',
+        bg ? 'Специална отстъпка!' : 'Special Discount!',
+        bg ? `${data.percentage}% отстъпка за следващата ви поръчка` : `${data.percentage}% off your next order`
+      )}
+      <tr>
+        <td style="padding:28px 32px 36px;">
+          <p style="margin:0 0 20px;font-size:16px;color:#d4d4d8;line-height:1.6;">
+            ${bg ? 'Здравейте' : 'Hello'} <strong style="color:#ffffff;">${data.name}</strong>,
+          </p>
+          <p style="margin:0 0 28px;font-size:15px;color:#9ca3af;line-height:1.6;">
+            ${bg
+              ? `Имаме специална изненада за вас — <strong style="color:#14b8a6;">${data.percentage}% отстъпка</strong> за следващата ви поръчка!`
+              : `We have a special treat for you — <strong style="color:#14b8a6;">${data.percentage}% off</strong> your next purchase!`}
+          </p>
+
+          <!-- Code Box -->
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+            <tr>
+              <td style="text-align:center;padding:28px;background:linear-gradient(135deg,rgba(20,184,166,0.1) 0%,rgba(139,92,246,0.1) 100%);border:2px dashed #14b8a6;border-radius:12px;">
+                <p style="margin:0 0 8px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">${bg ? 'Вашият код' : 'Your Code'}</p>
+                <p style="margin:0;font-size:32px;font-weight:800;color:#14b8a6;letter-spacing:3px;">${data.code}</p>
+                ${data.expiresAt ? `<p style="margin:12px 0 0;font-size:13px;color:#6b7280;">⏰ ${bg ? 'Валиден до' : 'Valid until'} ${new Date(data.expiresAt).toLocaleDateString(bg ? 'bg-BG' : 'en-US')}</p>` : ''}
+              </td>
+            </tr>
+          </table>
+
+          ${ctaButton(
+            bg ? '🛍️ Пазарувай сега' : '🛍️ Shop Now',
+            `${SITE_URL}/shop`
+          )}
+        </td>
+      </tr>
+    `);
 
     const text = `
-${isBulgarian ? 'Здравейте' : 'Hello'} ${data.name},
+🎁 ${bg ? 'Специална отстъпка!' : 'Special Discount!'}
 
-🎉 ${isBulgarian ? 'Специална отстъпка!' : 'Special Discount!'}
+${bg ? 'Здравейте' : 'Hello'} ${data.name},
 
-${isBulgarian ? 'Вашият код за' : 'Your'} ${data.percentage}% ${isBulgarian ? 'отстъпка:' : 'discount code:'}
-
+${bg ? 'Вашият код за' : 'Your'} ${data.percentage}% ${bg ? 'отстъпка:' : 'discount code:'}
 ${data.code}
 
-${data.expiresAt ? `${isBulgarian ? 'Валиден до:' : 'Valid until:'} ${new Date(data.expiresAt).toLocaleDateString(isBulgarian ? 'bg-BG' : 'en-US')}` : ''}
+${data.expiresAt ? `${bg ? 'Валиден до:' : 'Valid until:'} ${new Date(data.expiresAt).toLocaleDateString(bg ? 'bg-BG' : 'en-US')}` : ''}
 
-${isBulgarian ? 'Пазарувай сега:' : 'Shop now:'} ${SITE_URL}/shop
+${bg ? 'Пазарувай:' : 'Shop:'} ${SITE_URL}/shop
 
 Just Cases
     `.trim();
@@ -432,160 +661,107 @@ Just Cases
     return { subject, html, text };
   },
 
-  // Newsletter Welcome Email
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEWSLETTER WELCOME
+  // ═══════════════════════════════════════════════════════════════════════════
   newsletterWelcome: (data: {
     email: string;
     language?: 'bg' | 'en';
   }): EmailTemplate => {
-    const isBulgarian = data.language === 'bg';
+    const bg = data.language !== 'en';
     const unsubscribeUrl = getNewsletterUnsubscribeUrl(data.email);
-    
-    const subject = isBulgarian 
-      ? '🎉 Добре дошли в Just Cases бюлетина!' 
-      : '🎉 Welcome to Just Cases Newsletter!';
 
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background: #f4f4f4; margin: 0; padding: 0; }
-    .container { max-width: 600px; margin: 20px auto; background: #fff; border-radius: 8px; overflow: hidden; }
-    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 40px 30px; text-align: center; }
-    .content { padding: 40px 30px; }
-    .benefits { background: #f8f9fa; border-radius: 8px; padding: 25px; margin: 25px 0; }
-    .benefit-item { padding: 12px 0; display: flex; align-items: start; }
-    .benefit-icon { font-size: 24px; margin-right: 12px; }
-    .button { display: inline-block; background: #667eea; color: #fff; padding: 14px 35px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; }
-    .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #666; }
-    .unsubscribe { color: #999; font-size: 11px; margin-top: 15px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1 style="margin: 0; font-size: 32px;">🎉</h1>
-      <h2 style="margin: 10px 0;">${isBulgarian ? 'Добре дошли!' : 'Welcome!'}</h2>
-      <p style="margin: 5px 0; opacity: 0.95;">${isBulgarian ? 'Благодарим, че се абонирахте' : 'Thank you for subscribing'}</p>
-    </div>
-    
-    <div class="content">
-      <p style="font-size: 16px;">
-        ${isBulgarian 
-          ? 'Вече сте част от Just Cases семейството! 🎊' 
-          : 'You\'re now part of the Just Cases family! 🎊'}
-      </p>
-      
-      <p>
-        ${isBulgarian 
-          ? 'Като абонат на нашия бюлетин, ще получавате:' 
-          : 'As a subscriber, you\'ll receive:'}
-      </p>
-      
-      <div class="benefits">
-        <div class="benefit-item">
-          <span class="benefit-icon">✨</span>
-          <div>
-            <strong>${isBulgarian ? 'Ексклузивни отстъпки' : 'Exclusive Discounts'}</strong><br>
-            <span style="color: #666; font-size: 14px;">
-              ${isBulgarian ? 'Специални оферти само за абонати' : 'Special offers only for subscribers'}
-            </span>
-          </div>
-        </div>
-        
-        <div class="benefit-item">
-          <span class="benefit-icon">🚀</span>
-          <div>
-            <strong>${isBulgarian ? 'Нови продукти първи' : 'New Products First'}</strong><br>
-            <span style="color: #666; font-size: 14px;">
-              ${isBulgarian ? 'Бъдете първите, които виждат новите стоки' : 'Be the first to see new arrivals'}
-            </span>
-          </div>
-        </div>
-        
-        <div class="benefit-item">
-          <span class="benefit-icon">🎁</span>
-          <div>
-            <strong>${isBulgarian ? 'Специални промоции' : 'Special Promotions'}</strong><br>
-            <span style="color: #666; font-size: 14px;">
-              ${isBulgarian ? 'Сезонни разпродажби и подаръци' : 'Seasonal sales and gifts'}
-            </span>
-          </div>
-        </div>
-        
-        <div class="benefit-item">
-          <span class="benefit-icon">📱</span>
-          <div>
-            <strong>${isBulgarian ? 'Съвети и новини' : 'Tips & News'}</strong><br>
-            <span style="color: #666; font-size: 14px;">
-              ${isBulgarian ? 'Полезна информация за мобилни аксесоари' : 'Useful info about mobile accessories'}
-            </span>
-          </div>
-        </div>
-      </div>
-      
-      <p style="margin-top: 30px;">
-        ${isBulgarian 
-          ? 'Започнете да разглеждате нашите премиум продукти!' 
-          : 'Start exploring our premium products!'}
-      </p>
-      
-      <center>
-        <a href="${SITE_URL}/shop" class="button">
-          ${isBulgarian ? '🛍️ Разгледай магазина' : '🛍️ Browse Shop'}
-        </a>
-      </center>
-      
-      <p style="margin-top: 35px; padding-top: 25px; border-top: 1px solid #e9ecef; color: #666; font-size: 14px;">
-        ${isBulgarian 
-          ? 'Очаквайте скоро първия ни бюлетин с ексклузивни оферти!' 
-          : 'Expect our first newsletter soon with exclusive offers!'}
-      </p>
-    </div>
-    
-    <div class="footer">
-      <p><strong>Just Cases</strong> - ${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}</p>
-      <p><a href="${SITE_URL}" style="color: #667eea; text-decoration: none;">www.justcases.bg</a></p>
-      
-      <p class="unsubscribe">
-        ${isBulgarian 
-          ? 'Ако желаете да се отпишете:' 
-          : 'To unsubscribe:'}
-        <a href="${unsubscribeUrl}" style="color: #999;">
-          ${isBulgarian ? 'отписване' : 'click here'}
-        </a>
-      </p>
-    </div>
-  </div>
-</body>
-</html>
-    `;
+    const subject = bg
+      ? '🎉 Добре дошли в Just Cases!'
+      : '🎉 Welcome to Just Cases!';
+
+    const html = emailWrapper(`
+      ${heroSection(
+        '👋',
+        bg ? 'Добре дошли!' : 'Welcome!',
+        bg ? 'Вече сте част от Just Cases семейството' : 'You\'re now part of the Just Cases family'
+      )}
+      <tr>
+        <td style="padding:28px 32px 36px;">
+          <p style="margin:0 0 24px;font-size:15px;color:#9ca3af;line-height:1.6;">
+            ${bg
+              ? 'Благодарим, че се абонирахте! Ето какво ви очаква:'
+              : 'Thanks for subscribing! Here\'s what you\'ll get:'}
+          </p>
+
+          ${infoCard(`
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding:10px 0;">
+                  <table role="presentation" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="width:36px;font-size:20px;vertical-align:top;">✨</td>
+                      <td>
+                        <p style="margin:0 0 2px;font-size:15px;font-weight:600;color:#ffffff;">${bg ? 'Ексклузивни отстъпки' : 'Exclusive Discounts'}</p>
+                        <p style="margin:0;font-size:13px;color:#6b7280;">${bg ? 'Специални оферти само за абонати' : 'Special offers only for subscribers'}</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:10px 0;border-top:1px solid rgba(255,255,255,0.06);">
+                  <table role="presentation" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="width:36px;font-size:20px;vertical-align:top;">🚀</td>
+                      <td>
+                        <p style="margin:0 0 2px;font-size:15px;font-weight:600;color:#ffffff;">${bg ? 'Нови продукти първи' : 'New Products First'}</p>
+                        <p style="margin:0;font-size:13px;color:#6b7280;">${bg ? 'Бъдете първите, които виждат новите стоки' : 'Be the first to see new arrivals'}</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:10px 0;border-top:1px solid rgba(255,255,255,0.06);">
+                  <table role="presentation" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="width:36px;font-size:20px;vertical-align:top;">🎁</td>
+                      <td>
+                        <p style="margin:0 0 2px;font-size:15px;font-weight:600;color:#ffffff;">${bg ? 'Промоции и подаръци' : 'Promos & Gifts'}</p>
+                        <p style="margin:0;font-size:13px;color:#6b7280;">${bg ? 'Сезонни разпродажби и изненади' : 'Seasonal sales and surprises'}</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          `)}
+
+          ${ctaButton(
+            bg ? '🛍️ Разгледай магазина' : '🛍️ Browse Shop',
+            `${SITE_URL}/shop`
+          )}
+        </td>
+      </tr>
+    `, { unsubscribeUrl });
 
     const text = `
-${isBulgarian ? 'Добре дошли в Just Cases!' : 'Welcome to Just Cases!'}
+${bg ? 'Добре дошли в Just Cases!' : 'Welcome to Just Cases!'}
 
-${isBulgarian ? 'Благодарим, че се абонирахте за нашия бюлетин!' : 'Thank you for subscribing to our newsletter!'}
+${bg ? 'Благодарим, че се абонирахте!' : 'Thanks for subscribing!'}
 
-${isBulgarian ? 'Като абонат, ще получавате:' : 'As a subscriber, you\'ll receive:'}
+✨ ${bg ? 'Ексклузивни отстъпки' : 'Exclusive Discounts'}
+🚀 ${bg ? 'Нови продукти първи' : 'New Products First'}
+🎁 ${bg ? 'Промоции и подаръци' : 'Promos & Gifts'}
 
-✨ ${isBulgarian ? 'Ексклузивни отстъпки' : 'Exclusive Discounts'}
-🚀 ${isBulgarian ? 'Нови продукти първи' : 'New Products First'}
-🎁 ${isBulgarian ? 'Специални промоции' : 'Special Promotions'}
-📱 ${isBulgarian ? 'Съвети и новини' : 'Tips & News'}
+${bg ? 'Разгледайте:' : 'Browse:'} ${SITE_URL}/shop
+${bg ? 'Отписване:' : 'Unsubscribe:'} ${unsubscribeUrl}
 
-${isBulgarian ? 'Разгледайте магазина:' : 'Browse our shop:'} ${SITE_URL}/shop
-
-${isBulgarian ? 'За отписване:' : 'To unsubscribe:'} ${unsubscribeUrl}
-
-Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}
+Just Cases
     `.trim();
 
     return { subject, html, text };
   },
 
-  // Newsletter Promo Email
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEWSLETTER PROMO
+  // ═══════════════════════════════════════════════════════════════════════════
   newsletterPromo: (data: {
     subject: string;
     message: string;
@@ -595,100 +771,68 @@ Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' 
     expiresAt: Date;
     language?: 'bg' | 'en';
   }): EmailTemplate => {
-    const isBulgarian = data.language === 'bg';
+    const bg = data.language !== 'en';
     const unsubscribeUrl = getNewsletterUnsubscribeUrl(data.email);
-    
+
     const subject = data.subject;
 
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background: #f4f4f4; margin: 0; padding: 0; }
-    .container { max-width: 680px; margin: 24px auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 6px 30px rgba(20,30,60,0.08); }
-    .header { background: linear-gradient(90deg, #667eea, #764ba2); color: #fff; padding: 32px; text-align: center; }
-    .content { padding: 28px; color: #1f2937; line-height: 1.6; }
-    .message { font-size: 18px; margin: 16px 0; white-space: pre-wrap; }
-    .promo-section { text-align: center; margin: 32px 0; padding: 24px; background: linear-gradient(135deg, #667eea10, #764ba220); border-radius: 12px; }
-    .code-box { display: inline-block; background: #f3f4f6; border: 2px dashed #667eea; padding: 16px 24px; border-radius: 8px; font-weight: 700; letter-spacing: 2px; margin: 16px 0; font-size: 24px; color: #667eea; }
-    .cta { display: inline-block; margin-top: 18px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: transform 0.2s; }
-    .cta:hover { transform: scale(1.05); }
-    .footer { background: #f8fafc; padding: 20px; font-size: 13px; color: #6b7280; text-align: center; }
-    .small { font-size: 12px; color: #9ca3af; margin-top: 20px; }
-    .highlight { color: #667eea; font-weight: 600; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1 style="margin: 0; font-size: 28px;">🎉 Just Cases</h1>
-      <div style="opacity: 0.95; margin-top: 8px; font-size: 18px;">${data.subject}</div>
-    </div>
-    
-    <div class="content">
-      <p>${isBulgarian ? 'Здравейте' : 'Hello'},</p>
-      
-      <div class="message">${data.message}</div>
-      
-      <div class="promo-section">
-        <p style="font-size: 16px; margin-bottom: 12px;">
-          ${isBulgarian ? 'Вашият персонален промо код за' : 'Your personal promo code for'}
-          <span class="highlight">${data.discountPercent}% ${isBulgarian ? 'отстъпка' : 'discount'}</span>:
-        </p>
-        <div class="code-box">${data.promoCode}</div>
-        <p style="font-size: 14px; color: #6b7280; margin-top: 12px;">
-          ${isBulgarian ? 'Валиден еднократно до' : 'Valid once until'} 
-          <strong>${new Date(data.expiresAt).toLocaleDateString(isBulgarian ? 'bg-BG' : 'en-US')}</strong>
-        </p>
-      </div>
-      
-      <div style="text-align: center;">
-        <a class="cta" href="${SITE_URL}/shop">
-          ${isBulgarian ? '🛒 Разгледай магазина' : '🛒 Shop Now'}
-        </a>
-      </div>
-      
-      <p class="small">
-        ${isBulgarian ? 'Ако искате да се отпишете, посетете' : 'To unsubscribe, visit'}
-        <a href="${unsubscribeUrl}" style="color: #667eea;">
-          ${isBulgarian ? 'страницата за отписване' : 'unsubscribe page'}
-        </a>.
-      </p>
-    </div>
-    
-    <div class="footer">
-      <p style="margin: 0;">© ${new Date().getFullYear()} Just Cases</p>
-      <p style="margin: 4px 0 0;">${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}</p>
-    </div>
-  </div>
-</body>
-</html>
-    `.trim();
+    const html = emailWrapper(`
+      ${heroSection(
+        '🔥',
+        data.subject,
+        bg ? `${data.discountPercent}% отстъпка с промо код` : `${data.discountPercent}% off with promo code`
+      )}
+      <tr>
+        <td style="padding:28px 32px 36px;">
+          <p style="margin:0 0 20px;font-size:16px;color:#d4d4d8;line-height:1.6;">
+            ${bg ? 'Здравейте' : 'Hello'},
+          </p>
+          <p style="margin:0 0 28px;font-size:15px;color:#9ca3af;line-height:1.6;white-space:pre-wrap;">${data.message}</p>
+
+          <!-- Promo Code Box -->
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+            <tr>
+              <td style="text-align:center;padding:28px;background:linear-gradient(135deg,rgba(20,184,166,0.1) 0%,rgba(139,92,246,0.1) 100%);border:2px dashed #14b8a6;border-radius:12px;">
+                <p style="margin:0 0 4px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">${bg ? 'Промо код' : 'Promo Code'}</p>
+                <p style="margin:0 0 4px;font-size:32px;font-weight:800;color:#14b8a6;letter-spacing:3px;">${data.promoCode}</p>
+                <p style="margin:8px 0 0;font-size:14px;color:#8b5cf6;font-weight:600;">${data.discountPercent}% ${bg ? 'отстъпка' : 'discount'}</p>
+                <p style="margin:8px 0 0;font-size:12px;color:#6b7280;">
+                  ${bg ? 'Валиден до' : 'Valid until'} ${new Date(data.expiresAt).toLocaleDateString(bg ? 'bg-BG' : 'en-US')}
+                </p>
+              </td>
+            </tr>
+          </table>
+
+          ${ctaButton(
+            bg ? '🛒 Пазарувай сега' : '🛒 Shop Now',
+            `${SITE_URL}/shop`
+          )}
+        </td>
+      </tr>
+    `, { unsubscribeUrl });
 
     const text = `
 ${data.subject}
 
-${isBulgarian ? 'Здравейте' : 'Hello'},
+${bg ? 'Здравейте' : 'Hello'},
 
 ${data.message}
 
-${isBulgarian ? 'Вашият код:' : 'Your code:'} ${data.promoCode}
-${data.discountPercent}% ${isBulgarian ? 'отстъпка — валиден до' : 'discount — valid until'} ${new Date(data.expiresAt).toLocaleDateString(isBulgarian ? 'bg-BG' : 'en-US')}
+${bg ? 'Промо код:' : 'Promo code:'} ${data.promoCode}
+${data.discountPercent}% ${bg ? 'отстъпка — валиден до' : 'discount — valid until'} ${new Date(data.expiresAt).toLocaleDateString(bg ? 'bg-BG' : 'en-US')}
 
-${isBulgarian ? 'Пазарувай сега:' : 'Shop now:'} ${SITE_URL}/shop
+${bg ? 'Пазарувай:' : 'Shop:'} ${SITE_URL}/shop
+${bg ? 'Отписване:' : 'Unsubscribe:'} ${unsubscribeUrl}
 
-${isBulgarian ? 'За отписване:' : 'To unsubscribe:'} ${unsubscribeUrl}
-
-Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}
+Just Cases
     `.trim();
 
     return { subject, html, text };
   },
 
-  // Newsletter Update Email
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEWSLETTER UPDATE
+  // ═══════════════════════════════════════════════════════════════════════════
   newsletterUpdate: (data: {
     subject: string;
     message: string;
@@ -698,100 +842,58 @@ Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' 
     ctaUrl?: string;
     language?: 'bg' | 'en';
   }): EmailTemplate => {
-    const isBulgarian = data.language === 'bg';
+    const bg = data.language !== 'en';
     const unsubscribeUrl = getNewsletterUnsubscribeUrl(data.email);
-    
+
     const subject = data.subject;
 
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background: #f4f4f4; margin: 0; padding: 0; }
-    .container { max-width: 680px; margin: 24px auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 6px 30px rgba(20,30,60,0.08); }
-    .header { background: linear-gradient(90deg, #667eea, #764ba2); color: #fff; padding: 32px; text-align: center; }
-    .content { padding: 28px; color: #1f2937; line-height: 1.6; }
-    .message { font-size: 16px; margin: 16px 0; white-space: pre-wrap; }
-    .image-section { margin: 24px 0; text-align: center; }
-    .image-section img { max-width: 100%; height: auto; border-radius: 8px; }
-    .cta { display: inline-block; margin-top: 24px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: transform 0.2s; }
-    .cta:hover { transform: scale(1.05); }
-    .footer { background: #f8fafc; padding: 20px; font-size: 13px; color: #6b7280; text-align: center; }
-    .small { font-size: 12px; color: #9ca3af; margin-top: 20px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1 style="margin: 0; font-size: 28px;">📰 Just Cases</h1>
-      <div style="opacity: 0.95; margin-top: 8px; font-size: 18px;">${isBulgarian ? 'Новини и актуализации' : 'News & Updates'}</div>
-    </div>
-    
-    <div class="content">
-      <h2 style="color: #667eea; margin-top: 0;">${data.subject}</h2>
-      
-      <p>${isBulgarian ? 'Здравейте' : 'Hello'},</p>
-      
-      <div class="message">${data.message}</div>
-      
-      ${data.imageUrl ? `
-        <div class="image-section">
-          <img src="${data.imageUrl}" alt="${data.subject}" />
-        </div>
-      ` : ''}
-      
-      ${data.ctaText && data.ctaUrl ? `
-        <div style="text-align: center; margin: 32px 0;">
-          <a class="cta" href="${data.ctaUrl}">
-            ${data.ctaText}
-          </a>
-        </div>
-      ` : ''}
-      
-      <p style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
-        ${isBulgarian ? 'Благодарим, че сте част от общността на Just Cases!' : 'Thank you for being part of the Just Cases community!'}
-      </p>
-      
-      <p class="small">
-        ${isBulgarian ? 'Ако искате да се отпишете, посетете' : 'To unsubscribe, visit'}
-        <a href="${unsubscribeUrl}" style="color: #667eea;">
-          ${isBulgarian ? 'страницата за отписване' : 'unsubscribe page'}
-        </a>.
-      </p>
-    </div>
-    
-    <div class="footer">
-      <p style="margin: 0;">© ${new Date().getFullYear()} Just Cases</p>
-      <p style="margin: 4px 0 0;">${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}</p>
-    </div>
-  </div>
-</body>
-</html>
-    `.trim();
+    const html = emailWrapper(`
+      ${heroSection(
+        '📰',
+        data.subject,
+        bg ? 'Новини и актуализации' : 'News & Updates'
+      )}
+      <tr>
+        <td style="padding:28px 32px 36px;">
+          <p style="margin:0 0 20px;font-size:16px;color:#d4d4d8;line-height:1.6;">
+            ${bg ? 'Здравейте' : 'Hello'},
+          </p>
+          <p style="margin:0 0 24px;font-size:15px;color:#9ca3af;line-height:1.6;white-space:pre-wrap;">${data.message}</p>
+
+          ${data.imageUrl ? `
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+            <tr>
+              <td style="border-radius:12px;overflow:hidden;">
+                <img src="${data.imageUrl}" alt="${data.subject}" width="536" style="display:block;width:100%;height:auto;border-radius:12px;" />
+              </td>
+            </tr>
+          </table>` : ''}
+
+          ${data.ctaText && data.ctaUrl ? ctaButton(data.ctaText, data.ctaUrl) : ''}
+        </td>
+      </tr>
+    `, { unsubscribeUrl });
 
     const text = `
 ${data.subject}
 
-${isBulgarian ? 'Здравейте' : 'Hello'},
+${bg ? 'Здравейте' : 'Hello'},
 
 ${data.message}
 
 ${data.ctaText && data.ctaUrl ? `${data.ctaText}: ${data.ctaUrl}` : ''}
 
-${isBulgarian ? 'Благодарим, че сте част от общността на Just Cases!' : 'Thank you for being part of the Just Cases community!'}
+${bg ? 'Отписване:' : 'Unsubscribe:'} ${unsubscribeUrl}
 
-${isBulgarian ? 'За отписване:' : 'To unsubscribe:'} ${unsubscribeUrl}
-
-Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}
+Just Cases
     `.trim();
 
     return { subject, html, text };
   },
 
-  // Newsletter Product Launch Email
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEWSLETTER PRODUCT LAUNCH
+  // ═══════════════════════════════════════════════════════════════════════════
   newsletterProductLaunch: (data: {
     productName: string;
     productDescription: string;
@@ -802,336 +904,89 @@ Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' 
     launchDiscount?: number;
     language?: 'bg' | 'en';
   }): EmailTemplate => {
-    const isBulgarian = data.language === 'bg';
-    const currency = isBulgarian ? '€' : 'BGN';
+    const bg = data.language !== 'en';
+    const currency = bg ? '€' : 'BGN';
     const unsubscribeUrl = getNewsletterUnsubscribeUrl(data.email);
-    
-    const subject = isBulgarian 
-      ? `🚀 Нов продукт: ${data.productName}!`
-      : `🚀 New Product Launch: ${data.productName}!`;
 
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background: #f4f4f4; margin: 0; padding: 0; }
-    .container { max-width: 680px; margin: 24px auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 6px 30px rgba(20,30,60,0.08); }
-    .header { background: linear-gradient(90deg, #667eea, #764ba2); color: #fff; padding: 32px; text-align: center; }
-    .content { padding: 28px; color: #1f2937; line-height: 1.6; }
-    .product-section { background: #f9fafb; border-radius: 12px; padding: 24px; margin: 24px 0; }
-    .product-image { width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin: 0 auto 20px; display: block; }
-    .product-title { font-size: 24px; font-weight: 700; color: #111827; margin: 0 0 12px; }
-    .product-description { font-size: 16px; color: #4b5563; margin: 12px 0; }
-    .price-section { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 20px 0; }
-    .original-price { font-size: 18px; color: #9ca3af; text-decoration: line-through; }
-    .current-price { font-size: 28px; font-weight: 700; color: #667eea; }
-    .discount-badge { display: inline-block; background: #ef4444; color: white; padding: 6px 12px; border-radius: 6px; font-size: 14px; font-weight: 600; }
-    .cta { display: inline-block; margin-top: 20px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: transform 0.2s; }
-    .cta:hover { transform: scale(1.05); }
-    .features { list-style: none; padding: 0; margin: 20px 0; }
-    .features li { padding: 8px 0; padding-left: 28px; position: relative; }
-    .features li:before { content: "✓"; position: absolute; left: 0; color: #10b981; font-weight: bold; font-size: 18px; }
-    .footer { background: #f8fafc; padding: 20px; font-size: 13px; color: #6b7280; text-align: center; }
-    .small { font-size: 12px; color: #9ca3af; margin-top: 20px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1 style="margin: 0; font-size: 28px;">🚀 ${isBulgarian ? 'Ново в Just Cases' : 'New at Just Cases'}</h1>
-      <div style="opacity: 0.95; margin-top: 8px; font-size: 18px;">
-        ${isBulgarian ? 'Ексклузивен продукт за вас!' : 'Exclusive Product for You!'}
-      </div>
-    </div>
-    
-    <div class="content">
-      <p>${isBulgarian ? 'Здравейте' : 'Hello'},</p>
-      
-      <p style="font-size: 18px; font-weight: 500;">
-        ${isBulgarian 
-          ? 'Развълнувани сме да представим нашия най-нов продукт!' 
-          : 'We\'re excited to introduce our latest product!'}
-      </p>
-      
-      <div class="product-section">
-        <img src="${data.productImage}" alt="${data.productName}" class="product-image" />
-        
-        <h2 class="product-title">${data.productName}</h2>
-        
-        <p class="product-description">${data.productDescription}</p>
-        
-        <div class="price-section">
-          ${data.launchDiscount ? `
-            <span class="original-price">${(data.productPrice / (1 - data.launchDiscount / 100)).toFixed(2)} ${currency}</span>
-            <span class="current-price">${data.productPrice.toFixed(2)} ${currency}</span>
-            <span class="discount-badge">-${data.launchDiscount}%</span>
-          ` : `
-            <span class="current-price">${data.productPrice.toFixed(2)} ${currency}</span>
-          `}
-        </div>
-        
-        ${data.launchDiscount ? `
-          <p style="text-align: center; color: #ef4444; font-weight: 600; margin: 16px 0;">
-            ⚡ ${isBulgarian ? 'Специална цена при лансиране!' : 'Special Launch Price!'}
+    const subject = bg
+      ? `🚀 Нов продукт: ${data.productName}!`
+      : `🚀 New: ${data.productName}!`;
+
+    const html = emailWrapper(`
+      ${heroSection(
+        '🚀',
+        bg ? 'Нов продукт!' : 'New Product Launch!',
+        bg ? 'Ексклузивно за нашите абонати' : 'Exclusive for our subscribers'
+      )}
+      <tr>
+        <td style="padding:28px 32px 36px;">
+          <p style="margin:0 0 20px;font-size:16px;color:#d4d4d8;line-height:1.6;">
+            ${bg ? 'Здравейте' : 'Hello'},
           </p>
-        ` : ''}
-        
-        <div style="text-align: center;">
-          <a class="cta" href="${data.productUrl}">
-            ${isBulgarian ? '🛒 Разгледай продукта' : '🛒 View Product'}
-          </a>
-        </div>
-      </div>
-      
-      <p style="margin-top: 24px;">
-        ${isBulgarian 
-          ? 'Бъдете сред първите, които ще притежават този невероятен продукт!' 
-          : 'Be among the first to own this amazing product!'}
-      </p>
-      
-      <p class="small" style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
-        ${isBulgarian ? 'Ако искате да се отпишете, посетете' : 'To unsubscribe, visit'}
-        <a href="${unsubscribeUrl}" style="color: #667eea;">
-          ${isBulgarian ? 'страницата за отписване' : 'unsubscribe page'}
-        </a>.
-      </p>
-    </div>
-    
-    <div class="footer">
-      <p style="margin: 0;">© ${new Date().getFullYear()} Just Cases</p>
-      <p style="margin: 4px 0 0;">${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}</p>
-    </div>
-  </div>
-</body>
-</html>
-    `.trim();
+          <p style="margin:0 0 24px;font-size:15px;color:#9ca3af;line-height:1.6;">
+            ${bg
+              ? 'Развълнувани сме да ви представим нашия най-нов продукт!'
+              : 'We\'re excited to introduce our latest product!'}
+          </p>
+
+          ${infoCard(`
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="text-align:center;padding-bottom:20px;">
+                  <img src="${data.productImage}" alt="${data.productName}" width="300" style="display:block;margin:0 auto;max-width:300px;height:auto;border-radius:12px;" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#ffffff;">${data.productName}</h2>
+                  <p style="margin:0 0 20px;font-size:14px;color:#9ca3af;line-height:1.5;">${data.productDescription}</p>
+                  <table role="presentation" cellpadding="0" cellspacing="0">
+                    <tr>
+                      ${data.launchDiscount ? `
+                        <td style="padding-right:12px;">
+                          <span style="font-size:16px;color:#6b7280;text-decoration:line-through;">${(data.productPrice / (1 - data.launchDiscount / 100)).toFixed(2)} ${currency}</span>
+                        </td>` : ''}
+                      <td>
+                        <span style="font-size:24px;font-weight:700;color:#14b8a6;">${data.productPrice.toFixed(2)} ${currency}</span>
+                      </td>
+                      ${data.launchDiscount ? `
+                        <td style="padding-left:12px;">
+                          <span style="display:inline-block;background:#ef4444;color:#fff;padding:4px 10px;border-radius:6px;font-size:13px;font-weight:600;">-${data.launchDiscount}%</span>
+                        </td>` : ''}
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          `)}
+
+          ${ctaButton(
+            bg ? '🛒 Разгледай продукта' : '🛒 View Product',
+            data.productUrl
+          )}
+        </td>
+      </tr>
+    `, { unsubscribeUrl });
 
     const text = `
-${isBulgarian ? 'Ново в Just Cases!' : 'New at Just Cases!'}
-
-${isBulgarian ? 'Здравейте' : 'Hello'},
-
-${isBulgarian ? 'Представяме ви:' : 'Introducing:'} ${data.productName}
+🚀 ${bg ? 'Нов продукт:' : 'New:'} ${data.productName}
 
 ${data.productDescription}
 
-${isBulgarian ? 'Цена:' : 'Price:'} ${data.productPrice.toFixed(2)} ${currency}${data.launchDiscount ? ` (-${data.launchDiscount}% ${isBulgarian ? 'при лансиране' : 'launch discount'})` : ''}
+${bg ? 'Цена:' : 'Price:'} ${data.productPrice.toFixed(2)} ${currency}${data.launchDiscount ? ` (-${data.launchDiscount}%)` : ''}
 
-${isBulgarian ? 'Разгледайте продукта:' : 'View product:'} ${data.productUrl}
+${bg ? 'Виж:' : 'View:'} ${data.productUrl}
+${bg ? 'Отписване:' : 'Unsubscribe:'} ${unsubscribeUrl}
 
-${isBulgarian ? 'Бъдете сред първите, които ще притежават този невероятен продукт!' : 'Be among the first to own this amazing product!'}
-
-${isBulgarian ? 'За отписване:' : 'To unsubscribe:'} ${unsubscribeUrl}
-
-Just Cases - ${isBulgarian ? 'Премиум мобилни аксесоари' : 'Premium Mobile Accessories'}
-    `.trim();
-
-    return { subject, html, text };
-  },
-
-  // Email Verification
-  emailVerification: (data: {
-    name: string;
-    verificationUrl: string;
-    language?: 'bg' | 'en';
-  }): EmailTemplate => {
-    const isBulgarian = data.language === 'bg';
-    
-    const subject = isBulgarian 
-      ? 'Потвърдете имейл адреса си - Just Cases' 
-      : 'Verify Your Email Address - Just Cases';
-
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background: #f4f4f4; margin: 0; padding: 0; }
-    .container { max-width: 600px; margin: 20px auto; background: #fff; border-radius: 8px; overflow: hidden; }
-    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 30px; text-align: center; }
-    .content { padding: 30px; }
-    .button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff !important; padding: 14px 30px; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: 600; }
-    .link-text { color: #667eea; word-break: break-all; font-size: 14px; }
-    .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #666; }
-    .warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>${isBulgarian ? '🎉 Добре дошли в Just Cases!' : '🎉 Welcome to Just Cases!'}</h1>
-    </div>
-    
-    <div class="content">
-      <p>${isBulgarian ? 'Здравейте' : 'Hi'} ${data.name || (isBulgarian ? 'там' : 'there')},</p>
-      
-      <p>${isBulgarian 
-        ? 'Благодарим Ви, че се регистрирахте в Just Cases! Радваме се, че се присъединихте към нашата общност.' 
-        : 'Thank you for registering with Just Cases! We\'re excited to have you join our community.'}</p>
-      
-      <p>${isBulgarian 
-        ? 'За да завършите регистрацията и да получите пълен достъп за покупка на премиум калъфи за телефон, моля потвърдете имейл адреса си, като кликнете на бутона по-долу:' 
-        : 'To complete your registration and unlock full access to purchase premium phone cases, please verify your email address by clicking the button below:'}</p>
-      
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="${data.verificationUrl}" class="button">
-          ${isBulgarian ? 'Потвърди имейл адреса' : 'Verify Email Address'}
-        </a>
-      </div>
-      
-      <p style="font-size: 14px; color: #666;">
-        ${isBulgarian ? 'Или копирайте и поставете този линк във вашия браузър:' : 'Or copy and paste this link into your browser:'}<br>
-        <a href="${data.verificationUrl}" class="link-text">${data.verificationUrl}</a>
-      </p>
-      
-      <div class="warning">
-        <p style="margin: 0; font-size: 14px;">
-          ⏰ ${isBulgarian 
-            ? 'Този линк ще изтече след 24 часа.' 
-            : 'This link will expire in 24 hours.'}
-        </p>
-      </div>
-      
-      <p style="font-size: 14px; color: #666; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-        ${isBulgarian 
-          ? 'Ако не сте създали акаунт в Just Cases, можете спокойно да игнорирате този имейл.' 
-          : 'If you didn\'t create an account with Just Cases, you can safely ignore this email.'}
-      </p>
-      
-      <p style="margin-top: 30px;">
-        ${isBulgarian ? 'Поздрави' : 'Best regards'},<br>
-        <strong>${isBulgarian ? 'Екипът на Just Cases' : 'The Just Cases Team'}</strong>
-      </p>
-    </div>
-    
-    <div class="footer">
-      <p>© ${new Date().getFullYear()} Just Cases. ${isBulgarian ? 'Всички права запазени.' : 'All rights reserved.'}</p>
-    </div>
-  </div>
-</body>
-</html>
-    `.trim();
-
-    const text = `
-${isBulgarian ? 'Добре дошли в Just Cases!' : 'Welcome to Just Cases!'}
-
-${isBulgarian ? 'Здравейте' : 'Hi'} ${data.name || (isBulgarian ? 'там' : 'there')},
-
-${isBulgarian 
-  ? 'Благодарим Ви, че се регистрирахте в Just Cases! За да завършите регистрацията, моля потвърдете имейл адреса си.' 
-  : 'Thank you for registering with Just Cases! To complete your registration, please verify your email address.'}
-
-${isBulgarian ? 'Линк за потвърждение:' : 'Verification link:'}
-${data.verificationUrl}
-
-${isBulgarian 
-  ? 'Този линк ще изтече след 24 часа. Ако не сте създали акаунт в Just Cases, можете спокойно да игнорирате този имейл.' 
-  : 'This link will expire in 24 hours. If you didn\'t create an account with Just Cases, you can safely ignore this email.'}
-
-${isBulgarian ? 'Поздрави,' : 'Best regards,'}
-${isBulgarian ? 'Екипът на Just Cases' : 'The Just Cases Team'}
-    `.trim();
-
-    return { subject, html, text };
-  },
-
-  // Email Verification Success
-  emailVerificationSuccess: (data: {
-    name: string;
-    language?: 'bg' | 'en';
-  }): EmailTemplate => {
-    const isBulgarian = data.language === 'bg';
-    
-    const subject = isBulgarian 
-      ? '✓ Имейлът е потвърден - Just Cases' 
-      : '✓ Email Verified - Just Cases';
-
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background: #f4f4f4; margin: 0; padding: 0; }
-    .container { max-width: 600px; margin: 20px auto; background: #fff; border-radius: 8px; overflow: hidden; }
-    .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; padding: 30px; text-align: center; }
-    .content { padding: 30px; }
-    .features { background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0; }
-    .features ul { margin: 10px 0; padding-left: 20px; }
-    .features li { margin: 8px 0; }
-    .button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff !important; padding: 14px 30px; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: 600; }
-    .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #666; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>${isBulgarian ? '✓ Имейлът е потвърден!' : '✓ Email Verified!'}</h1>
-    </div>
-    
-    <div class="content">
-      <p>${isBulgarian ? 'Здравейте' : 'Hi'} ${data.name || (isBulgarian ? 'там' : 'there')},</p>
-      
-      <p>${isBulgarian 
-        ? 'Отлични новини! Вашият имейл адрес беше успешно потвърден. Сега имате пълен достъп до всички функции на Just Cases, включително:' 
-        : 'Great news! Your email has been successfully verified. You now have full access to all features on Just Cases, including:'}</p>
-      
-      <div class="features">
-        <ul>
-          <li>${isBulgarian ? 'Разглеждане на нашата колекция от премиум калъфи' : 'Browse our premium phone case collection'}</li>
-          <li>${isBulgarian ? 'Добавяне на артикули в количката и извършване на покупки' : 'Add items to cart and make purchases'}</li>
-          <li>${isBulgarian ? 'Проследяване на вашите поръчки' : 'Track your orders'}</li>
-          <li>${isBulgarian ? 'Оставяне на отзиви и оценки' : 'Leave reviews and ratings'}</li>
-          <li>${isBulgarian ? 'Запазване на артикули в списъка с желания' : 'Save items to your wishlist'}</li>
-        </ul>
-      </div>
-      
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="${SITE_URL}/shop" class="button">
-          ${isBulgarian ? 'Започнете пазаруването' : 'Start Shopping'}
-        </a>
-      </div>
-      
-      <p style="margin-top: 30px;">
-        ${isBulgarian ? 'Поздрави' : 'Best regards'},<br>
-        <strong>${isBulgarian ? 'Екипът на Just Cases' : 'The Just Cases Team'}</strong>
-      </p>
-    </div>
-    
-    <div class="footer">
-      <p>© ${new Date().getFullYear()} Just Cases. ${isBulgarian ? 'Всички права запазени.' : 'All rights reserved.'}</p>
-    </div>
-  </div>
-</body>
-</html>
-    `.trim();
-
-    const text = `
-${isBulgarian ? 'Имейлът е потвърден!' : 'Email Verified!'}
-
-${isBulgarian ? 'Здравейте' : 'Hi'} ${data.name || (isBulgarian ? 'там' : 'there')},
-
-${isBulgarian 
-  ? 'Отлични новини! Вашият имейл адрес беше успешно потвърден. Сега имате пълен достъп до всички функции на Just Cases.' 
-  : 'Great news! Your email has been successfully verified. You now have full access to all features on Just Cases.'}
-
-${isBulgarian ? 'Започнете пазаруването:' : 'Start shopping:'} ${SITE_URL}/shop
-
-${isBulgarian ? 'Поздрави,' : 'Best regards,'}
-${isBulgarian ? 'Екипът на Just Cases' : 'The Just Cases Team'}
+Just Cases
     `.trim();
 
     return { subject, html, text };
   },
 };
 
-// Send email function
+// ─── Send Email Function ────────────────────────────────────────────────────
+
 export async function sendEmail(to: string, template: EmailTemplate) {
   // Try Nodemailer first if configured
   if (EMAIL_PROVIDER === 'nodemailer' && transporter && NODEMAILER_CONFIGURED) {
@@ -1174,11 +1029,11 @@ export async function sendEmail(to: string, template: EmailTemplate) {
   // No email service configured
   console.warn('⚠️ No email service configured. Email would have been sent to:', to);
   console.log('Subject:', template.subject);
-  console.log('Preview URL would be available in production');
   return { success: false, error: 'Email service not configured' };
 }
 
-// Helper functions for common email scenarios
+// ─── Helper Functions ───────────────────────────────────────────────────────
+
 export async function sendOrderConfirmationEmail(
   email: string,
   orderData: Parameters<typeof emailTemplates.orderConfirmation>[0]

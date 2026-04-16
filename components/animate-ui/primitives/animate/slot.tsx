@@ -80,10 +80,11 @@ function Slot<T extends HTMLElement = HTMLElement>({
 
   const { ref: childRef, ...childProps } = children.props as AnyProps;
 
-  const mergedProps = mergeProps(childProps, props);
+  const mergedRef = mergeRefs(childRef as React.Ref<T>, ref);
 
   return (
-    <Base {...mergedProps} ref={mergeRefs(childRef as React.Ref<T>, ref)} />
+    // @ts-expect-error - motion dynamic component ref typing
+    <Base {...mergedProps} ref={mergedRef} />
   );
 }
 

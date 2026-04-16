@@ -23,7 +23,7 @@
     "@auth/prisma-adapter": "^2.11.0",
     "@paypal/checkout-server-sdk": "^1.0.3",
     "@paypal/react-paypal-js": "^8.9.2",
-    "@prisma/client": "^6.17.1",
+    "@prisma/client": "^7.7.0",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-slot": "^1.2.4",
@@ -64,7 +64,7 @@
     "@types/node": "^24.7.1",
     "@types/react": "19.2.4",
     "@types/react-dom": "19.2.3",
-    "prisma": "^6.17.1",
+    "prisma": "^7.7.0",
     "typescript": "^5.9.3"
   },
   "overrides": {

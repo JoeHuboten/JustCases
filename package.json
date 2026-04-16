@@ -20,7 +20,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@auth/prisma-adapter": "^2.11.0",
+    "@auth/prisma-adapter": "^2.11.2",
     "@paypal/checkout-server-sdk": "^1.0.3",
     "@paypal/react-paypal-js": "^8.9.2",
     "@prisma/client": "^6.17.1",
